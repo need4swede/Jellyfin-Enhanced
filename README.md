@@ -11,7 +11,7 @@
 
 You can install the script in one of two ways, depending on your setup:
 
-<centre> --- </centre>
+---
 
 ### **Method 1: Injecting Directly into Jellyfin Web UI (Persistent for All Users)**
 
@@ -36,6 +36,8 @@ You can install the script in one of two ways, depending on your setup:
 
 5. **Clear your browser cache** and **reload the Jellyfin web page**.
 
+<br>
+
 > [!NOTE]
 > Cross-check your jellyfin web path
 
@@ -55,19 +57,13 @@ You can install the script in one of two ways, depending on your setup:
 
 2. **Create a new userscript** in your extension’s dashboard and paste in the contents of the `jellyfin-hotkeys.user.js` script.
 
-3. **Alternatively, use these buttons for quick setup:**
+3. **Alternatively, you can click on Install below to open the script in Tampermonkey:**
 
-![Source](https://img.shields.io/badge/Source-green?link=http://raw.githubusercontent.com/n00bcodr/jellyfin-hotkeys/blob/main/jellyfin-hotkeys.user.js)
-![Install](https://img.shields.io/badge/Install-blue?link=http://raw.githubusercontent.com/n00bcodr/jellyfin-hotkeys/raw/main/jellyfin-hotkeys.user.js)
+[![Source](https://img.shields.io/badge/Source-green)](https://github.com/n00bcodr/Jellyfin-Hotkeys/blob/main/jellyfin-hotkeys.user.js)
+[![Install](https://img.shields.io/badge/Install-blue)](https://github.com/n00bcodr/Jellyfin-Hotkeys/raw/main/jellyfin-hotkeys.user.js)
 
 
 **Done!** The script will now run on Jellyfin’s web interface in that browser.
-
-> 📚 **Need help?** Learn more about userscripts:
->
-> - [StackApps Guide](https://stackapps.com/tags/script/info)
-> - [OpenUserJS Beginner's Guide](https://openuserjs.org/about/Userscript-Beginners-HOWTO)
-> - [Userscripts Mirror FAQ](https://userscripts-mirror.org/about/installing.html)
 
 
 ## 🧪 Tested On
