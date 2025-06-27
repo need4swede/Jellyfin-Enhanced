@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jellyfin Shortcuts (/, A, I, Esc)
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  / = search,  A = aspect-ratio cycle,  I = playback info,  Esc = home
 // @match        *://*/web/*
 // @author       n00bcodr
