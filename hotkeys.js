@@ -52,8 +52,8 @@
             return setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
         }
 
-        /* Esc ? home */
-        if (e.key === 'Escape') {
+        /* Shift+Esc → home */
+        if (e.key === 'Escape' && e.shiftKey) {
             e.preventDefault();
             return (location.href = '/web/#/home.html');
         }
@@ -61,15 +61,15 @@
         if (!isVideoPage()) return; // A & I only on video page
         const k = e.key.toLowerCase();
 
-        /* A ? cycle aspect ratio */
+        /* A → cycle aspect ratio */
         if (k === 'a') {
-            e.preventDefault();
+            e.preventDefault(); e.stopPropagation();
             return openSettings(cycleAspect);
         }
 
-        /* I ? playback info */
+        /* I → playback info */
         if (k === 'i') {
-            e.preventDefault();
+            e.preventDefault(); e.stopPropagation();
             openSettings(() => {
                 document.querySelector('.actionSheetContent button[data-id="stats"]')?.click();
             });
