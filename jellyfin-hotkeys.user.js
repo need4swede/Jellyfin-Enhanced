@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Jellyfin Shortcuts (/, A, I, Esc)
+// @name         Jellyfin Hotkeys
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  / = search,  A = aspect-ratio cycle,  I = playback info,  Esc = home
+// @version      1.2
+// @description  / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu
 // @match        *://*/web/*
 // @author       n00bcodr
 // @grant        none
@@ -16,7 +16,6 @@
     /* ------------ helpers ------------ */
     const isVideoPage = () => location.hash.startsWith('#/video');
     const settingsBtn = () => document.querySelector('button[title="Settings"],button[aria-label="Settings"]');
-    const actionSheetOpen = () => document.querySelector('.actionSheetContent');
 
     const openSettings = (cb) => {
         settingsBtn()?.click();
@@ -56,40 +55,43 @@
     document.addEventListener('keydown', (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-        /* /  → search */
         if (e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey) {
             e.preventDefault();
             document.querySelector('button.headerSearchButton')?.click();
             return setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
         }
 
-        /* Shift+Esc → home */
         if (e.key === 'Escape' && e.shiftKey) {
             e.preventDefault();
             return (location.href = '/web/#/home.html');
         }
 
-        if (!isVideoPage()) return; // A & I only on video page
+        if (!isVideoPage()) return;
         const k = e.key.toLowerCase();
 
-        /* A → cycle aspect ratio */
         if (k === 'a') {
             e.preventDefault(); e.stopPropagation();
             return openSettings(cycleAspect);
         }
 
-        /* I → playback info */
         if (k === 'i') {
             e.preventDefault(); e.stopPropagation();
             openSettings(() => {
                 document.querySelector('.actionSheetContent button[data-id="stats"]')?.click();
             });
         }
+
+        if (k === 's') {
+            e.preventDefault(); e.stopPropagation();
+                document.querySelector('button.btnSubtitles')?.click();
+        }
     });
 
-    /* ------------ auto-pause on tab visibility change ------------ */
+    /* ------------ auto-pause/resume on tab visibility ------------ */
     document.addEventListener('visibilitychange', () => {
         const v = document.querySelector('video');
-        if (document.hidden && v && !v.paused) v.pause();
+        if (!v) return;
+        if (document.hidden && !v.paused) v.pause();
+        else if (!document.hidden && v.paused) v.play();
     });
 })();
