@@ -1,10 +1,11 @@
 # Jellyfin Hotkeys
 
 
-- `/` — Opens search page
+- `?` — Shows the list of Hotkeys
+-  `/` — Opens search page
 - `A` — Cycle through aspect ratios (Auto → Cover → Fill) and displays current mode (only on video page)
 - `I` — Shows playback info (stats overlay) (only on video page)
-- `S` — Shows Subtitle selection menu
+- `S` — Shows Subtitle selection menu (only on video page)
 - `Shift+Esc` — Instantly return to Jellyfin Home Page
 - **Auto-pause** — Pauses and resumes playback when you switch tabs or the tab loses/gains focus
 
