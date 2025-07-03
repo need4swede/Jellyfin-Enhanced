@@ -70,7 +70,7 @@ You can install the script in one of two ways, depending on your setup:
 
 ## 🧪 Tested On
 
-- Jellyfin 10.9.x Web UI
+- Jellyfin 10.10.7 Web UI
 - Chrome + Tampermonkey
 - Firefox + Tampermonkey
 
