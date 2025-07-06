@@ -7,7 +7,8 @@
 - `I` — Shows playback info (stats overlay) (only on video page)
 - `S` — Shows Subtitle selection menu (only on video page)
 - `Shift+Esc` — Instantly return to Jellyfin Home Page
-- **Auto-pause** — Pauses and resumes playback when you switch tabs or the tab loses/gains focus
+- **Auto-pause** — Pauses and resumes playback when you switch tabs or the tab loses/gains focus\
+- Style Subtitles
 
 ## 🔧 Installation
 
@@ -72,8 +73,6 @@ You can install the script in one of two ways, depending on your setup:
 
 - Jellyfin 10.10.7 Web UI
 - Chrome + Tampermonkey
-- Firefox + Tampermonkey
-
 
 ## 📜 License
 
