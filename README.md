@@ -1,5 +1,6 @@
 # Jellyfin Hotkeys
 
+![image](https://github.com/user-attachments/assets/9247ebf0-2bdd-4f26-bc8b-e4023815c211)
 
 - `?` — Shows the list of Hotkeys
 -  `/` — Opens search page
