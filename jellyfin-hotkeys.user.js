@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Jellyfin Shortcuts
+// @name         Jellyfin Hotkeys
 // @namespace    http://tampermonkey.net/
-// @version      1.4.0
-// @description  ? = List Hotkeys, / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu, also style subtitles.
+// @version      2.0
+// @description  ? = List Hotkeys, / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu, C = Cycle Subtitles, V = Cycle Audio Tracks, Auto-pause on tab switch, Auto-resume on tab focus, Enhanced subtitle styles and font presets
 // @match        *://*/web/*
 // @author       n00bcodr
 // @grant        none
@@ -22,57 +22,89 @@
         setTimeout(cb, 120);
     };
 
-    const toast = (txt) => {
+    const toast = (txt, duration = 1400) => {
         const t = document.createElement('div');
         Object.assign(t.style, {
-            position: 'fixed', bottom: '50%', left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 12px',
-            borderRadius: '4px', zIndex: 9999, fontSize: '20px'
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            transform: 'translateX(100%)',
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(40,40,40,0.9))',
+            color: '#fff',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            zIndex: 99999,
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            transition: 'transform 0.3s ease-out',
+            maxWidth: '300px'
         });
         t.textContent = txt;
         document.body.appendChild(t);
-        setTimeout(() => t.remove(), 1400);
+
+        // Slide in
+        setTimeout(() => t.style.transform = 'translateX(0)', 10);
+
+        // Slide out and remove
+        setTimeout(() => {
+            t.style.transform = 'translateX(100%)';
+            setTimeout(() => t.remove(), 300);
+        }, duration);
     };
 
-    /* ------------ Subtitle Style Presets Definition (RGBA Hex) ------------ */
+    /* ------------ Enhanced Subtitle Style Presets ------------ */
     const subtitlePresets = [
         {
-            name: "White Text No Background",
+            name: "Clean White",
             textColor: "#FFFFFFFF",
-            bgColor: "none",
+            bgColor: "transparent",
             previewText: "Aa"
         },
         {
-            name: "White Text Black Background",
+            name: "Classic Black Box",
             textColor: "#FFFFFFFF",
             bgColor: "#000000FF",
             previewText: "Aa"
         },
         {
-            name: "Yellow Text Black Background",
+            name: "Netflix Style",
+            textColor: "#FFFFFFFF",
+            bgColor: "#000000B2",
+            previewText: "Aa"
+        },
+        {
+            name: "Cinema Yellow",
             textColor: "#FFFF00FF",
             bgColor: "#000000B2",
             previewText: "Aa"
         },
         {
-            name: "White Text Gray Background",
+            name: "Soft Gray",
             textColor: "#FFFFFFFF",
             bgColor: "#444444B2",
             previewText: "Aa"
         },
         {
-            name: "Black Text White Background",
+            name: "High Contrast",
             textColor: "#000000FF",
             bgColor: "#FFFFFFFF",
             previewText: "Aa"
         }
     ];
 
-    /* ------------ Font Size Presets Definition ------------ */
+    /* ------------ Enhanced Font Size Presets ------------ */
     const fontSizePresets = [
         {
+            name: "Tiny",
+            size: 0.6,
+            previewText: "Aa"
+        },
+        {
             name: "Small",
-            size: 0.7,
+            size: 0.8,
             previewText: "Aa"
         },
         {
@@ -82,171 +114,286 @@
         },
         {
             name: "Large",
-            size: 1.5,
+            size: 1.3,
+            previewText: "Aa"
+        },
+        {
+            name: "Extra Large",
+            size: 1.6,
             previewText: "Aa"
         }
     ];
 
+    /* ------------ Font Family Presets ------------ */
+    const fontFamilyPresets = [
+        {
+            name: "Default",
+            family: "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
+            previewText: "Aa"
+        },
+        {
+            name: "Noto Sans",
+            family: "Noto Sans,sans-serif",
+            previewText: "Aa"
+        },
+        {
+            name: "Sans Serif",
+            family: "Arial,Helvetica,sans-serif",
+            previewText: "Aa"
+        },
+        {
+            name: "Typewriter",
+            family: "Courier New,Courier,monospace",
+            previewText: "Aa"
+        },
+        {
+            name: "Consolas",
+            family: "Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace",
+            previewText: "Aa"
+        }
+    ];
 
-    /* ------------ subtitle styling function ------------ */
-    const applySubtitleStyles = (textColor, bgColor, fontSize) => {
+    /* ------------ Enhanced subtitle styling ------------ */
+    const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
+        // Target the specific style element that Jellyfin uses  for subtitles
         const styleElement = document.getElementById('htmlvideoplayer-cuestyle');
 
         if (styleElement) {
-            const baseCueStyleProperties = [
-                'font-weight:normal!important',
-                'text-shadow:#000000 0px 0px 7px!important',
-                'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol!important',
-                'font-variant:none!important',
-                'margin-bottom:2.7em!important'
-            ];
-            const baseCueStyle = baseCueStyleProperties.join(';');
+            const baseStyles = [
+                'font-weight: normal !important',
+                'text-shadow: #000000 0px 0px 7px !important',
+                'font-variant: none !important',
+                'margin-bottom: 2.7em !important',
+                'line-height: 1.4 !important',
+                'text-align: center !important'
+            ].join('; ');
 
             styleElement.textContent = `
                 .htmlvideoplayer::cue {
-                    ${baseCueStyle};
-                    background-color: ${bgColor}!important;
-                    color: ${textColor}!important;
-                    font-size: ${fontSize}em!important;
-                }
-            `;
-            console.log(`Successfully updated subtitle styles: text=${textColor}, background=${bgColor}, font-size=${fontSize}em`);
-        } else {
-            console.warn('Could not find #htmlvideoplayer-cuestyle element. Subtitle styles might not apply.');
-            let newStyleElement = document.getElementById('jellyfin-subtitle-styles');
-            if (!newStyleElement) {
-                newStyleElement = document.createElement('style');
-                newStyleElement.id = 'jellyfin-subtitle-styles';
-                document.head.appendChild(newStyleElement);
-            }
-            newStyleElement.textContent = `
-                video::cue, .htmlvideoplayer::cue, ::cue, video > track::cue {
-                    color: ${textColor} !important;
+                    ${baseStyles};
                     background-color: ${bgColor} !important;
-                    font-size: ${fontSize}em!important;
+                    color: ${textColor} !important;
+                    font-size: ${fontSize}em !important;
+                    font-family: ${fontFamily} !important;
                 }
             `;
-            console.log(`Fallback: Injected new style tag for subtitle styles: text=${textColor}, background=${bgColor}, font-size=${fontSize}em`);
+            console.log(`Enhanced subtitle styles applied: text=${textColor}, background=${bgColor}, font-size=${fontSize}em, font-family=${fontFamily}`);
+        } else {
+            // Fallback: create a style element
+            let fallbackStyleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
+            if (!fallbackStyleElement) {
+                fallbackStyleElement = document.createElement('style');
+                fallbackStyleElement.id = 'jellyfin-enhanced-subtitle-styles';
+                document.head.appendChild(fallbackStyleElement);
+            }
+
+            const baseStyles = [
+                'font-weight: normal !important',
+                'text-shadow: #000000 0px 0px 7px !important',
+                'font-variant: none !important',
+                'margin-bottom: 2.7em !important',
+                'line-height: 1.4 !important',
+                'text-align: center !important'
+            ].join('; ');
+
+            fallbackStyleElement.textContent = `
+                .htmlvideoplayer::cue,
+                video::cue,
+                ::cue,
+                video > track::cue {
+                    ${baseStyles};
+                    background-color: ${bgColor} !important;
+                    color: ${textColor} !important;
+                    font-size: ${fontSize}em !important;
+                    font-family: ${fontFamily} !important;
+                    z-index: 999999 !important;
+                    position: relative !important;
+                }
+            `;
+            console.log(`Fallback subtitle styles applied: text=${textColor}, background=${bgColor}, font-size=${fontSize}em, font-family=${fontFamily}`);
         }
     };
 
-    /* ------------ Save/Load Settings ------------ */
+    /* ------------ Settings persistence ------------ */
     const saveSettings = (settings) => {
-        localStorage.setItem('jellyfinCustomSettings', JSON.stringify(settings));
+        try {
+            localStorage.setItem('jellyfinEnhancedSettings', JSON.stringify(settings));
+        } catch (e) {
+            console.error('Failed to save settings:', e);
+        }
     };
 
     const loadSettings = () => {
         try {
-            const settings = JSON.parse(localStorage.getItem('jellyfinCustomSettings'));
-            return settings || {};
+            const settings = JSON.parse(localStorage.getItem('jellyfinEnhancedSettings'));
+            return settings || {
+                autoPauseEnabled: true,
+                autoResumeEnabled: false,
+                selectedStylePresetIndex: 0,
+                selectedFontSizePresetIndex: 2,
+                selectedFontFamilyPresetIndex: 0
+            };
         } catch (e) {
             console.error('Error loading settings:', e);
-            return {};
+            return {
+                autoPauseEnabled: true,
+                autoResumeEnabled: false,
+                selectedStylePresetIndex: 0,
+                selectedFontSizePresetIndex: 2,
+                selectedFontFamilyPresetIndex: 0
+            };
         }
     };
 
-    let currentSettings = loadSettings(); // Load settings when script starts
+    let currentSettings = loadSettings();
 
-    // Function to apply saved styles
+    /* ------------ Apply saved styles ------------ */
     const applySavedStylesWhenReady = () => {
-        // Default to the new "White Text No Background" preset (index 0)
-        const savedStylePresetIndex = currentSettings.selectedStylePresetIndex !== undefined ? currentSettings.selectedStylePresetIndex : 0;
-        // Default to "Normal" font size preset (index 1)
-        const savedFontSizePresetIndex = currentSettings.selectedFontSizePresetIndex !== undefined ? currentSettings.selectedFontSizePresetIndex : 1;
+        const savedStyleIndex = currentSettings.selectedStylePresetIndex ?? 0;
+        const savedFontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
+        const savedFontFamilyIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
 
-        const stylePreset = subtitlePresets[savedStylePresetIndex];
-        const fontSizePreset = fontSizePresets[savedFontSizePresetIndex];
+        const stylePreset = subtitlePresets[savedStyleIndex];
+        const fontSizePreset = fontSizePresets[savedFontSizeIndex];
+        const fontFamilyPreset = fontFamilyPresets[savedFontFamilyIndex];
 
-        if (stylePreset && fontSizePreset) {
+        if (stylePreset && fontSizePreset && fontFamilyPreset) {
             applySubtitleStyles(
                 stylePreset.textColor,
                 stylePreset.bgColor,
-                fontSizePreset.size
-            );
-        } else {
-            console.warn('Saved preset index is invalid or preset not found, applying default presets.');
-            // Fallback to the new "White Text No Background" and "Normal" font size
-            applySubtitleStyles(
-                subtitlePresets[0].textColor,
-                subtitlePresets[0].bgColor,
-                fontSizePresets[1].size
+                fontSizePreset.size,
+                fontFamilyPreset.family
             );
         }
     };
 
-    // Use a MutationObserver to watch for the #htmlvideoplayer-cuestyle element to appear
-    const observer = new MutationObserver((mutationsList, observer) => {
-        if (document.getElementById('htmlvideoplayer-cuestyle')) {
+    /* ------------ Enhanced observers ------------ */
+    const setupStyleObserver = () => {
+        const observer = new MutationObserver(() => {
             applySavedStylesWhenReady();
-            observer.disconnect(); // Disconnect once the element is found and styles applied
-        }
-    });
+        });
 
-    // Start observing the document body for changes
-    observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class']
+        });
 
-    // Also try applying styles immediately in case the element is already there
+        // Also reapply on fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            setTimeout(applySavedStylesWhenReady, 100);
+        });
+    };
+
+    // Initialize observers
+    setupStyleObserver();
     applySavedStylesWhenReady();
 
+    /* ------------ Video control functions ------------ */
+    const getVideo = () => document.querySelector('video');
 
-    /* ------------ Aspect Ratio Cycle Function ------------ */
+    const cycleSubtitleTrack = () => {
+        const video = getVideo();
+        if (!video) return;
+
+        const tracks = [...video.textTracks];
+        if (tracks.length === 0) {
+            toast('❌ No subtitle tracks');
+            return;
+        }
+
+        const currentIndex = tracks.findIndex(track => track.mode === 'showing');
+        const nextIndex = (currentIndex + 1) % (tracks.length + 1);
+
+        // Turn off all tracks
+        tracks.forEach(track => track.mode = 'disabled');
+
+        if (nextIndex < tracks.length) {
+            tracks[nextIndex].mode = 'showing';
+            toast(`📝 Subtitle: ${tracks[nextIndex].label || `Track ${nextIndex + 1}`}`);
+        } else {
+            toast('📝 Subtitles: Off');
+        }
+    };
+
+    const cycleAudioTrack = () => {
+        const video = getVideo();
+        if (!video) return;
+
+        const tracks = [...video.audioTracks || []];
+        if (tracks.length <= 1) {
+            toast('❌ No additional audio tracks');
+            return;
+        }
+
+        const currentIndex = tracks.findIndex(track => track.enabled);
+        const nextIndex = (currentIndex + 1) % tracks.length;
+
+        tracks.forEach((track, index) => {
+            track.enabled = index === nextIndex;
+        });
+
+        toast(`🎵 Audio: ${tracks[nextIndex].label || `Track ${nextIndex + 1}`}`);
+    };
+
+    /* ------------ Aspect Ratio Cycle ------------ */
     const cycleAspect = () => {
         const opts = [...document.querySelectorAll(
             '.actionSheetContent button[data-id="auto"],' +
             '.actionSheetContent button[data-id="cover"],' +
             '.actionSheetContent button[data-id="fill"]'
         )];
+
         if (!opts.length) {
             document.querySelector('.actionSheetContent button[data-id="aspectratio"]')?.click();
             return setTimeout(cycleAspect, 120);
         }
-        const current = opts.findIndex(b => b.querySelector('.check') && b.querySelector('.check').style.visibility !== 'hidden');
+
+        const current = opts.findIndex(b => b.querySelector('.check')?.style.visibility !== 'hidden');
         const next = opts[(current + 1) % opts.length];
         next?.click();
-        toast(next?.textContent.trim());
+        toast(`📐 ${next?.textContent.trim()}`);
     };
 
-    /* ------------ Hotkey Help / Settings Panel ------------ */
+    /* ------------ Enhanced Help Panel ------------ */
     const showHotkeyHelp = () => {
         const panelId = 'hotkeyHelpOverlay';
-        if (document.getElementById(panelId)) {
-             document.getElementById(panelId).remove();
-             return;
+        const existing = document.getElementById(panelId);
+        if (existing) {
+            existing.remove();
+            return;
         }
 
         const help = document.createElement('div');
         help.id = panelId;
         Object.assign(help.style, {
-            position: 'fixed', top: '10%', left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '20px',
-            borderRadius: '12px', zIndex: 9999, fontSize: '16px',
-            backdropFilter: 'blur(15px)',
-            maxWidth: '90%',
-            width: '500px',
-            lineHeight: '1.5',
-            boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-            boxSizing: 'border-box',
-            overflow: 'auto',
-            cursor: 'grab',
-            '--webkit-scrollbar-width': '0px',
-            '--webkit-scrollbar-thumb-background': 'transparent',
-            '--webkit-scrollbar-track-background': 'transparent',
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95))',
+            color: '#fff',
+            padding: '0',
+            borderRadius: '16px',
+            zIndex: 999999,
+            fontSize: '14px',
+            backdropFilter: 'blur(20px)',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            width: '600px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            overflow: 'hidden',
+            cursor: 'grab'
         });
 
-        help.style.cssText += `
-            &::-webkit-scrollbar { width: 0px; height: 0px; }
-            &::-webkit-scrollbar-thumb { background: transparent; }
-            &::-webkit-scrollbar-track { background: transparent; }
-        `;
-
-        // Make draggable
+        // Draggable functionality
         let isDragging = false;
         let offset = { x: 0, y: 0 };
 
-        help.addEventListener('mousedown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('.preset-box')) {
-                return;
-            }
+        const handleMouseDown = (e) => {
+            if (e.target.closest('.preset-box') || e.target.closest('button') || e.target.closest('a') || e.target.closest('details') || e.target.closest('input')) return;
             isDragging = true;
             offset = {
                 x: e.clientX - help.getBoundingClientRect().left,
@@ -254,254 +401,471 @@
             };
             help.style.cursor = 'grabbing';
             e.preventDefault();
-        });
+        };
 
-        document.addEventListener('mousemove', (e) => {
+        const handleMouseMove = (e) => {
             if (!isDragging) return;
             help.style.left = `${e.clientX - offset.x}px`;
             help.style.top = `${e.clientY - offset.y}px`;
-        });
+            help.style.transform = 'none';
+        };
 
-        document.addEventListener('mouseup', () => {
+        const handleMouseUp = () => {
             isDragging = false;
             help.style.cursor = 'grab';
+        };
+
+        help.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        // Prevent scrolling on the help panel from affecting the page
+        help.addEventListener('wheel', (e) => {
+            e.stopPropagation();
         });
 
-        // Generate subtitle style presets HTML
-        let stylePresetsHtml = '';
-        subtitlePresets.forEach((preset, index) => {
-            stylePresetsHtml += `
-                <div class="preset-box style-preset" data-preset-index="${index}" title="${preset.name}" style="
-                    display: flex; justify-content: center; align-items: center; padding: 0px;
-                    border: 0px solid #666;
-                    border-radius: 5px;
-                    cursor: pointer; transition: background-color 0.2s;
-                    background-color: rgba(0,0,0,0.3); height: 40px;
-                ">
-                    <span style="
-                        display: inline-block; width: 40px; height: 25px; border: 1px solid #888; border-radius: 3px;
-                        background-color: ${preset.bgColor}; color: ${preset.textColor};
-                        font-size: 1.0em;
-                        line-height: 25px; text-align: center; font-weight: bold;
-                    ">${preset.previewText}</span>
-                </div>
-            `;
-        });
-
-        // Generate font size presets HTML
-        let fontSizePresetsHtml = '';
-        fontSizePresets.forEach((preset, index) => {
-            fontSizePresetsHtml += `
-                <div class="preset-box font-size-preset" data-preset-index="${index}" title="${preset.name} Font Size" style="
-                    display: flex; justify-content: center; align-items: center; padding: 0px;
-                    border: 0px solid #666;
-                    border-radius: 5px;
-                    cursor: pointer; transition: background-color 0.2s;
-                    background-color: rgba(0,0,0,0.3); height: 40px;
-                ">
-                    <span style="
-                        font-size: ${preset.size * 1.0}em;
-                        line-height: 1;
-                        color: #FFFFFFFF;
+        // Generate preset HTML with proper previews
+        const generatePresetHTML = (presets, type) => {
+            return presets.map((preset, index) => {
+                let previewStyle = '';
+                if (type === 'style') {
+                    previewStyle = `
+                        background-color: ${preset.bgColor};
+                        color: ${preset.textColor};
+                        border: 1px solid rgba(255,255,255,0.3);
                         text-shadow: #000000 0px 0px 3px;
-                    ">${preset.previewText}</span>
-                </div>
-            `;
-        });
+                    `;
+                } else if (type === 'font-size') {
+                    previewStyle = `
+                        font-size: ${preset.size * 1.2}em;
+                        color: #fff;
+                        text-shadow: 0 0 4px rgba(0,0,0,0.8);
+                    `;
+                } else if (type === 'font-family') {
+                    previewStyle = `
+                        font-family: ${preset.family};
+                        color: #fff;
+                        text-shadow: 0 0 4px rgba(0,0,0,0.8);
+                        font-size: 1.1em;
+                    `;
+                }
 
+                return `
+                    <div class="preset-box ${type}-preset" data-preset-index="${index}" title="${preset.name}" style="
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        padding: 8px;
+                        border: 2px solid transparent;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        background: rgba(255,255,255,0.05);
+                        min-height: 50px;
+                    " onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <span style="
+                            display: inline-block;
+                            ${type === 'style' ? `
+                                width: 40px;
+                                height: 25px;
+                                border-radius: 4px;
+                                line-height: 25px;
+                            ` : ''}
+                            ${previewStyle}
+                            text-align: center;
+                            font-weight: bold;
+                        ">${preset.previewText}</span>
+                    </div>
+                `;
+            }).join('');
+        };
 
         help.innerHTML = `
-            <div style="font-size: 1.5em; color: #fff; margin-bottom: 15px; text-align: center;">🪼 <b><u>Jellyfin Shortcuts</u></b></div>
-
-            <table style="width: 100%; border-collapse: collapse; border: 10px solid black margin-bottom: 15px;">
-                <tr><td style="padding-right: 15px;">/</td><td>Open Search Page</td></tr>
-                <tr><td>A</td><td>Cycle aspect ratio</td></tr>
-                <tr><td>I</td><td>Show/hide playback info</td></tr>
-                <tr><td>S</td><td>Show subtitle menu</td></tr>
-                <tr><td>Shift + Esc</td><td>Go to Home</td></tr>
-            </table>
-
-            <details style="margin-top: 10px; border: 1px solid #555; border-radius: 5px; padding: 10px; background: rgba(0, 0, 0, 0.2);">
-                <summary style="font-weight: bold; color: #ddd; padding-bottom: 5px; font-size: 1.1em; cursor: pointer;">Subtitle Settings</summary>
-                <div style="padding-top: 10px;">
-                    <div style="font-weight: bold; color: #ddd; padding-bottom: 5px; text-align: center;">Subtitle Style</div>
-                    <div id="subtitle-style-presets-container" style="
-                        display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px; padding-bottom: 15px;
-                    ">
-                        ${stylePresetsHtml}
-                    </div>
-                    <div style="font-weight: bold; color: #ddd; padding-bottom: 5px; text-align: center; border-top: 1px solid #444; padding-top: 15px;">Font Size</div>
-                    <div id="font-size-presets-container" style="
-                        display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px;
-                    ">
-                        ${fontSizePresetsHtml}
+            <div style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: linear-gradient(135deg, #66b3ff, #4a9eff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    🪼 Jellyfin Enhanced
+                </div>
+            </div>
+            <div style="padding: 20px 24px; max-height: 400px; overflow-y: auto;">
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Global Shortcuts</h3>
+                    <div style="display: grid; gap: 8px; font-size: 14px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">/</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Open search</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + Esc</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Go to home</span>
+                        </div>
                     </div>
                 </div>
-            </details>
 
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Video Player</h3>
+                    <div style="display: grid; gap: 8px; font-size: 14px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">A</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Cycle aspect ratio</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">I</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Show playback info</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">S</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Subtitle menu</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">C</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Cycle subtitle tracks</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">V</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Cycle audio tracks</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div style="margin-top: 15px; font-size: 0.8em; color: #888; text-align: center;">
-                Press <b>?</b> or <b>Esc</b> to close
+                <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);">
+                    <summary style="padding: 16px; font-weight: 600; color: #66b3ff; cursor: pointer; user-select: none;">
+                        ⏯️ Auto-Pause Settings
+                    </summary>
+                    <div style="padding: 0 16px 16px 16px;">
+                        <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #66b3ff;">
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="autoPauseToggle" ${currentSettings.autoPauseEnabled ? 'checked' : ''} style="
+                                    width: 18px;
+                                    height: 18px;
+                                    accent-color: #66b3ff;
+                                    cursor: pointer;
+                                ">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; color: #fff;">Auto-pause</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px;">Automatically pause video when switching tabs</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #a84ade;">
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="autoResumeToggle" ${currentSettings.autoResumeEnabled ? 'checked' : ''} style="
+                                    width: 18px;
+                                    height: 18px;
+                                    accent-color: #a84ade;
+                                    cursor: pointer;
+                                ">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; color: #fff;">Auto-resume</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px;">Automatically resume video when returning to tab</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+
+                <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);">
+                    <summary style="padding: 16px; font-weight: 600; color: #66b3ff; cursor: pointer; user-select: none;">
+                        📝 Subtitle Settings
+                    </summary>
+                    <div style="padding: 0 16px 16px 16px;">
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Style</div>
+                            <div id="subtitle-style-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">
+                                ${generatePresetHTML(subtitlePresets, 'style')}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Size</div>
+                            <div id="font-size-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">
+                                ${generatePresetHTML(fontSizePresets, 'font-size')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Font</div>
+                            <div id="font-family-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">
+                                ${generatePresetHTML(fontFamilyPresets, 'font-family')}
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
-            <div style="margin-top: 15px; text-align: center; border-top: 1px solid #444; padding-top: 15px;">
-                <a href="https://github.com/n00bcodr/Jellyfin-hotkeys" target="_blank" style="color:#66b3ff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9em;">
-                    <svg height="20" viewBox="0 0 24 24" width="20" aria-hidden="true" fill="#ffffff">
+
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
+                    Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">?</kbd> or <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">Esc</kbd> to close
+                </div>
+                <a href="https://github.com/n00bcodr/Jellyfin-hotkeys" target="_blank" style="
+                    color: #66b3ff;
+                    text-decoration: none;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 12px;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    background: rgba(102, 179, 255, 0.1);
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='rgba(102, 179, 255, 0.1)'">
+                    <svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor">
                         <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
                     </svg>
                     Contribute or Suggest
                 </a>
             </div>
-            <button id="closeSettingsPanel" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">&times;</button>
+
+            <button id="closeSettingsPanel" style="
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                background: rgba(255,255,255,0.1);
+                border: none;
+                color: #fff;
+                font-size: 16px;
+                cursor: pointer;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
         `;
 
         document.body.appendChild(help);
 
-        // Define a function to close the help panel
+        // Auto-close after 10 seconds
+        const autoCloseTimer = setTimeout(() => {
+            if (document.getElementById(panelId)) {
+                help.remove();
+                document.removeEventListener('keydown', closeHelp);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.addEventListener('keydown', hotkeyListener);
+            }
+        }, 10000);
+
+        // Setup auto-pause settings handlers
+        const autoPauseToggle = document.getElementById('autoPauseToggle');
+        const autoResumeToggle = document.getElementById('autoResumeToggle');
+
+        autoPauseToggle.addEventListener('change', (e) => {
+            currentSettings.autoPauseEnabled = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`Auto-pause ${e.target.checked ? 'enabled' : 'disabled'}`);
+        });
+
+        autoResumeToggle.addEventListener('change', (e) => {
+            currentSettings.autoResumeEnabled = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`Auto-resume ${e.target.checked ? 'enabled' : 'disabled'}`);
+        });
+
+        // Auto-scroll to any section when opened
+        const allDetails = help.querySelectorAll('details');
+        allDetails.forEach((details, index) => {
+            details.addEventListener('toggle', () => {
+                if (details.open) {
+                    setTimeout(() => {
+                        // Scroll to auto-pause section (first details) or subtitle section (second details)
+                        if (index === 0) {
+                            // Auto-pause section
+                            details.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        } else if (index === 1) {
+                            // Subtitle section
+                            details.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest'
+                            });
+                        }
+                    }, 150);
+                }
+            });
+        });
+
+        // Close handlers
         const closeHelp = (ev) => {
             if ((ev.type === 'keydown' && (ev.key === 'Escape' || ev.key === '?' || (ev.shiftKey && ev.key === '/'))) ||
                 (ev.type === 'click' && ev.target.id === 'closeSettingsPanel')) {
+                clearTimeout(autoCloseTimer);
                 help.remove();
                 document.removeEventListener('keydown', closeHelp);
-                document.addEventListener('keydown', hotkeyListener); // Re-add main hotkey listener
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.addEventListener('keydown', hotkeyListener);
             }
         };
 
         document.addEventListener('keydown', closeHelp);
-        const closeBtn = document.getElementById('closeSettingsPanel');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeHelp);
-        }
-
+        document.getElementById('closeSettingsPanel').addEventListener('click', closeHelp);
         document.removeEventListener('keydown', hotkeyListener);
 
-        // Attach click listeners to subtitle style preset boxes
-        const stylePresetContainer = document.getElementById('subtitle-style-presets-container');
-        if (stylePresetContainer) {
-            stylePresetContainer.addEventListener('click', (e) => {
-                const presetBox = e.target.closest('.style-preset');
-                if (presetBox) {
-                    const presetIndex = parseInt(presetBox.dataset.presetIndex, 10);
-                    const selectedStylePreset = subtitlePresets[presetIndex];
+        // Setup preset handlers
+        const setupPresetHandlers = (containerId, presets, type) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-                    if (selectedStylePreset) {
-                        currentSettings.selectedStylePresetIndex = presetIndex; // Save selected index
-                        saveSettings(currentSettings);
-                        // Apply with current font size
-                        const currentFontSizePresetIndex = currentSettings.selectedFontSizePresetIndex !== undefined ? currentSettings.selectedFontSizePresetIndex : 1;
-                        const currentFontSize = fontSizePresets[currentFontSizePresetIndex].size;
+            container.addEventListener('click', (e) => {
+                const presetBox = e.target.closest(`.${type}-preset`);
+                if (!presetBox) return;
 
-                        applySubtitleStyles(
-                            selectedStylePreset.textColor,
-                            selectedStylePreset.bgColor,
-                            currentFontSize
-                        );
-                        toast(`Style applied!`);
-                        document.querySelectorAll('.style-preset').forEach(box => {
-                            box.style.border = '0px solid #666'; // Reset to no border
-                        });
-                        presetBox.style.border = '2px solid #66b3ff'; // Highlight
+                const presetIndex = parseInt(presetBox.dataset.presetIndex, 10);
+                const selectedPreset = presets[presetIndex];
+
+                if (selectedPreset) {
+                    if (type === 'style') {
+                        currentSettings.selectedStylePresetIndex = presetIndex;
+                        const fontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
+                        const fontFamilyIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
+                        const fontSize = fontSizePresets[fontSizeIndex].size;
+                        const fontFamily = fontFamilyPresets[fontFamilyIndex].family;
+                        applySubtitleStyles(selectedPreset.textColor, selectedPreset.bgColor, fontSize, fontFamily);
+                        toast(`🎨 ${selectedPreset.name} Applied`);
+                    } else if (type === 'font-size') {
+                        currentSettings.selectedFontSizePresetIndex = presetIndex;
+                        const styleIndex = currentSettings.selectedStylePresetIndex ?? 0;
+                        const fontFamilyIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
+                        const stylePreset = subtitlePresets[styleIndex];
+                        const fontFamily = fontFamilyPresets[fontFamilyIndex].family;
+                        applySubtitleStyles(stylePreset.textColor, stylePreset.bgColor, selectedPreset.size, fontFamily);
+                        toast(`📏 ${selectedPreset.name} Size Applied`);
+                    } else if (type === 'font-family') {
+                        currentSettings.selectedFontFamilyPresetIndex = presetIndex;
+                        const styleIndex = currentSettings.selectedStylePresetIndex ?? 0;
+                        const fontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
+                        const stylePreset = subtitlePresets[styleIndex];
+                        const fontSize = fontSizePresets[fontSizeIndex].size;
+                        applySubtitleStyles(stylePreset.textColor, stylePreset.bgColor, fontSize, selectedPreset.family);
+                        toast(`🔤 ${selectedPreset.name} Font Applied`);
                     }
+
+                    saveSettings(currentSettings);
+
+                    // Update visual selection
+                    container.querySelectorAll('.preset-box').forEach(box => {
+                        box.style.border = '2px solid transparent';
+                    });
+                    presetBox.style.border = '2px solid #66b3ff';
                 }
             });
 
-            // Highlight the currently active style preset when the panel opens
-            const savedStylePresetIndex = currentSettings.selectedStylePresetIndex !== undefined ? currentSettings.selectedStylePresetIndex : 0; // Default to 0 (White Text No Background)
-            const activeStylePresetBox = stylePresetContainer.querySelector(`[data-preset-index="${savedStylePresetIndex}"]`);
-            if (activeStylePresetBox) {
-                activeStylePresetBox.style.border = '2px solid #66b3ff';
+            // Highlight current selection
+            let currentIndex;
+            if (type === 'style') {
+                currentIndex = currentSettings.selectedStylePresetIndex ?? 0;
+            } else if (type === 'font-size') {
+                currentIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
+            } else if (type === 'font-family') {
+                currentIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
             }
-        }
 
-        // Attach click listeners to font size preset boxes
-        const fontSizePresetContainer = document.getElementById('font-size-presets-container');
-        if (fontSizePresetContainer) {
-            fontSizePresetContainer.addEventListener('click', (e) => {
-                const presetBox = e.target.closest('.font-size-preset');
-                if (presetBox) {
-                    const presetIndex = parseInt(presetBox.dataset.presetIndex, 10);
-                    const selectedFontSizePreset = fontSizePresets[presetIndex];
-
-                    if (selectedFontSizePreset) {
-                        currentSettings.selectedFontSizePresetIndex = presetIndex; // Save selected index
-                        saveSettings(currentSettings);
-                        // Apply with current style colors
-                        const currentStylePresetIndex = currentSettings.selectedStylePresetIndex !== undefined ? currentSettings.selectedStylePresetIndex : 0;
-                        const currentStylePreset = subtitlePresets[currentStylePresetIndex];
-
-                        applySubtitleStyles(
-                            currentStylePreset.textColor,
-                            currentStylePreset.bgColor,
-                            selectedFontSizePreset.size
-                        );
-                        toast(`Style applied!`);
-                        document.querySelectorAll('.font-size-preset').forEach(box => {
-                            box.style.border = '0px solid #666'; // Reset to no border
-                        });
-                        presetBox.style.border = '2px solid #66b3ff'; // Highlight
-                    }
-                }
-            });
-
-            // Highlight the currently active font size preset when the panel opens
-            const savedFontSizePresetIndex = currentSettings.selectedFontSizePresetIndex !== undefined ? currentSettings.selectedFontSizePresetIndex : 1; // Default to Normal
-            const activeFontSizePresetBox = fontSizePresetContainer.querySelector(`[data-preset-index="${savedFontSizePresetIndex}"]`);
-            if (activeFontSizePresetBox) {
-                activeFontSizePresetBox.style.border = '2px solid #66b3ff';
+            const activeBox = container.querySelector(`[data-preset-index="${currentIndex}"]`);
+            if (activeBox) {
+                activeBox.style.border = '2px solid #66b3ff';
             }
-        }
+        };
+
+        setupPresetHandlers('subtitle-style-presets-container', subtitlePresets, 'style');
+        setupPresetHandlers('font-size-presets-container', fontSizePresets, 'font-size');
+        setupPresetHandlers('font-family-presets-container', fontFamilyPresets, 'font-family');
     };
 
-
-    /* ------------ hotkeys ------------ */
+    /* ------------ Enhanced hotkeys ------------ */
     const hotkeyListener = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
+        // Global hotkeys
         if (e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey) {
             e.preventDefault();
             document.querySelector('button.headerSearchButton')?.click();
-            return setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
+            setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
+            return;
         }
+
         if (e.key === 'Escape' && e.shiftKey) {
             e.preventDefault();
-            return (location.href = '/web/#/home.html');
+            location.href = '/web/#/home.html';
+            return;
         }
 
         if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             showHotkeyHelp();
             return;
         }
 
+        // Video page specific hotkeys
         if (!isVideoPage()) return;
+
         const k = e.key.toLowerCase();
 
-        if (k === 'a') {
-            e.preventDefault(); e.stopPropagation();
-            return openSettings(cycleAspect);
+        // Prevent default for video hotkeys
+        const videoHotkeys = ['a', 'i', 's', 'c', 'v'];
+        if (videoHotkeys.includes(k)) {
+            e.preventDefault();
+            e.stopPropagation();
         }
 
-        if (k === 'i') {
-            e.preventDefault(); e.stopPropagation();
-            openSettings(() => {
-                document.querySelector('.actionSheetContent button[data-id="stats"]')?.click();
-            });
-        }
-
-        if (k === 's') {
-            e.preventDefault(); e.stopPropagation();
-                document.querySelector('button.btnSubtitles')?.click();
+        switch (k) {
+            case 'a':
+                openSettings(cycleAspect);
+                break;
+            case 'i':
+                openSettings(() => {
+                    document.querySelector('.actionSheetContent button[data-id="stats"]')?.click();
+                });
+                break;
+            case 's':
+                // Check if subtitle menu is already open
+                const existingActionSheet = document.querySelector('.actionSheetContent');
+                if (existingActionSheet) {
+                    // Close existing action sheet first
+                    document.body.click();
+                    setTimeout(() => {
+                        document.querySelector('button.btnSubtitles')?.click();
+                    }, 100);
+                } else {
+                    document.querySelector('button.btnSubtitles')?.click();
+                }
+                break;
+            case 'c':
+                cycleSubtitleTrack();
+                break;
+            case 'v':
+                cycleAudioTrack();
+                break;
         }
     };
 
     document.addEventListener('keydown', hotkeyListener);
 
-
-    /* ------------ auto-pause/resume on tab visibility ------------ */
+    /* ------------ Enhanced auto-pause/resume with settings ------------ */
     document.addEventListener('visibilitychange', () => {
-        const v = document.querySelector('video');
-        if (!v) return;
-        if (document.hidden && !v.paused) v.pause();
-        else if (!document.hidden && v.paused) v.play();
+        const video = getVideo();
+        if (!video) return;
+
+        if (document.hidden && !video.paused && currentSettings.autoPauseEnabled) {
+            video.pause();
+            video.dataset.wasPlayingBeforeHidden = 'true';
+        } else if (!document.hidden && video.paused && video.dataset.wasPlayingBeforeHidden === 'true' && currentSettings.autoResumeEnabled) {
+            video.play();
+            delete video.dataset.wasPlayingBeforeHidden;
+        }
+    });
+
+    // Also show on hash change to video page
+    window.addEventListener('hashchange', () => {
+        setTimeout(() => {
+            if (isVideoPage() && document.querySelector('video')) {
+                // Page changed to video - no additional setup needed
+            }
+        }, 1000);
     });
 
 })();
