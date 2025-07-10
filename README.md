@@ -7,23 +7,25 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 ## ✨ Features
 
 ### ⌨️ Keyboard Shortcuts
-- `?` — Shows the enhanced settings panel with all hotkeys and customization options
-- `/` — Opens search page
-- `A` — Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback
-- `I` — Shows playback info (stats overlay) (video page only)
-- `S` — Shows subtitle selection menu (video page only)
-- `C` — Cycle through subtitle tracks quickly (video page only)
-- `V` — Cycle through audio tracks (video page only)
-- `Shift+Esc` — Instantly return to Jellyfin Home Page
+| Key           | Action                                                                 | Context       |
+|---------------|------------------------------------------------------------------------|---------------|
+| `?`           | Shows the enhanced settings panel with all hotkeys and customization options | Global        |
+| `/`           | Opens search page                                                      | Global        |
+| `Shift + Esc` | Instantly return to Jellyfin Home Page                                 | Global        |
+| `A`           | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video player  |
+| `I`           | Shows playback info (stats overlay)                                    | Video player  |
+| `S`           | Shows subtitle selection menu                                          | Video player  |
+| `C`           | Cycle through subtitle tracks quickly                                  | Video player  |
+| `V`           | Cycle through audio tracks                                             | Video player  |
 
-### 📝 Advanced Subtitle Customization
+
+### 📝 Subtitle Settings
 - **6 Style Presets**: Clean White, Classic Black Box, Netflix Style, Cinema Yellow, Soft Gray, High Contrast
 - **5 Font Sizes**: Tiny, Small, Normal, Large, Extra Large
 - **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Consolas
-- **Live Preview**: See changes instantly with visual preview boxes
-- **Persistent Settings**: Your preferences are saved automatically
+- **Persistent Settings**: All settings are automatically saved and will persist across sessions
 
-### ⏯️ Smart Auto-Pause System
+### ⏯️ Smart Auto-Pause/Resume
 - **Configurable Auto-Pause**: Automatically pause when switching tabs or losing focus
 - **Optional Auto-Resume**: Choose whether to resume playback when returning to the tab
 
@@ -101,33 +103,6 @@ You can install the script in one of below ways:
    - Save and enable the script
 
 ---
-
-## 🎮 Usage Guide
-
-### Getting Started
-1. Navigate to any Jellyfin page and press `?` to open the settings panel
-2. On a video page, customize subtitle styles, fonts, and auto-pause behavior to your preference
-3. All settings are automatically saved and will persist across sessions
-
-### Keyboard Shortcuts Quick Reference
-| Key | Action | Context |
-|-----|--------|---------|
-| `?` | Open settings panel | Global |
-| `/` | Open search | Global |
-| `Shift + Esc` | Go to home | Global |
-| `A` | Cycle aspect ratio | Video player |
-| `I` | Show playback info | Video player |
-| `S` | Subtitle menu | Video player |
-| `C` | Cycle subtitle tracks | Video player |
-| `V` | Cycle audio tracks | Video player |
-
-### Customization Options
-- **Subtitle Styles**: Choose from 6 carefully crafted presets
-- **Font Sizes**: 5 size options from tiny to extra large
-- **Font Families**: 5 different typefaces for optimal readability
-- **Auto-Pause**: Enable/disable automatic pausing when tab loses focus
-- **Auto-Resume**: Choose whether to resume playback automatically
-
 
 ## 🧪 Compatibility
 
