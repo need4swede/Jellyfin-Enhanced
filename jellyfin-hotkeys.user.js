@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jellyfin Hotkeys
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.1
 // @description  ? = List Hotkeys, / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu, C = Cycle Subtitles, V = Cycle Audio Tracks, Auto-pause on tab switch, Auto-resume on tab focus, Enhanced subtitle styles and font presets
 // @match        *://*/web/*
 // @author       n00bcodr
@@ -12,6 +12,24 @@
 
 (function () {
     'use strict';
+
+    /* ------------ Hide the settings button on desktop ------------ */
+    const injectCustomStyles = () => {
+        const styleId = 'jellyfin-hotkeys-styles';
+        if (document.getElementById(styleId)) return;
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+             .layout-desktop #enhancedSettingsBtn {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    };
+
+    // Inject the custom CSS rules when the script loads.
+    injectCustomStyles();
+
 
     /* ------------ helpers ------------ */
     const isVideoPage = () => location.hash.startsWith('#/video');
@@ -57,160 +75,89 @@
 
     /* ------------ Enhanced Subtitle Style Presets ------------ */
     const subtitlePresets = [
-        {
-            name: "Clean White",
-            textColor: "#FFFFFFFF",
-            bgColor: "transparent",
-            previewText: "Aa"
-        },
-        {
-            name: "Classic Black Box",
-            textColor: "#FFFFFFFF",
-            bgColor: "#000000FF",
-            previewText: "Aa"
-        },
-        {
-            name: "Netflix Style",
-            textColor: "#FFFFFFFF",
-            bgColor: "#000000B2",
-            previewText: "Aa"
-        },
-        {
-            name: "Cinema Yellow",
-            textColor: "#FFFF00FF",
-            bgColor: "#000000B2",
-            previewText: "Aa"
-        },
-        {
-            name: "Soft Gray",
-            textColor: "#FFFFFFFF",
-            bgColor: "#444444B2",
-            previewText: "Aa"
-        },
-        {
-            name: "High Contrast",
-            textColor: "#000000FF",
-            bgColor: "#FFFFFFFF",
-            previewText: "Aa"
-        }
+        { name: "Clean White", textColor: "#FFFFFFFF", bgColor: "transparent", previewText: "Aa" },
+        { name: "Classic Black Box", textColor: "#FFFFFFFF", bgColor: "#000000FF", previewText: "Aa" },
+        { name: "Netflix Style", textColor: "#FFFFFFFF", bgColor: "#000000B2", previewText: "Aa" },
+        { name: "Cinema Yellow", textColor: "#FFFF00FF", bgColor: "#000000B2", previewText: "Aa" },
+        { name: "Soft Gray", textColor: "#FFFFFFFF", bgColor: "#444444B2", previewText: "Aa" },
+        { name: "High Contrast", textColor: "#000000FF", bgColor: "#FFFFFFFF", previewText: "Aa" }
     ];
 
     /* ------------ Enhanced Font Size Presets ------------ */
     const fontSizePresets = [
-        {
-            name: "Tiny",
-            size: 0.6,
-            previewText: "Aa"
-        },
-        {
-            name: "Small",
-            size: 0.8,
-            previewText: "Aa"
-        },
-        {
-            name: "Normal",
-            size: 1.0,
-            previewText: "Aa"
-        },
-        {
-            name: "Large",
-            size: 1.3,
-            previewText: "Aa"
-        },
-        {
-            name: "Extra Large",
-            size: 1.6,
-            previewText: "Aa"
-        }
+        { name: "Tiny", size: 0.6, previewText: "Aa" },
+        { name: "Small", size: 0.8, previewText: "Aa" },
+        { name: "Normal", size: 1.0, previewText: "Aa" },
+        { name: "Large", size: 1.3, previewText: "Aa" },
+        { name: "Extra Large", size: 1.6, previewText: "Aa" }
     ];
 
     /* ------------ Font Family Presets ------------ */
     const fontFamilyPresets = [
-        {
-            name: "Default",
-            family: "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif",
-            previewText: "Aa"
-        },
-        {
-            name: "Noto Sans",
-            family: "Noto Sans,sans-serif",
-            previewText: "Aa"
-        },
-        {
-            name: "Sans Serif",
-            family: "Arial,Helvetica,sans-serif",
-            previewText: "Aa"
-        },
-        {
-            name: "Typewriter",
-            family: "Courier New,Courier,monospace",
-            previewText: "Aa"
-        },
-        {
-            name: "Consolas",
-            family: "Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace",
-            previewText: "Aa"
-        }
+        { name: "Default", family: "inherit", previewText: "AaBb" },
+        { name: "Noto Sans", family: "Noto Sans,sans-serif", previewText: "AaBb" },
+        { name: "Sans Serif", family: "Arial,Helvetica,sans-serif", previewText: "AaBb" },
+        { name: "Typewriter", family: "Courier New,Courier,monospace", previewText: "AaBb" },
+        { name: "Roboto", family: "Roboto Mono,monospace", previewText: "AaBb" }
     ];
 
     /* ------------ Enhanced subtitle styling ------------ */
     const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
-        // Target the specific style element that Jellyfin uses  for subtitles
-        const styleElement = document.getElementById('htmlvideoplayer-cuestyle');
+        let styleElement = document.getElementById('htmlvideoplayer-cuestyle');
+        let isFallback = false;
 
-        if (styleElement) {
-            const baseStyles = [
-                'font-weight: normal !important',
-                'text-shadow: #000000 0px 0px 7px !important',
-                'font-variant: none !important',
-                'margin-bottom: 2.7em !important',
-                'line-height: 1.4 !important',
-                'text-align: center !important'
-            ].join('; ');
-
-            styleElement.textContent = `
-                .htmlvideoplayer::cue {
-                    ${baseStyles};
-                    background-color: ${bgColor} !important;
-                    color: ${textColor} !important;
-                    font-size: ${fontSize}em !important;
-                    font-family: ${fontFamily} !important;
-                }
-            `;
-            console.log(`Enhanced subtitle styles applied: text=${textColor}, background=${bgColor}, font-size=${fontSize}em, font-family=${fontFamily}`);
-        } else {
-            // Fallback: create a style element
-            let fallbackStyleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
-            if (!fallbackStyleElement) {
-                fallbackStyleElement = document.createElement('style');
-                fallbackStyleElement.id = 'jellyfin-enhanced-subtitle-styles';
-                document.head.appendChild(fallbackStyleElement);
+        // Find the primary style element or create a fallback
+        if (!styleElement) {
+            styleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
+            if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.id = 'jellyfin-enhanced-subtitle-styles';
+                document.head.appendChild(styleElement);
             }
+            isFallback = true;
+        }
 
-            const baseStyles = [
-                'font-weight: normal !important',
-                'text-shadow: #000000 0px 0px 7px !important',
-                'font-variant: none !important',
-                'margin-bottom: 2.7em !important',
-                'line-height: 1.4 !important',
-                'text-align: center !important'
-            ].join('; ');
+        const sheet = styleElement.sheet;
+        if (!sheet) return;
 
-            fallbackStyleElement.textContent = `
-                .htmlvideoplayer::cue,
-                video::cue,
-                ::cue,
-                video > track::cue {
-                    ${baseStyles};
+        const selectors = isFallback
+            ? ['.htmlvideoplayer::cue', 'video::cue', '::cue', 'video > track::cue']
+            : ['.htmlvideoplayer::cue'];
+
+        let ruleFound = false;
+
+        // Iterate through existing rules and modify them
+        for (const rule of sheet.cssRules) {
+            if (selectors.includes(rule.selectorText)) {
+                rule.style.setProperty('background-color', bgColor, 'important');
+                rule.style.setProperty('color', textColor, 'important');
+                rule.style.setProperty('font-size', `${fontSize}em`, 'important');
+                rule.style.setProperty('font-family', fontFamily, 'important');
+                ruleFound = true;
+            }
+        }
+
+        // If no rule was found, insert a new one
+        if (!ruleFound) {
+            const newRule = `
+                ${selectors.join(', ')} {
                     background-color: ${bgColor} !important;
                     color: ${textColor} !important;
                     font-size: ${fontSize}em !important;
                     font-family: ${fontFamily} !important;
-                    z-index: 999999 !important;
-                    position: relative !important;
+                    /* Add sensible defaults if creating the rule from scratch */
+                    font-weight: normal !important;
+                    text-shadow: #000000 0px 0px 7px !important;
+                    margin-bottom: 2.7em !important;
+                    line-height: 1.4 !important;
+                    text-align: center !important;
                 }
             `;
-            console.log(`Fallback subtitle styles applied: text=${textColor}, background=${bgColor}, font-size=${fontSize}em, font-family=${fontFamily}`);
+            try {
+                sheet.insertRule(newRule, sheet.cssRules.length);
+            } catch (e) {
+                console.error("Failed to insert CSS rule:", e);
+            }
         }
     };
 
@@ -266,23 +213,63 @@
             );
         }
     };
+   /* ------------ Add OSD Button for Mobile ------------ */
+    const addOsdSettingsButton = () => {
+        if (document.getElementById('enhancedSettingsBtn')) return;
 
+        const controlsContainer = document.querySelector('.videoOsdBottom .buttons.focuscontainer-x');
+        if (!controlsContainer) return;
+
+        const nativeSettingsButton = controlsContainer.querySelector('.btnVideoOsdSettings');
+        if (!nativeSettingsButton) return;
+
+        const enhancedSettingsBtn = document.createElement('button');
+        enhancedSettingsBtn.id = 'enhancedSettingsBtn';
+        enhancedSettingsBtn.setAttribute('is', 'paper-icon-button-light');
+        enhancedSettingsBtn.className = 'autoSize paper-icon-button-light';
+        enhancedSettingsBtn.title = 'Jellyfin Enhanced';
+        enhancedSettingsBtn.innerHTML = '<span class="largePaperIconButton material-icons" aria-hidden="true">tune</span>';
+
+        enhancedSettingsBtn.onclick = (e) => {
+            e.stopPropagation();
+            showHotkeyHelp();
+        };
+
+        nativeSettingsButton.parentElement.insertBefore(enhancedSettingsBtn, nativeSettingsButton);
+    };
     /* ------------ Enhanced observers ------------ */
     const setupStyleObserver = () => {
+        let isApplyingStyles = false;
+
         const observer = new MutationObserver(() => {
-            applySavedStylesWhenReady();
+            // Prevent recursive style applications
+            if (!isApplyingStyles) {
+                isApplyingStyles = true;
+                setTimeout(() => {
+                    applySavedStylesWhenReady();
+                    isApplyingStyles = false;
+                }, 100);
+            }
+
+        // Add OSD button if it's not present
+            if (isVideoPage()) {
+                addOsdSettingsButton();
+            }
         });
 
         observer.observe(document.body, {
             childList: true,
             subtree: true,
-            attributes: true,
-            attributeFilter: ['class']
+            attributes: false  // Disable attribute observation to reduce excessive triggers
         });
 
         // Also reapply on fullscreen changes
         document.addEventListener('fullscreenchange', () => {
-            setTimeout(applySavedStylesWhenReady, 100);
+            setTimeout(() => {
+                if (!isApplyingStyles) {
+                    applySavedStylesWhenReady();
+                }
+            }, 200);
         });
     };
 
@@ -446,7 +433,7 @@
                         font-family: ${preset.family};
                         color: #fff;
                         text-shadow: 0 0 4px rgba(0,0,0,0.8);
-                        font-size: 1.1em;
+                        font-size: 1.5em;
                     `;
                 }
 
@@ -488,7 +475,7 @@
             </div>
             <div style="padding: 20px 24px; max-height: 400px; overflow-y: auto;">
                 <div style="margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Global Shortcuts</h3>
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Global</h3>
                     <div style="display: grid; gap: 8px; font-size: 14px;">
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">/</kbd></span>
@@ -669,20 +656,7 @@
             details.addEventListener('toggle', () => {
                 if (details.open) {
                     setTimeout(() => {
-                        // Scroll to auto-pause section (first details) or subtitle section (second details)
-                        if (index === 0) {
-                            // Auto-pause section
-                            details.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-                        } else if (index === 1) {
-                            // Subtitle section
-                            details.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'nearest'
-                            });
-                        }
+                        details.scrollIntoView({ behavior: 'smooth', block: index === 0 ? 'center' : 'nearest' });
                     }, 150);
                 }
             });
@@ -822,7 +796,14 @@
                 });
                 break;
             case 's':
-                // Check if subtitle menu is already open
+                // Check if subtitle menu is already open by looking for subtitle-specific content
+                const existingSubtitleSheet = document.querySelector('.actionSheetContent h1.actionSheetTitle');
+                if (existingSubtitleSheet && existingSubtitleSheet.textContent === 'Subtitles') {
+                    // Subtitle menu is already open, don't open it again
+                    return;
+                }
+
+                // Check if any other action sheet is open
                 const existingActionSheet = document.querySelector('.actionSheetContent');
                 if (existingActionSheet) {
                     // Close existing action sheet first
