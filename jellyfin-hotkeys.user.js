@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Jellyfin Hotkeys
 // @namespace    http://tampermonkey.net/
-// @version      2.1
-// @description  ? = List Hotkeys, / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu, C = Cycle Subtitles, V = Cycle Audio Tracks, Auto-pause on tab switch, Auto-resume on tab focus, Enhanced subtitle styles and font presets
+// @version      2.2
+// @description  ? = List Hotkeys, / = search,  A = aspect-ratio cycle,  I = playback info,  Shift+Esc = home, S = Subtitle Menu, C = Cycle Subtitles, V = Cycle Audio Tracks, D = Dashboard, Q = Quick Connect, Auto-Pause/Resume settings, Enhanced Subtitle Styles, Font Size and Family presets.
 // @match        *://*/web/*
 // @author       n00bcodr
 // @grant        none
@@ -145,12 +145,6 @@
                     color: ${textColor} !important;
                     font-size: ${fontSize}em !important;
                     font-family: ${fontFamily} !important;
-                    /* Add sensible defaults if creating the rule from scratch */
-                    font-weight: normal !important;
-                    text-shadow: #000000 0px 0px 7px !important;
-                    margin-bottom: 2.7em !important;
-                    line-height: 1.4 !important;
-                    text-align: center !important;
                 }
             `;
             try {
@@ -468,12 +462,30 @@
         };
 
         help.innerHTML = `
-            <div style="padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div style="padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: linear-gradient(135deg, #66b3ff, #4a9eff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     🪼 Jellyfin Enhanced
                 </div>
             </div>
-            <div style="padding: 20px 24px; max-height: 400px; overflow-y: auto;">
+            <div style="display: flex; flex-direction: column; height: calc(90vh - 120px);">
+                <div style="
+                    padding: 20px 20px;
+                    flex: 1;
+                    overflow-y: auto;
+                    background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.05) 95%, rgba(255,255,255,0.1) 100%);
+                    position: relative;
+                ">
+                    <!-- Scroll indicator -->
+                    <div style="
+                        position: absolute;
+                        top: 0;
+                        right: 8px;
+                        width: 4px;
+                        height: 100%;
+                        background: linear-gradient(to bottom, transparent, rgba(102, 179, 255, 0.3), transparent);
+                        border-radius: 2px;
+                        pointer-events: none;
+                    "></div>
                 <div style="margin-bottom: 24px;">
                     <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Global</h3>
                     <div style="display: grid; gap: 8px; font-size: 14px;">
@@ -485,10 +497,17 @@
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + Esc</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Go to home</span>
                         </div>
-                    </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">D</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Go to dashboard</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Q</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Quick Connect</span>
+                        </div>
                 </div>
 
-                <div style="margin-bottom: 24px;">
+                <div style="margin-top: 12px; margin-bottom: 24px;">
                     <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Video Player</h3>
                     <div style="display: grid; gap: 8px; font-size: 14px;">
                         <div style="display: flex; justify-content: space-between;">
@@ -577,35 +596,38 @@
                         </div>
                     </div>
                 </details>
+
+                </div>
+
             </div>
 
-            <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
-                    Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">?</kbd> or <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">Esc</kbd> to close
-                </div>
-                <a href="https://github.com/n00bcodr/Jellyfin-hotkeys" target="_blank" style="
-                    color: #66b3ff;
-                    text-decoration: none;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 12px;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    background: rgba(102, 179, 255, 0.1);
-                    transition: background 0.2s;
-                " onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='rgba(102, 179, 255, 0.1)'">
-                    <svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor">
-                        <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
-                    </svg>
-                    Contribute or Suggest
-                </a>
+            <div style="padding: 24px; border-top: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95)); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
+                        Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">?</kbd> or <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">Esc</kbd> to close
+                    </div>
+                    <a href="https://github.com/n00bcodr/Jellyfin-hotkeys" target="_blank" style="
+                        color: #66b3ff;
+                        text-decoration: none;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        font-size: 12px;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        background: rgba(102, 179, 255, 0.1);
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='rgba(102, 179, 255, 0.1)'">
+                        <svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor">
+                            <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
+                        </svg>
+                        Contribute or Suggest
+                    </a>
             </div>
 
             <button id="closeSettingsPanel" style="
                 position: absolute;
-                top: 12px;
-                right: 12px;
+                top: 24px;
+                right: 24px;
                 background: rgba(255,255,255,0.1);
                 border: none;
                 color: #fff;
@@ -758,12 +780,28 @@
             e.preventDefault();
             document.querySelector('button.headerSearchButton')?.click();
             setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
+            toast('🔍 Search');
             return;
         }
 
         if (e.key === 'Escape' && e.shiftKey) {
             e.preventDefault();
             location.href = '/web/#/home.html';
+            toast('🏠 Home');
+            return;
+        }
+
+        if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
+            location.href = '/web/#/dashboard';
+            toast('📊 Dashboard');
+            return;
+        }
+
+        if (e.key.toLowerCase() === 'q' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
+            location.href = '/web/#/quickconnect';
+            toast('🔗 Quick Connect');
             return;
         }
 

@@ -9,14 +9,16 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 ### ⌨️ Keyboard Shortcuts
 | Key           | Action                                                                 | Context       |
 |---------------|------------------------------------------------------------------------|---------------|
-| `?`           | Shows the enhanced settings panel with all hotkeys and customization options | Global        |
+| `?`           | Shows the settings panel with all hotkeys and customization options    | Global        |
 | `/`           | Opens search page                                                      | Global        |
 | `Shift + Esc` | Instantly return to Jellyfin Home Page                                 | Global        |
-| `A`           | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video player  |
-| `I`           | Shows playback info (stats overlay)                                    | Video player  |
-| `S`           | Shows subtitle selection menu                                          | Video player  |
-| `C`           | Cycle through subtitle tracks quickly                                  | Video player  |
-| `V`           | Cycle through audio tracks                                             | Video player  |
+| `D`           | Go to Dashboard                                                        | Global        |
+| `Q`           | Go to Quick Connect                                                    | Global        |
+| `A`           | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
+| `I`           | Shows playback info (stats overlay)                                    | Video Player  |
+| `S`           | Shows subtitle selection menu                                          | Video Player  |
+| `C`           | Cycle through subtitle tracks quickly                                  | Video Player  |
+| `V`           | Cycle through audio tracks                                             | Video Player  |
 
 
 ### 📝 Subtitle Settings
@@ -107,7 +109,8 @@ You can install the script in one of below ways:
 ## 🧪 Compatibility
 
 **Tested and Verified:**
-- Jellyfin 10.10.x Web UI
+- Jellyfin 10.10.x Web UI and official Jellyfin Mobile Application
+- Jellyfin 10.11.0 Web UI and official Jellyfin Mobile Application
 - Chrome/Chromium browsers + Tampermonkey
 - Firefox + Violentmonkey/Greasemonkey
 
