@@ -11,13 +11,13 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 |---------------|------------------------------------------------------------------------|---------------|
 | `?`           | Shows the settings panel with all hotkeys and customization options    | Global        |
 | `/`           | Opens search page                                                      | Global        |
-| `Shift + Esc` | Instantly return to Jellyfin Home Page                                 | Global        |
+| `Shift + Esc` | Go to Jellyfin Home Page                                               | Global        |
 | `D`           | Go to Dashboard                                                        | Global        |
 | `Q`           | Go to Quick Connect                                                    | Global        |
 | `A`           | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
 | `I`           | Shows playback info (stats overlay)                                    | Video Player  |
 | `S`           | Shows subtitle selection menu                                          | Video Player  |
-| `C`           | Cycle through subtitle tracks quickly                                  | Video Player  |
+| `C`           | Cycle through subtitle tracks                                          | Video Player  |
 | `V`           | Cycle through audio tracks                                             | Video Player  |
 
 
@@ -30,6 +30,12 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 ### ⏯️ Smart Auto-Pause/Resume
 - **Configurable Auto-Pause**: Automatically pause when switching tabs or losing focus
 - **Optional Auto-Resume**: Choose whether to resume playback when returning to the tab
+
+### 🔄 Update System
+- **Automatic Update Check**: Checks for updates every 24 hours.
+- **Manual Update Check**: Use the "Check Updates" button in settings
+- **Update Notifications**: Update notifications with options to view latest script or release notes
+- **Version Management**: Tracks current version and compares with latest GitHub releases
 
 
 ## 🔧 Installation
@@ -57,13 +63,15 @@ You can install the script in one of below ways:
 
 3. **Add the script reference before the closing `</head>` tag:**
    ```html
-   <script defer src="hotkeys.js"></script>
+   <script defer src="jf_enhanced.js"></script>
    ```
 
-4. **Download the enhanced script:**
+4. **Download the script:**
    ```bash
-   curl -o /usr/share/jellyfin/web/hotkeys.js https://raw.githubusercontent.com/n00bcodr/jellyfin-hotkeys/main/hotkeys.js
+   curl -o /usr/share/jellyfin/web/jf_enhanced.js https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js
    ```
+   > [!Warning]
+   > If you are coming from using hotkeys.js, please remove hotkeys.js from your webroot. Apologies for the inconvenience!
 
 5. **Clear browser cache and reload Jellyfin**
 
@@ -78,7 +86,7 @@ You can install the script in one of below ways:
 
 2. Navigate to **Dashboard -> Plugins -> Custom JavaScript**
 
-3. Paste the contents of `hotkeys.js` into the text area
+3. Paste the contents of `jf_enhanced.js` into the text area
 
 4. Restart Jellyfin
 
@@ -97,7 +105,10 @@ You can install the script in one of below ways:
 
 2. **Install the script:**
 
-   [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Hotkeys/raw/main/jellyfin-hotkeys.user.js)
+   [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/main/jf_enhanced.user.js)
+
+   > [!Warning]
+   > If you are coming from using hotkeys.js, please remove hotkeys.js from your userscripts. Apologies for the inconvenience!
 
 3. **Alternative manual installation:**
    - Create a new userscript in your extension
@@ -114,6 +125,9 @@ You can install the script in one of below ways:
 - Chrome/Chromium browsers + Tampermonkey
 - Firefox + Violentmonkey/Greasemonkey
 
+## 📸 Screenshots
+
+![Update Notification](update.png)
 
 ## 📄 License
 
@@ -127,6 +141,6 @@ MIT License - free to use, modify, and distribute.
 
 ⭐ Star the repository | 🐛 Report issues | 💡 Suggest features
 
-[GitHub Repository](https://github.com/n00bcodr/Jellyfin-hotkeys) • [Latest Release](https://github.com/n00bcodr/Jellyfin-hotkeys/releases)
+[GitHub Repository](https://github.com/n00bcodr/Jellyfin-Enhanced) • [Latest Release](https://github.com/n00bcodr/Jellyfin-Enhanced/releases)
 
 </div>
