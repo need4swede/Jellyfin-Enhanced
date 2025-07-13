@@ -443,11 +443,32 @@
 
     /* ------------ Video control functions ------------ */
     const getVideo = () => document.querySelector('video');
+
     const cycleSubtitleTrack = () => {
-        // This function finds the subtitle menu and clicks the next available option.
+        // This function finds the subtitle menu and clicks the next available option. (There is probably a much better way to do this, but for the love of god, I cannot figure it out.)
         const performCycle = () => {
-            // Selector for all subtitle options in the menu
-            const subtitleOptions = document.querySelectorAll('.actionSheetContent .listItem[data-index]');
+            // Step 1: Get all list items in the action sheet using a general selector.
+            const allItems = document.querySelectorAll('.actionSheetContent .listItem');
+
+            if (allItems.length === 0) {
+                toast('❌ No subtitle options found.');
+                document.body.click();
+                return;
+            }
+
+            // Step 2: Filter the items to get only the actual, selectable subtitle tracks.
+            const subtitleOptions = Array.from(allItems).filter(item => {
+                const textElement = item.querySelector('.listItemBodyText');
+                if (!textElement) return false; // Ignore if it has no text.
+
+                const text = textElement.textContent.trim();
+                // Exclude Secondary Subtitles from the list.
+                if (text === 'Secondary Subtitles') return false;
+
+                // Return true if the item has text and is not a secondary subtitle.
+                return true;
+            });
+
             if (subtitleOptions.length === 0) {
                 toast('❌ No subtitle options found.');
                 // Close the now-empty menu
@@ -455,6 +476,7 @@
                 return;
             }
 
+            // Step 3: Find the currently selected subtitle by looking for the checkmark icon.
             let currentIndex = -1;
             // Find the currently selected subtitle by looking for the checkmark icon
             subtitleOptions.forEach((option, index) => {
@@ -465,7 +487,7 @@
                 }
             });
 
-            // Calculate the next index, wrapping around to the start
+            // Step 4: Calculate the next index and click the corresponding option.
             const nextIndex = (currentIndex + 1) % subtitleOptions.length;
             const nextOption = subtitleOptions[nextIndex];
 
@@ -487,7 +509,7 @@
         } else {
             // If any other menu is open, close it first before opening the subtitle menu
             if (document.querySelector('.actionSheetContent')) {
-                document.body.click(); // Click away to close the current menu
+                document.body.click();
             }
             // Click the main subtitle button in the player controls
             document.querySelector('button.btnSubtitles')?.click();

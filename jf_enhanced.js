@@ -431,26 +431,76 @@
     const getVideo = () => document.querySelector('video');
 
     const cycleSubtitleTrack = () => {
-        const video = getVideo();
-        if (!video) return;
+        // This function finds the subtitle menu and clicks the next available option. (There is probably a much better way to do this, but for the love of god, I cannot figure it out.)
+        const performCycle = () => {
+            // Step 1: Get all list items in the action sheet using a general selector.
+            const allItems = document.querySelectorAll('.actionSheetContent .listItem');
 
-        const tracks = [...video.textTracks];
-        if (tracks.length === 0) {
-            toast('❌ No subtitle tracks');
-            return;
-        }
+            if (allItems.length === 0) {
+                toast('❌ No subtitle options found.');
+                document.body.click();
+                return;
+            }
 
-        const currentIndex = tracks.findIndex(track => track.mode === 'showing');
-        const nextIndex = (currentIndex + 1) % (tracks.length + 1);
+            // Step 2: Filter the items to get only the actual, selectable subtitle tracks.
+            const subtitleOptions = Array.from(allItems).filter(item => {
+                const textElement = item.querySelector('.listItemBodyText');
+                if (!textElement) return false; // Ignore if it has no text.
 
-        // Turn off all tracks
-        tracks.forEach(track => track.mode = 'disabled');
+                const text = textElement.textContent.trim();
+                // Exclude Secondary Subtitles from the list.
+                if (text === 'Secondary Subtitles') return false;
 
-        if (nextIndex < tracks.length) {
-            tracks[nextIndex].mode = 'showing';
-            toast(`📝 Subtitle: ${tracks[nextIndex].label || `Track ${nextIndex + 1}`}`);
+                // Return true if the item has text and is not a secondary subtitle.
+                return true;
+            });
+
+            if (subtitleOptions.length === 0) {
+                toast('❌ No subtitle options found.');
+                // Close the now-empty menu
+                document.body.click();
+                return;
+            }
+
+            // Step 3: Find the currently selected subtitle by looking for the checkmark icon.
+            let currentIndex = -1;
+            // Find the currently selected subtitle by looking for the checkmark icon
+            subtitleOptions.forEach((option, index) => {
+                const checkIcon = option.querySelector('.listItemIcon.check');
+                // Check if the icon exists and is visible
+                if (checkIcon && getComputedStyle(checkIcon).visibility !== 'hidden') {
+                    currentIndex = index;
+                }
+            });
+
+            // Step 4: Calculate the next index and click the corresponding option.
+            const nextIndex = (currentIndex + 1) % subtitleOptions.length;
+            const nextOption = subtitleOptions[nextIndex];
+
+            if (nextOption) {
+                // Click the next subtitle option
+                nextOption.click();
+                // Show a confirmation toast with the name of the selected subtitle
+                const subtitleName = nextOption.querySelector('.listItemBodyText').textContent.trim();
+                toast(`📝 Subtitle: ${subtitleName}`);
+            }
+        };
+
+        // Check if the subtitle menu is already open by looking for its title
+        const subtitleMenuTitle = Array.from(document.querySelectorAll('.actionSheetContent .actionSheetTitle')).find(el => el.textContent === 'Subtitles');
+
+        if (subtitleMenuTitle) {
+            // If the menu is already open, just cycle the options
+            performCycle();
         } else {
-            toast('📝 Subtitles: Off');
+            // If any other menu is open, close it first before opening the subtitle menu
+            if (document.querySelector('.actionSheetContent')) {
+                document.body.click();
+            }
+            // Click the main subtitle button in the player controls
+            document.querySelector('button.btnSubtitles')?.click();
+            // Wait a moment for the menu to open, then perform the cycle
+            setTimeout(performCycle, 200);
         }
     };
 
