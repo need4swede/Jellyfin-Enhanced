@@ -7,18 +7,23 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 ## ✨ Features
 
 ### ⌨️ Keyboard Shortcuts
-| Key           | Action                                                                 | Context       |
-|---------------|------------------------------------------------------------------------|---------------|
-| `?`           | Shows the settings panel with all hotkeys and customization options    | Global        |
-| `/`           | Opens search page                                                      | Global        |
-| `Shift + Esc` | Go to Jellyfin Home Page                                               | Global        |
-| `D`           | Go to Dashboard                                                        | Global        |
-| `Q`           | Go to Quick Connect                                                    | Global        |
-| `A`           | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
-| `I`           | Shows playback info (stats overlay)                                    | Video Player  |
-| `S`           | Shows subtitle selection menu                                          | Video Player  |
-| `C`           | Cycle through subtitle tracks                                          | Video Player  |
-| `V`           | Cycle through audio tracks                                             | Video Player  |
+
+| Key              | Action                                                                 | Context       |
+|------------------|------------------------------------------------------------------------|---------------|
+| `?`              | Shows the settings panel with all hotkeys and customization options     | Global        |
+| `/`              | Opens search page                                                      | Global        |
+| `Shift + Esc`    | Go to Jellyfin Home Page                                               | Global        |
+| `D`              | Go to Dashboard                                                        | Global        |
+| `Q`              | Go to Quick Connect                                                    | Global        |
+| Hold `Shift + B` | Clear all Bookmarks                                                    | Global        |
+|------------------|------------------------------------------------------------------------|---------------|
+| `A`              | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
+| `I`              | Shows playback info (stats overlay)                                    | Video Player  |
+| `S`              | Shows subtitle selection menu                                          | Video Player  |
+| `C`              | Cycle through subtitle tracks                                          | Video Player  |
+| `V`              | Cycle through audio tracks                                             | Video Player  |
+| `B`              | Bookmark current time                                                  | Video Player  |
+| `Shift + B`      | Go to saved bookmark                                                   | Video Player  |
 
 
 ### 📝 Subtitle Settings

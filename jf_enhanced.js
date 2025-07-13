@@ -1,8 +1,11 @@
 (function () {
     'use strict';
+    // Global variables
+    let shiftBTimer = null;
+    let shiftBTriggered = false;
 
     // Script version
-    const SCRIPT_VERSION = '2.0.0';
+    const SCRIPT_VERSION = '2.1.0';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
     const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -661,6 +664,10 @@
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Q</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Quick Connect</span>
                         </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Hold <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd> 3 sec</span>
+                            <span style="color: rgba(255,255,255,0.8);">Clear all Bookmarks</span>
+                        </div>
                 </div>
 
                 <div style="margin-top: 12px; margin-bottom: 24px;">
@@ -685,6 +692,14 @@
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">V</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Cycle audio tracks</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">B</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Bookmark current time</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Go to Saved Bookmark</span>
                         </div>
                     </div>
                 </div>
@@ -957,6 +972,36 @@
     };
 
     /* ------------ Enhanced hotkeys ------------ */
+
+    // Video page specific hotkeys
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'B' && e.shiftKey && !isVideoPage()) {
+            if (!shiftBTimer && !shiftBTriggered) {
+                shiftBTimer = setTimeout(() => {
+                    if (!shiftBTriggered) { // Double-check to prevent race conditions
+                        localStorage.removeItem('jellyfinEnhancedBookmarks');
+                        toast('🗑️ All bookmarks cleared');
+                        shiftBTriggered = true;
+                    }
+                }, 3000);
+            }
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'B') {
+            if (shiftBTimer) {
+                clearTimeout(shiftBTimer);
+                shiftBTimer = null;
+            }
+            // Reset the triggered flag after a short delay
+            setTimeout(() => {
+                shiftBTriggered = false;
+            }, 100);
+        }
+    });
+
+    // Global Hotkey Listener
     const hotkeyListener = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
@@ -996,8 +1041,41 @@
             showHotkeyHelp();
             return;
         }
+        // Video page specific bookmark hotkeys
+        if (e.key.toLowerCase() === 'b' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            const video = getVideo();
+            if (!video) return;
+            const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
+            console.log('[JF Enhanced - Bookmark] videoId =', videoId);
+            const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
+            bookmarks[videoId] = video.currentTime;
+            localStorage.setItem('jellyfinEnhancedBookmarks', JSON.stringify(bookmarks));
+            const h = Math.floor(video.currentTime / 3600);
+            const m = Math.floor((video.currentTime % 3600) / 60);
+            const s = Math.floor(video.currentTime % 60);
+            toast(`📍 Bookmarked at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
+        }
 
-        // Video page specific hotkeys
+        if (e.key === 'B') {
+            const video = getVideo();
+            if (!video) return;
+            const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
+            console.log('[JF Enhanced - Bookmark] videoId =', videoId);
+            const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
+            const bookmarkTime = bookmarks[videoId];
+            if (bookmarkTime !== undefined) {
+                video.currentTime = bookmarkTime;
+                const h = Math.floor(bookmarkTime / 3600);
+                const m = Math.floor((bookmarkTime % 3600) / 60);
+                const s = Math.floor(bookmarkTime % 60);
+                toast(`📍 Returned to bookmark at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
+
+            } else {
+                toast('❌ No bookmark found');
+            }
+        }
+
+        // Only run video hotkeys if on a video page
         if (!isVideoPage()) return;
 
         const k = e.key.toLowerCase();

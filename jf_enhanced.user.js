@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Jellyfin Enhanced
 // @namespace    https://github.com/n00bcodr/Jellyfin-Enhanced
-// @version      2.0.0
-// @description  Enhanced userscript for Jellyfin with comprehensive hotkey support, subtitle customization, auto-pause functionality, and update checking
+// @version      2.1.0
+// @description  Userscript for Jellyfin with comprehensive hotkey support, subtitle customization, auto-pause functionality, and update checking
 // @author       n00bcodr
 // @match        */web/*
 // @grant        none
@@ -14,9 +14,12 @@
 
 (function () {
     'use strict';
+    // Global variables
+    let shiftBTimer = null;
+    let shiftBTriggered = false;
 
     // Script version
-    const SCRIPT_VERSION = '2.0.0';
+    const SCRIPT_VERSION = '2.1.0';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
     const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -440,28 +443,56 @@
 
     /* ------------ Video control functions ------------ */
     const getVideo = () => document.querySelector('video');
-
     const cycleSubtitleTrack = () => {
-        const video = getVideo();
-        if (!video) return;
+        // This function finds the subtitle menu and clicks the next available option.
+        const performCycle = () => {
+            // Selector for all subtitle options in the menu
+            const subtitleOptions = document.querySelectorAll('.actionSheetContent .listItem[data-index]');
+            if (subtitleOptions.length === 0) {
+                toast('❌ No subtitle options found.');
+                // Close the now-empty menu
+                document.body.click();
+                return;
+            }
 
-        const tracks = [...video.textTracks];
-        if (tracks.length === 0) {
-            toast('❌ No subtitle tracks');
-            return;
-        }
+            let currentIndex = -1;
+            // Find the currently selected subtitle by looking for the checkmark icon
+            subtitleOptions.forEach((option, index) => {
+                const checkIcon = option.querySelector('.listItemIcon.check');
+                // Check if the icon exists and is visible
+                if (checkIcon && getComputedStyle(checkIcon).visibility !== 'hidden') {
+                    currentIndex = index;
+                }
+            });
 
-        const currentIndex = tracks.findIndex(track => track.mode === 'showing');
-        const nextIndex = (currentIndex + 1) % (tracks.length + 1);
+            // Calculate the next index, wrapping around to the start
+            const nextIndex = (currentIndex + 1) % subtitleOptions.length;
+            const nextOption = subtitleOptions[nextIndex];
 
-        // Turn off all tracks
-        tracks.forEach(track => track.mode = 'disabled');
+            if (nextOption) {
+                // Click the next subtitle option
+                nextOption.click();
+                // Show a confirmation toast with the name of the selected subtitle
+                const subtitleName = nextOption.querySelector('.listItemBodyText').textContent.trim();
+                toast(`📝 Subtitle: ${subtitleName}`);
+            }
+        };
 
-        if (nextIndex < tracks.length) {
-            tracks[nextIndex].mode = 'showing';
-            toast(`📝 Subtitle: ${tracks[nextIndex].label || `Track ${nextIndex + 1}`}`);
+        // Check if the subtitle menu is already open by looking for its title
+        const subtitleMenuTitle = Array.from(document.querySelectorAll('.actionSheetContent .actionSheetTitle')).find(el => el.textContent === 'Subtitles');
+
+        if (subtitleMenuTitle) {
+            // If the menu is already open, just cycle the options
+            performCycle();
         } else {
-            toast('📝 Subtitles: Off');
+            // If any other menu is open, close it first before opening the subtitle menu
+            if (document.querySelector('.actionSheetContent')) {
+                document.body.click(); // Click away to close the current menu
+            }
+            // Click the main subtitle button in the player controls
+            document.querySelector('button.btnSubtitles')?.click();
+            // Wait a moment for the menu to open, then perform the cycle
+            setTimeout(performCycle, 200);
         }
     };
 
@@ -675,6 +706,10 @@
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Q</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Quick Connect</span>
                         </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Hold <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd> 3 sec</span>
+                            <span style="color: rgba(255,255,255,0.8);">Clear all Bookmarks</span>
+                        </div>
                 </div>
 
                 <div style="margin-top: 12px; margin-bottom: 24px;">
@@ -699,6 +734,14 @@
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">V</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Cycle audio tracks</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">B</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Bookmark current time</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Go to Saved Bookmark</span>
                         </div>
                     </div>
                 </div>
@@ -971,6 +1014,36 @@
     };
 
     /* ------------ Enhanced hotkeys ------------ */
+
+    // Video page specific hotkeys
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'B' && e.shiftKey && !isVideoPage()) {
+            if (!shiftBTimer && !shiftBTriggered) {
+                shiftBTimer = setTimeout(() => {
+                    if (!shiftBTriggered) { // Double-check to prevent race conditions
+                        localStorage.removeItem('jellyfinEnhancedBookmarks');
+                        toast('🗑️ All bookmarks cleared');
+                        shiftBTriggered = true;
+                    }
+                }, 3000);
+            }
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'B') {
+            if (shiftBTimer) {
+                clearTimeout(shiftBTimer);
+                shiftBTimer = null;
+            }
+            // Reset the triggered flag after a short delay
+            setTimeout(() => {
+                shiftBTriggered = false;
+            }, 100);
+        }
+    });
+
+    // Global Hotkey Listener
     const hotkeyListener = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
@@ -1010,8 +1083,41 @@
             showHotkeyHelp();
             return;
         }
+        // Video page specific bookmark hotkeys
+        if (e.key.toLowerCase() === 'b' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            const video = getVideo();
+            if (!video) return;
+            const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
+            console.log('[JF Enhanced - Bookmark] videoId =', videoId);
+            const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
+            bookmarks[videoId] = video.currentTime;
+            localStorage.setItem('jellyfinEnhancedBookmarks', JSON.stringify(bookmarks));
+            const h = Math.floor(video.currentTime / 3600);
+            const m = Math.floor((video.currentTime % 3600) / 60);
+            const s = Math.floor(video.currentTime % 60);
+            toast(`📍 Bookmarked at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
+        }
 
-        // Video page specific hotkeys
+        if (e.key === 'B') {
+            const video = getVideo();
+            if (!video) return;
+            const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
+            console.log('[JF Enhanced - Bookmark] videoId =', videoId);
+            const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
+            const bookmarkTime = bookmarks[videoId];
+            if (bookmarkTime !== undefined) {
+                video.currentTime = bookmarkTime;
+                const h = Math.floor(bookmarkTime / 3600);
+                const m = Math.floor((bookmarkTime % 3600) / 60);
+                const s = Math.floor(bookmarkTime % 60);
+                toast(`📍 Returned to bookmark at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
+
+            } else {
+                toast('❌ No bookmark found');
+            }
+        }
+
+        // Only run video hotkeys if on a video page
         if (!isVideoPage()) return;
 
         const k = e.key.toLowerCase();
