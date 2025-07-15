@@ -1,8 +1,8 @@
 # Jellyfin Enhanced
 
-![Jellyfin Enhanced](panel.png)
+![Jellyfin Enhanced](panel.gif)
 
-An enhanced userscript that adds powerful keyboard shortcuts, customizable subtitle styling, and smart auto-pause features to Jellyfin's web interface.
+An enhanced userscript that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item selection to Jellyfin's web interface.
 
 ## ✨ Features
 
@@ -15,6 +15,7 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 | `Shift + Esc`    | Go to Jellyfin Home Page                                               | Global        |
 | `D`              | Go to Dashboard                                                        | Global        |
 | `Q`              | Go to Quick Connect                                                    | Global        |
+| `R`              | Play a random item from your library (Movies and/or Shows)              | Global        |
 | Hold `Shift + B` | Clear all Bookmarks                                                    | Global        |
 |------------------|------------------------------------------------------------------------|---------------|
 | `A`              | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
@@ -25,19 +26,24 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 | `B`              | Bookmark current time                                                  | Video Player  |
 | `Shift + B`      | Go to saved bookmark                                                   | Video Player  |
 
-
 ### 📝 Subtitle Settings
 - **6 Style Presets**: Clean White, Classic Black Box, Netflix Style, Cinema Yellow, Soft Gray, High Contrast
 - **5 Font Sizes**: Tiny, Small, Normal, Large, Extra Large
-- **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Consolas
+- **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Roboto
 - **Persistent Settings**: All settings are automatically saved and will persist across sessions
 
 ### ⏯️ Smart Auto-Pause/Resume
 - **Configurable Auto-Pause**: Automatically pause when switching tabs or losing focus
 - **Optional Auto-Resume**: Choose whether to resume playback when returning to the tab
 
-### 🔄 Update System
-- **Automatic Update Check**: Checks for updates every 24 hours.
+### 🎲 Random Item Selection
+- **Random Button**: Adds a "Random" button to the header for quick access to play a random item
+- **Configurable Item Types**: Choose to include Movies, Shows, or both in random selection
+- **Hotkey Support**: Press `R` to instantly play a random item
+- **Persistent Settings**: Random button and item type preferences are saved across sessions
+
+### 📦 Update System
+- **Automatic Update Check**: Checks for updates every 24 hours
 - **Manual Update Check**: Use the "Check Updates" button in settings
 - **Update Notifications**: Update notifications with options to view latest script or release notes
 - **Version Management**: Tracks current version and compares with latest GitHub releases

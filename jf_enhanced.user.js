@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Jellyfin Enhanced
 // @namespace    https://github.com/n00bcodr/Jellyfin-Enhanced
-// @version      2.1.0
-// @description  Userscript for Jellyfin with comprehensive hotkey support, subtitle customization, auto-pause functionality, and update checking
+// @version      3.0
+// @description  Userscript for Jellyfin with comprehensive hotkey support, subtitle customization, auto-pause functionality, random item selection, and update checking
 // @author       n00bcodr
 // @match        */web/*
 // @grant        none
@@ -19,7 +19,7 @@
     let shiftBTriggered = false;
 
     // Script version
-    const SCRIPT_VERSION = '2.1.0';
+    const SCRIPT_VERSION = '3.0';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
     const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -45,16 +45,15 @@
             if (isNewer) {
                 showUpdateNotification(release);
             } else if (showToast) {
-                toast('✅ You have the latest version!', 2000);
+                toast('✅ You have the latest and greatest!', 2000);
             }
 
             // Update last check time
             localStorage.setItem('jellyfinEnhancedLastUpdateCheck', Date.now().toString());
-
         } catch (error) {
             console.error('Update check failed:', error);
             if (showToast) {
-                toast('❌ Update check failed', 2000);
+                toast('❌ Update Check Failed!', 2000);
             }
         }
     };
@@ -183,25 +182,160 @@
         setTimeout(() => checkForUpdates(), 2000);
     }
 
-    /* ------------ Hide the settings button on desktop ------------ */
-    const injectCustomStyles = () => {
+    /* --------------- Random Button --------------- */
+    const getJellyfinServerAddress = () => window.location.origin;
+
+    const getRandomItem = async () => {
+        const userId = ApiClient.getCurrentUserId();
+        if (!userId) {
+            console.error("Jellyfin Enhanced: User not logged in.");
+            return null;
+        }
+
+        const serverAddress = getJellyfinServerAddress();
+        const timestamp = Date.now();
+        const fetchLimit = 20;
+        const settings = loadSettings();
+        const itemTypes = [];
+        if (settings.randomIncludeMovies) itemTypes.push('Movie');
+        if (settings.randomIncludeShows) itemTypes.push('Series');
+        const includeItemTypes = itemTypes.length > 0 ? itemTypes.join(',') : 'Movie,Series';
+
+        const apiUrl = `${serverAddress}/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=${fetchLimit}&Fields=ExternalUrls&_=${timestamp}`;
+
+        try {
+            const response = await ApiClient.ajax({
+                type: 'GET',
+                url: apiUrl,
+                headers: { 'Content-Type': 'application/json' },
+                dataType: 'json'
+            });
+
+            if (response && response.Items && response.Items.length > 0) {
+                const randomIndex = Math.floor(Math.random() * response.Items.length);
+                return response.Items[randomIndex];
+            } else {
+                throw new Error('No items found in selected libraries.');
+            }
+        } catch (error) {
+            console.error('Jellyfin Enhanced: Error fetching random item:', error);
+            toast(`❌ ${error.message || 'Unknown error'}`, 2000);
+            return null;
+        }
+    };
+
+    const navigateToItem = (item) => {
+        if (item && item.Id) {
+            const serverAddress = getJellyfinServerAddress();
+            const serverId = ApiClient.serverId();
+            const itemUrl = `${serverAddress}/web/index.html#!/details?id=${item.Id}${serverId ? `&serverId=${serverId}` : ''}`;
+            window.location.href = itemUrl;
+            toast(`🎲 Random Item Loaded`, 2000);
+        } else {
+            console.error('Jellyfin Enhanced: Invalid item object or ID:', item);
+            toast('❌ Uh oh! Something went wrong!', 2000);
+        }
+    };
+
+    const injectRandomButtonStyles = () => {
         const styleId = 'jellyfin-enhanced-styles';
         if (document.getElementById(styleId)) return;
         const style = document.createElement('style');
         style.id = styleId;
         style.innerHTML = `
-             .layout-desktop #enhancedSettingsBtn {
+            @keyframes dice {
+                0% { transform: rotate(0deg); }
+                10% { transform: rotate(-15deg); }
+                20% { transform: rotate(15deg); }
+                30% { transform: rotate(-15deg); }
+                40% { transform: rotate(15deg); }
+                50% { transform: rotate(-15deg); }
+                60% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            button#randomItemButton {
+                padding: 0px !important;
+                margin: 0px 5px 0px 10px !important;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            button#randomItemButton:hover .material-icons {
+                animation: dice 1.5s;
+            }
+            /* Hide the settings button on desktop */
+            .layout-desktop #enhancedSettingsBtn {
                 display: none !important;
             }
         `;
         document.head.appendChild(style);
     };
 
-    // Inject the custom CSS rules when the script loads.
+    const addRandomButton = () => {
+        const settings = loadSettings();
+        if (!settings.randomButtonEnabled) return;
+
+        let buttonContainer = document.getElementById('randomItemButtonContainer');
+        if (!buttonContainer) {
+            buttonContainer = document.createElement('div');
+            buttonContainer.id = 'randomItemButtonContainer';
+        }
+
+        let randomButton = document.getElementById('randomItemButton');
+        if (!randomButton) {
+            randomButton = document.createElement('button');
+            randomButton.id = 'randomItemButton';
+            randomButton.className = 'random-item-button emby-button button-flat button-flat-hover';
+            randomButton.title = 'Play a random item from your library';
+            randomButton.innerHTML = `<i class="material-icons">casino</i>`;
+
+            randomButton.addEventListener('click', async () => {
+                randomButton.disabled = true;
+                randomButton.innerHTML = '<i class="material-icons">hourglass_empty</i>';
+
+                try {
+                    const item = await getRandomItem();
+                    if (item) {
+                        navigateToItem(item);
+                    }
+                } finally {
+                    randomButton.disabled = false;
+                    randomButton.innerHTML = `<i class="material-icons">casino</i>`;
+                }
+            });
+
+            buttonContainer.appendChild(randomButton);
+            const headerRight = document.querySelector('.headerRight');
+            const searchInputContainer = document.querySelector('.searchInput');
+
+            if (headerRight) {
+                headerRight.prepend(buttonContainer);
+            } else if (searchInputContainer) {
+                searchInputContainer.parentNode.insertBefore(buttonContainer, searchInputContainer.nextSibling);
+            }
+        }
+    };
+
+    const waitForApiClient = () => {
+        if (typeof ApiClient !== 'undefined' && typeof ApiClient.getCurrentUserId === 'function' && typeof ApiClient.ajax === 'function') {
+            injectRandomButtonStyles();
+            const observer = new MutationObserver(() => {
+                addRandomButton();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            addRandomButton();
+        } else {
+            setTimeout(waitForApiClient, 200);
+        }
+    };
+
+    const injectCustomStyles = () => {
+        waitForApiClient();
+    };
+
     injectCustomStyles();
 
-
-    /* ------------ helpers ------------ */
+    /* ------------ Helpers ------------ */
     const isVideoPage = () => location.hash.startsWith('#/video');
     const settingsBtn = () => document.querySelector('button[title="Settings"],button[aria-label="Settings"]');
 
@@ -271,7 +405,7 @@
         { name: "Roboto", family: "Roboto Mono,monospace", previewText: "AaBb" }
     ];
 
-    /* ------------ Enhanced subtitle styling ------------ */
+    /* ------------ Enhanced Subtitle Styling ------------ */
     const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
         let styleElement = document.getElementById('htmlvideoplayer-cuestyle');
         let isFallback = false;
@@ -296,7 +430,6 @@
 
         let ruleFound = false;
 
-        // Iterate through existing rules and modify them
         for (const rule of sheet.cssRules) {
             if (selectors.includes(rule.selectorText)) {
                 rule.style.setProperty('background-color', bgColor, 'important');
@@ -307,7 +440,6 @@
             }
         }
 
-        // If no rule was found, insert a new one
         if (!ruleFound) {
             const newRule = `
                 ${selectors.join(', ')} {
@@ -325,7 +457,7 @@
         }
     };
 
-    /* ------------ Settings persistence ------------ */
+    /* ------------ Settings Persistence ------------ */
     const saveSettings = (settings) => {
         try {
             localStorage.setItem('jellyfinEnhancedSettings', JSON.stringify(settings));
@@ -342,7 +474,10 @@
                 autoResumeEnabled: false,
                 selectedStylePresetIndex: 0,
                 selectedFontSizePresetIndex: 2,
-                selectedFontFamilyPresetIndex: 0
+                selectedFontFamilyPresetIndex: 0,
+                randomButtonEnabled: true,
+                randomIncludeMovies: true,
+                randomIncludeShows: true
             };
         } catch (e) {
             console.error('Error loading settings:', e);
@@ -351,14 +486,17 @@
                 autoResumeEnabled: false,
                 selectedStylePresetIndex: 0,
                 selectedFontSizePresetIndex: 2,
-                selectedFontFamilyPresetIndex: 0
+                selectedFontFamilyPresetIndex: 0,
+                randomButtonEnabled: true,
+                randomIncludeMovies: true,
+                randomIncludeShows: true
             };
         }
     };
 
     let currentSettings = loadSettings();
 
-    /* ------------ Apply saved styles ------------ */
+    /* ------------ Apply Saved Styles ------------ */
     const applySavedStylesWhenReady = () => {
         const savedStyleIndex = currentSettings.selectedStylePresetIndex ?? 0;
         const savedFontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
@@ -377,7 +515,8 @@
             );
         }
     };
-   /* ------------ Add OSD Button for Mobile ------------ */
+
+    /* ------------ Add OSD Button for Mobile ------------ */
     const addOsdSettingsButton = () => {
         if (document.getElementById('enhancedSettingsBtn')) return;
 
@@ -401,7 +540,8 @@
 
         nativeSettingsButton.parentElement.insertBefore(enhancedSettingsBtn, nativeSettingsButton);
     };
-    /* ------------ Enhanced observers ------------ */
+
+    /* ------------ Enhanced Observers ------------ */
     const setupStyleObserver = () => {
         let isApplyingStyles = false;
 
@@ -424,10 +564,9 @@
         observer.observe(document.body, {
             childList: true,
             subtree: true,
-            attributes: false  // Disable attribute observation to reduce excessive triggers
+            attributes: false
         });
 
-        // Also reapply on fullscreen changes
         document.addEventListener('fullscreenchange', () => {
             setTimeout(() => {
                 if (!isApplyingStyles) {
@@ -437,11 +576,10 @@
         });
     };
 
-    // Initialize observers
     setupStyleObserver();
     applySavedStylesWhenReady();
 
-    /* ------------ Video control functions ------------ */
+    /* ------------ Video Control Functions ------------ */
     const getVideo = () => document.querySelector('video');
 
     const cycleSubtitleTrack = () => {
@@ -451,7 +589,7 @@
             const allItems = document.querySelectorAll('.actionSheetContent .listItem');
 
             if (allItems.length === 0) {
-                toast('❌ No subtitle options found.');
+                toast('❌ No Subtitles Found');
                 document.body.click();
                 return;
             }
@@ -464,13 +602,12 @@
                 const text = textElement.textContent.trim();
                 // Exclude Secondary Subtitles from the list.
                 if (text === 'Secondary Subtitles') return false;
-
                 // Return true if the item has text and is not a secondary subtitle.
                 return true;
             });
 
             if (subtitleOptions.length === 0) {
-                toast('❌ No subtitle options found.');
+                toast('❌ No Subtitles Found');
                 // Close the now-empty menu
                 document.body.click();
                 return;
@@ -517,25 +654,75 @@
             setTimeout(performCycle, 200);
         }
     };
-
     const cycleAudioTrack = () => {
-        const video = getVideo();
-        if (!video) return;
+        // This function finds the audio menu and clicks the next available option, similar to subtitle cycling
+        const performCycle = () => {
+            // Step 1: Get all list items in the action sheet using a general selector.
+            const allItems = document.querySelectorAll('.actionSheetContent .listItem');
 
-        const tracks = [...video.audioTracks || []];
-        if (tracks.length <= 1) {
-            toast('❌ No additional audio tracks');
-            return;
+            if (allItems.length === 0) {
+                toast('❌ No Audio Tracks Found');
+                document.body.click();
+                return;
+            }
+
+            // Step 2: Filter the items to get only the actual, selectable audio tracks.
+            const audioOptions = Array.from(allItems).filter(item => {
+                const textElement = item.querySelector('.listItemBodyText.actionSheetItemText');
+                if (!textElement) return false; // Ignore if it has no text.
+
+                const text = textElement.textContent.trim();
+                // Include items that look like audio tracks (containing language info, codec info, etc.)
+                return text.length > 0;
+            });
+
+            if (audioOptions.length === 0) {
+                toast('❌ No Audio Tracks Found');
+                // Close the now-empty menu
+                document.body.click();
+                return;
+            }
+
+            // Step 3: Find the currently selected audio track by looking for the checkmark icon.
+            let currentIndex = -1;
+            // Find the currently selected audio track by looking for the checkmark icon
+            audioOptions.forEach((option, index) => {
+                const checkIcon = option.querySelector('.actionsheetMenuItemIcon.listItemIcon.check');
+                // Check if the icon exists and is visible
+                if (checkIcon && getComputedStyle(checkIcon).visibility !== 'hidden') {
+                    currentIndex = index;
+                }
+            });
+
+            // Step 4: Calculate the next index and click the corresponding option.
+            const nextIndex = (currentIndex + 1) % audioOptions.length;
+            const nextOption = audioOptions[nextIndex];
+
+            if (nextOption) {
+                // Click the next audio option
+                nextOption.click();
+                // Show a confirmation toast with the name of the selected audio track
+                const audioName = nextOption.querySelector('.listItemBodyText.actionSheetItemText').textContent.trim();
+                toast(`🎵 Audio: ${audioName}`);
+            }
+        };
+
+        // Check if the audio menu is already open by looking for its title
+        const audioMenuTitle = Array.from(document.querySelectorAll('.actionSheetContent .actionSheetTitle')).find(el => el.textContent === 'Audio');
+
+        if (audioMenuTitle) {
+            // If the menu is already open, just cycle the options
+            performCycle();
+        } else {
+            // If any other menu is open, close it first before opening the audio menu
+            if (document.querySelector('.actionSheetContent')) {
+                document.body.click();
+            }
+            // Click the main audio button in the player controls
+            document.querySelector('button.btnAudio')?.click();
+            // Wait a moment for the menu to open, then perform the cycle
+            setTimeout(performCycle, 200);
         }
-
-        const currentIndex = tracks.findIndex(track => track.enabled);
-        const nextIndex = (currentIndex + 1) % tracks.length;
-
-        tracks.forEach((track, index) => {
-            track.enabled = index === nextIndex;
-        });
-
-        toast(`🎵 Audio: ${tracks[nextIndex].label || `Track ${nextIndex + 1}`}`);
     };
 
     /* ------------ Aspect Ratio Cycle ------------ */
@@ -554,7 +741,7 @@
         const current = opts.findIndex(b => b.querySelector('.check')?.style.visibility !== 'hidden');
         const next = opts[(current + 1) % opts.length];
         next?.click();
-        toast(`📐 ${next?.textContent.trim()}`);
+        toast(`📐 Aspect Ratio: ${next?.textContent.trim()}`);
     };
 
     /* ------------ Enhanced Help Panel ------------ */
@@ -589,9 +776,23 @@
             cursor: 'grab'
         });
 
-        // Draggable functionality
         let isDragging = false;
         let offset = { x: 0, y: 0 };
+        let autoCloseTimer = null;
+        let isMouseInside = false;
+
+        const resetAutoCloseTimer = () => {
+            if (autoCloseTimer) clearTimeout(autoCloseTimer);
+            autoCloseTimer = setTimeout(() => {
+                if (!isMouseInside && document.getElementById(panelId)) {
+                    help.remove();
+                    document.removeEventListener('keydown', closeHelp);
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    document.addEventListener('keydown', hotkeyListener);
+                }
+            }, 15000);
+        };
 
         const handleMouseDown = (e) => {
             if (e.target.closest('.preset-box') || e.target.closest('button') || e.target.closest('a') || e.target.closest('details') || e.target.closest('input')) return;
@@ -602,30 +803,47 @@
             };
             help.style.cursor = 'grabbing';
             e.preventDefault();
+            resetAutoCloseTimer();
         };
 
         const handleMouseMove = (e) => {
-            if (!isDragging) return;
-            help.style.left = `${e.clientX - offset.x}px`;
-            help.style.top = `${e.clientY - offset.y}px`;
-            help.style.transform = 'none';
+            if (isDragging) {
+                help.style.left = `${e.clientX - offset.x}px`;
+                help.style.top = `${e.clientY - offset.y}px`;
+                help.style.transform = 'none';
+            }
+            resetAutoCloseTimer();
         };
 
         const handleMouseUp = () => {
             isDragging = false;
             help.style.cursor = 'grab';
+            resetAutoCloseTimer();
         };
 
         help.addEventListener('mousedown', handleMouseDown);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
 
-        // Prevent scrolling on the help panel from affecting the page
-        help.addEventListener('wheel', (e) => {
-            e.stopPropagation();
+        help.addEventListener('mouseenter', () => {
+            isMouseInside = true;
+            if (autoCloseTimer) clearTimeout(autoCloseTimer);
         });
 
-        // Generate preset HTML with proper previews
+        help.addEventListener('mouseleave', () => {
+            isMouseInside = false;
+            resetAutoCloseTimer();
+        });
+
+        help.addEventListener('click', () => {
+            resetAutoCloseTimer();
+        });
+
+        help.addEventListener('wheel', (e) => {
+            e.stopPropagation();
+            resetAutoCloseTimer();
+        });
+
         const generatePresetHTML = (presets, type) => {
             return presets.map((preset, index) => {
                 let previewStyle = '';
@@ -683,14 +901,14 @@
 
         help.innerHTML = `
             <div style="padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: linear-gradient(135deg, #66b3ff, #4a9eff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: linear-gradient(135deg, #AA5CC3, #00A4DC); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     🪼 Jellyfin Enhanced
                 </div>
                 <div style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.6);">
                     Version ${SCRIPT_VERSION}
                 </div>
             </div>
-            <div style="display: flex; flex-direction: column; height: calc(90vh - 150px);">
+            <div style="display: flex; flex-direction: column; height: calc(90vh - 180px);">
                 <div style="
                     padding: 20px 20px;
                     flex: 1;
@@ -698,7 +916,6 @@
                     background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.05) 95%, rgba(255,255,255,0.1) 100%);
                     position: relative;
                 ">
-                    <!-- Scroll indicator -->
                     <div style="
                         position: absolute;
                         top: 0;
@@ -710,7 +927,7 @@
                         pointer-events: none;
                     "></div>
                 <div style="margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Global</h3>
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #00A4DC;">Global</h3>
                     <div style="display: grid; gap: 8px; font-size: 14px;">
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">/</kbd></span>
@@ -729,13 +946,18 @@
                             <span style="color: rgba(255,255,255,0.8);">Quick Connect</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">R</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Play Random Item</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
                             <span>Hold <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd> 3 sec</span>
                             <span style="color: rgba(255,255,255,0.8);">Clear all Bookmarks</span>
                         </div>
+                    </div>
                 </div>
 
                 <div style="margin-top: 12px; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #66b3ff;">Video Player</h3>
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #00A4DC;">Video Player</h3>
                     <div style="display: grid; gap: 8px; font-size: 14px;">
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">A</kbd></span>
@@ -769,16 +991,16 @@
                 </div>
 
                 <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);">
-                    <summary style="padding: 16px; font-weight: 600; color: #66b3ff; cursor: pointer; user-select: none;">
+                    <summary style="padding: 16px; font-weight: 600; color: #00A4DC; cursor: pointer; user-select: none;">
                         ⏯️ Auto-Pause Settings
                     </summary>
                     <div style="padding: 0 16px 16px 16px;">
-                        <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #66b3ff;">
+                        <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #AA5CC3;">
                             <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                 <input type="checkbox" id="autoPauseToggle" ${currentSettings.autoPauseEnabled ? 'checked' : ''} style="
                                     width: 18px;
                                     height: 18px;
-                                    accent-color: #66b3ff;
+                                    accent-color: #AA5CC3;
                                     cursor: pointer;
                                 ">
                                 <div>
@@ -787,12 +1009,12 @@
                                 </div>
                             </label>
                         </div>
-                        <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #a84ade;">
+                        <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #AA5CC3;">
                             <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                 <input type="checkbox" id="autoResumeToggle" ${currentSettings.autoResumeEnabled ? 'checked' : ''} style="
                                     width: 18px;
                                     height: 18px;
-                                    accent-color: #a84ade;
+                                    accent-color: #AA5CC3;
                                     cursor: pointer;
                                 ">
                                 <div>
@@ -805,7 +1027,7 @@
                 </details>
 
                 <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);">
-                    <summary style="padding: 16px; font-weight: 600; color: #66b3ff; cursor: pointer; user-select: none;">
+                    <summary style="padding: 16px; font-weight: 600; color: #00A4DC; cursor: pointer; user-select: none;">
                         📝 Subtitle Settings
                     </summary>
                     <div style="padding: 0 16px 16px 16px;">
@@ -815,14 +1037,12 @@
                                 ${generatePresetHTML(subtitlePresets, 'style')}
                             </div>
                         </div>
-
                         <div style="margin-bottom: 16px;">
                             <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Size</div>
                             <div id="font-size-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">
                                 ${generatePresetHTML(fontSizePresets, 'font-size')}
                             </div>
                         </div>
-
                         <div>
                             <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">Font</div>
                             <div id="font-family-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">
@@ -831,53 +1051,92 @@
                         </div>
                     </div>
                 </details>
-
-                </div>
-
+                <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(0,0,0,0.2);">
+                    <summary style="padding: 16px; font-weight: 600; color: #00A4DC; cursor: pointer; user-select: none;">
+                        🎲 Random Button Settings
+                    </summary>
+                    <div style="padding: 0 16px 16px 16px;">
+                        <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid #AA5CC3;">
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                <input type="checkbox" id="randomButtonToggle" ${currentSettings.randomButtonEnabled ? 'checked' : ''} style="
+                                    width: 18px;
+                                    height: 18px;
+                                    accent-color: #AA5CC3;
+                                    cursor: pointer;
+                                ">
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; color: #fff;">Enable Random Button</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px;">Show random item button in header</div>
+                                </div>
+                            </label>
+                        <br>
+                            <div style="font-size: 14px; font-weight: 500; color: #fff; margin-bottom: 8px;">Item Types (atleast one should be selected)</div>
+                            <div style="display: flex; gap: 16px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="randomIncludeMovies" ${currentSettings.randomIncludeMovies ? 'checked' : ''} style="
+                                        width: 18px;
+                                        height: 18px;
+                                        accent-color: #AA5CC3;
+                                        cursor: pointer;
+                                    ">
+                                    <span style="font-size: 14px; color: rgba(255,255,255,0.8);">Movies</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="randomIncludeShows" ${currentSettings.randomIncludeShows ? 'checked' : ''} style="
+                                        width: 18px;
+                                        height: 18px;
+                                        accent-color: #bc6bffff;
+                                        cursor: pointer;
+                                    ">
+                                    <span style="font-size: 14px; color: rgba(255,255,255,0.8);">Shows</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </details>
             </div>
-
+        </div>
             <div style="padding: 24px; border-top: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95)); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                     <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
-                        Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">?</kbd> or <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">Esc</kbd> to close
-                    </div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <button id="checkUpdatesBtn" style="
-                            background: ${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : 'linear-gradient(135deg, #1e40af, #3b82f6)'};
-                            color: white;
-                            border: 1px solid ${updateAvailable ? '#4ade80' : '#60a5fa'};
-                            padding: 4px 8px;
-                            border-radius: 6px;
-                            font-size: 12px;
-                            font-weight: 500;
-                            cursor: pointer;
-                            transition: all 0.2s;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                        " onmouseover="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #2d8f2d, #4ade80)' : 'linear-gradient(135deg, #3b82f6, #60a5fa)'}'"
-                           onmouseout="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : 'linear-gradient(135deg, #1e40af, #3b82f6)'}'">
-                            ${updateAvailable ? '📦 Update Available' : '🔄️ Check Updates'}
-                        </button>
-                        <a href="https://github.com/n00bcodr/Jellyfin-Enhanced" target="_blank" style="
-                            color: #66b3ff;
-                            text-decoration: none;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            font-size: 12px;
-                            padding: 4px 8px;
-                            border-radius: 4px;
-                            background: rgba(102, 179, 255, 0.1);
-                            transition: background 0.2s;
-                        " onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='rgba(102, 179, 255, 0.1)'">
-                            <svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor">
-                                <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
-                            </svg>
-                            Contribute
-                        </a>
-                    </div>
+                    Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">?</kbd> or <kbd style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">Esc</kbd> to close
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button id="checkUpdatesBtn" style="
+                        background: ${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : 'linear-gradient(135deg, #AA5CC3, #00A4DC)'};
+                        color: white;
+                        border: 1px solid ${updateAvailable ? '#4ade80' : '#00A4DC'};
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    " onmouseover="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #2d8f2d, #4ade80)' : 'linear-gradient(135deg, #AA5CC3, #00A4DC)'}'"
+                       onmouseout="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : 'linear-gradient(135deg, #AA5CC3, #00A4DC)'}'">
+                        ${updateAvailable ? '📦 Update Available' : '🔄️ Check Updates'}
+                    </button>
+                    <a href="https://github.com/n00bcodr/Jellyfin-Enhanced" target="_blank" style="
+                        color: #00A4DC;
+                        text-decoration: none;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        font-size: 12px;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        background: rgba(102, 179, 255, 0.1);
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='rgba(102, 179, 255, 0.1)'">
+                        <svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor">
+                            <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
+                        </svg>
+                        Contribute
+                    </a>
+                </div>
             </div>
-
             <button id="closeSettingsPanel" style="
                 position: absolute;
                 top: 24px;
@@ -894,39 +1153,97 @@
                 align-items: center;
                 justify-content: center;
                 transition: background 0.2s;
-            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">&times;</button>
+            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">×</button>
         `;
 
         document.body.appendChild(help);
+        resetAutoCloseTimer();
 
-        // Auto-close after 10 seconds
-        const autoCloseTimer = setTimeout(() => {
-            if (document.getElementById(panelId)) {
-                help.remove();
-                document.removeEventListener('keydown', closeHelp);
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.addEventListener('keydown', hotkeyListener);
-            }
-        }, 10000);
-
-        // Setup auto-pause settings handlers
         const autoPauseToggle = document.getElementById('autoPauseToggle');
         const autoResumeToggle = document.getElementById('autoResumeToggle');
+        const randomButtonToggle = document.getElementById('randomButtonToggle');
+        const randomIncludeMovies = document.getElementById('randomIncludeMovies');
+        const randomIncludeShows = document.getElementById('randomIncludeShows');
 
         autoPauseToggle.addEventListener('change', (e) => {
             currentSettings.autoPauseEnabled = e.target.checked;
             saveSettings(currentSettings);
-            toast(`Auto-pause ${e.target.checked ? 'enabled' : 'disabled'}`);
+            toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`);
+            resetAutoCloseTimer();
         });
 
         autoResumeToggle.addEventListener('change', (e) => {
             currentSettings.autoResumeEnabled = e.target.checked;
             saveSettings(currentSettings);
-            toast(`Auto-resume ${e.target.checked ? 'enabled' : 'disabled'}`);
+            toast(`▶️ Auto-Resume ${e.target.checked ? 'Enabled' : 'Disabled'}`);
+            resetAutoCloseTimer();
         });
 
-        // Setup check updates button
+        randomButtonToggle.addEventListener('change', (e) => {
+            currentSettings.randomButtonEnabled = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`🎲 Random Button ${e.target.checked ? 'Enabled ✅' : 'Disabled ❌'}`);
+            if (e.target.checked) {
+                addRandomButton();
+            } else {
+                const buttonContainer = document.getElementById('randomItemButtonContainer');
+                if (buttonContainer) buttonContainer.remove();
+            }
+            resetAutoCloseTimer();
+        });
+        randomIncludeMovies.addEventListener('change', (e) => {
+            // Check if the user is trying to uncheck the last item
+            if (!e.target.checked && !randomIncludeShows.checked) {
+                e.target.checked = true; // Re-check the box immediately
+                toast('⚠️ At least one item type must be selected', 5000);
+                return; // Stop the function here
+            }
+
+            // If the check above passes, proceed as normal
+            currentSettings.randomIncludeMovies = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
+            resetAutoCloseTimer();
+        });
+        randomIncludeShows.addEventListener('change', (e) => {
+            // Check if the user is trying to uncheck the last item
+            if (!e.target.checked && !randomIncludeMovies.checked) {
+                e.target.checked = true; // Re-check the box immediately
+                toast('⚠️ At least one item type must be selected', 5000);
+                return; // Stop the function here
+            }
+            // If the check above passes, proceed as normal
+            currentSettings.randomIncludeShows = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
+            resetAutoCloseTimer();
+        });
+        // randomIncludeMovies.addEventListener('change', (e) => {
+        //     currentSettings.randomIncludeMovies = e.target.checked;
+        //     if (!currentSettings.randomIncludeMovies && !currentSettings.randomIncludeShows) {
+        //         currentSettings.randomIncludeMovies = true;
+        //         randomIncludeMovies.checked = true;
+        //         toast('⚠️ At least one item type must be selected', 5000);
+        //         return;
+        //     }
+        //     saveSettings(currentSettings);
+        //     toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
+        //     resetAutoCloseTimer();
+        // });
+
+        // randomIncludeShows.addEventListener('change', (e) => {
+        //     currentSettings.randomIncludeShows = e.target.checked;
+        //     if (!currentSettings.randomIncludeMovies && !currentSettings.randomIncludeShows) {
+        //         currentSettings.randomIncludeShows = true;
+        //         randomIncludeShows.checked = true;
+        //         toast('⚠️ At least one item type must be selected', 5000);
+        //         return;
+        //     }
+        //     saveSettings(currentSettings);
+        //     toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
+        //     resetAutoCloseTimer();
+        // });
+
         const checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
         checkUpdatesBtn.addEventListener('click', () => {
             if (updateAvailable && latestReleaseData) {
@@ -934,6 +1251,7 @@
             } else {
                 checkForUpdates(true);
             }
+            resetAutoCloseTimer();
         });
 
         // Auto-scroll to any section when opened
@@ -945,14 +1263,14 @@
                         details.scrollIntoView({ behavior: 'smooth', block: index === 0 ? 'center' : 'nearest' });
                     }, 150);
                 }
+                resetAutoCloseTimer();
             });
         });
 
-        // Close handlers
         const closeHelp = (ev) => {
             if ((ev.type === 'keydown' && (ev.key === 'Escape' || ev.key === '?' || (ev.shiftKey && ev.key === '/'))) ||
                 (ev.type === 'click' && ev.target.id === 'closeSettingsPanel')) {
-                clearTimeout(autoCloseTimer);
+                if (autoCloseTimer) clearTimeout(autoCloseTimer);
                 help.remove();
                 document.removeEventListener('keydown', closeHelp);
                 document.removeEventListener('mousemove', handleMouseMove);
@@ -965,7 +1283,6 @@
         document.getElementById('closeSettingsPanel').addEventListener('click', closeHelp);
         document.removeEventListener('keydown', hotkeyListener);
 
-        // Setup preset handlers
         const setupPresetHandlers = (containerId, presets, type) => {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -985,7 +1302,7 @@
                         const fontSize = fontSizePresets[fontSizeIndex].size;
                         const fontFamily = fontFamilyPresets[fontFamilyIndex].family;
                         applySubtitleStyles(selectedPreset.textColor, selectedPreset.bgColor, fontSize, fontFamily);
-                        toast(`🎨 ${selectedPreset.name} Applied`);
+                        toast(`🎨 Subtitle Style: ${selectedPreset.name}`);
                     } else if (type === 'font-size') {
                         currentSettings.selectedFontSizePresetIndex = presetIndex;
                         const styleIndex = currentSettings.selectedStylePresetIndex ?? 0;
@@ -993,7 +1310,7 @@
                         const stylePreset = subtitlePresets[styleIndex];
                         const fontFamily = fontFamilyPresets[fontFamilyIndex].family;
                         applySubtitleStyles(stylePreset.textColor, stylePreset.bgColor, selectedPreset.size, fontFamily);
-                        toast(`📏 ${selectedPreset.name} Size Applied`);
+                        toast(`📏 Subtitle Size: ${selectedPreset.name}`);
                     } else if (type === 'font-family') {
                         currentSettings.selectedFontFamilyPresetIndex = presetIndex;
                         const styleIndex = currentSettings.selectedStylePresetIndex ?? 0;
@@ -1001,20 +1318,18 @@
                         const stylePreset = subtitlePresets[styleIndex];
                         const fontSize = fontSizePresets[fontSizeIndex].size;
                         applySubtitleStyles(stylePreset.textColor, stylePreset.bgColor, fontSize, selectedPreset.family);
-                        toast(`🔤 ${selectedPreset.name} Font Applied`);
+                        toast(`🔤 Subtitle Font: ${selectedPreset.name}`);
                     }
 
                     saveSettings(currentSettings);
-
-                    // Update visual selection
                     container.querySelectorAll('.preset-box').forEach(box => {
                         box.style.border = '2px solid transparent';
                     });
-                    presetBox.style.border = '2px solid #66b3ff';
+                    presetBox.style.border = '2px solid #00A4DC';
+                    resetAutoCloseTimer();
                 }
             });
 
-            // Highlight current selection
             let currentIndex;
             if (type === 'style') {
                 currentIndex = currentSettings.selectedStylePresetIndex ?? 0;
@@ -1026,7 +1341,7 @@
 
             const activeBox = container.querySelector(`[data-preset-index="${currentIndex}"]`);
             if (activeBox) {
-                activeBox.style.border = '2px solid #66b3ff';
+                activeBox.style.border = '2px solid #00A4DC';
             }
         };
 
@@ -1035,16 +1350,15 @@
         setupPresetHandlers('font-family-presets-container', fontFamilyPresets, 'font-family');
     };
 
-    /* ------------ Enhanced hotkeys ------------ */
-
-    // Video page specific hotkeys
+    /* ------------ Enhanced Hotkeys ------------ */
     document.addEventListener('keydown', (e) => {
         if (e.key === 'B' && e.shiftKey && !isVideoPage()) {
             if (!shiftBTimer && !shiftBTriggered) {
                 shiftBTimer = setTimeout(() => {
-                    if (!shiftBTriggered) { // Double-check to prevent race conditions
+                    // Double-check to prevent race conditions
+                    if (!shiftBTriggered) {
                         localStorage.removeItem('jellyfinEnhancedBookmarks');
-                        toast('🗑️ All bookmarks cleared');
+                        toast('🗑️ All Bookmarks Cleared');
                         shiftBTriggered = true;
                     }
                 }, 3000);
@@ -1052,6 +1366,8 @@
         }
     });
 
+
+    // Video page specific hotkeys
     document.addEventListener('keyup', (e) => {
         if (e.key === 'B') {
             if (shiftBTimer) {
@@ -1105,8 +1421,28 @@
             showHotkeyHelp();
             return;
         }
-        // Video page specific bookmark hotkeys
+
+        if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
+            if (!currentSettings.randomButtonEnabled) {
+                toast('❌ Random Button is Disabled');
+                return;
+            }
+            if (!currentSettings.randomIncludeMovies && !currentSettings.randomIncludeShows) {
+                toast('❌ No item types selected in random button settings');
+                return;
+            }
+            getRandomItem().then(item => {
+                if (item) navigateToItem(item);
+            });
+            return;
+        }
+
+        if (!isVideoPage()) return;
+
+        // b to bookmark current time
         if (e.key.toLowerCase() === 'b' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
             const video = getVideo();
             if (!video) return;
             const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
@@ -1119,8 +1455,9 @@
             const s = Math.floor(video.currentTime % 60);
             toast(`📍 Bookmarked at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
         }
-
+        //Shift + b or capital B for returning to bookmark
         if (e.key === 'B') {
+            e.preventDefault();
             const video = getVideo();
             if (!video) return;
             const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
@@ -1133,9 +1470,8 @@
                 const m = Math.floor((bookmarkTime % 3600) / 60);
                 const s = Math.floor(bookmarkTime % 60);
                 toast(`📍 Returned to bookmark at ${h > 0 ? `${h}:` : ''}${m.toString().padStart(h > 0 ? 2 : 1, '0')}:${s.toString().padStart(2, '0')}`);
-
             } else {
-                toast('❌ No bookmark found');
+                toast('❌ No Bookmarks Found!');
             }
         }
 
@@ -1167,11 +1503,7 @@
                     // Subtitle menu is already open, don't open it again
                     return;
                 }
-
-                // Check if any other action sheet is open
-                const existingActionSheet = document.querySelector('.actionSheetContent');
-                if (existingActionSheet) {
-                    // Close existing action sheet first
+                if (document.querySelector('.actionSheetContent')) {
                     document.body.click();
                     setTimeout(() => {
                         document.querySelector('button.btnSubtitles')?.click();
@@ -1191,7 +1523,7 @@
 
     document.addEventListener('keydown', hotkeyListener);
 
-    /* ------------ Enhanced auto-pause/resume with settings ------------ */
+    /* ------------ Enhanced Auto-Pause/Resume ------------ */
     document.addEventListener('visibilitychange', () => {
         const video = getVideo();
         if (!video) return;
