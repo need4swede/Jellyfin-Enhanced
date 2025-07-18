@@ -5,7 +5,7 @@
     let shiftBTriggered = false;
 
     // Script version
-    const SCRIPT_VERSION = '3.0';
+    const SCRIPT_VERSION = '3.1';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
     const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -920,7 +920,7 @@
                             <span style="color: rgba(255,255,255,0.8);">Open search</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + Esc</kbd></span>
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + H</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Go to home</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
@@ -1380,7 +1380,7 @@
             return;
         }
 
-        if (e.key === 'Escape' && e.shiftKey) {
+        if (e.key === 'H' && e.shiftKey) {
             e.preventDefault();
             location.href = '/web/#/home.html';
             toast('🏠 Home');

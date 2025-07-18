@@ -12,7 +12,7 @@ An enhanced userscript that adds powerful keyboard shortcuts, customizable subti
 |------------------|------------------------------------------------------------------------|---------------|
 | `?`              | Shows the settings panel with all hotkeys and customization options     | Global        |
 | `/`              | Opens search page                                                      | Global        |
-| `Shift + Esc`    | Go to Jellyfin Home Page                                               | Global        |
+| `Shift + H`    | Go to Jellyfin Home Page                                               | Global        |
 | `D`              | Go to Dashboard                                                        | Global        |
 | `Q`              | Go to Quick Connect                                                    | Global        |
 | `R`              | Play a random item from your library (Movies and/or Shows)              | Global        |
