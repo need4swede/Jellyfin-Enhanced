@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jellyfin Enhanced
 // @namespace    https://github.com/n00bcodr/Jellyfin-Enhanced
-// @version      3.1
+// @version      3.2
 // @description  Userscript for Jellyfin with comprehensive hotkey support, subtitle customization, auto-pause functionality, random item selection, and update checking
 // @author       n00bcodr
 // @match        */web/*
@@ -19,7 +19,7 @@
     let shiftBTriggered = false;
 
     // Script version
-    const SCRIPT_VERSION = '3.1';
+    const SCRIPT_VERSION = '3.2';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
     const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -582,6 +582,71 @@
     /* ------------ Video Control Functions ------------ */
     const getVideo = () => document.querySelector('video');
 
+    /* ------------ Skip Intro Function ------------ */
+    const skipIntro = () => {
+        const skipButton = document.querySelector('button.skip-button.emby-button:not(.skip-button-hidden):not(.hide)');
+
+        if (skipButton && skipButton.textContent.includes('Skip Intro')) {
+            skipButton.click();
+            toast('⏭️ Skipped');
+        } else {
+            toast('❌ Skip Intro not available');
+        }
+    };
+
+    /* ------------ Speed Control Functions ------------ */
+    const adjustPlaybackSpeed = (direction) => {
+        const video = getVideo();
+        if (!video) {
+            toast('❌ No Video Found');
+            return;
+        }
+
+        const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+        let currentIndex = speeds.findIndex(speed => Math.abs(speed - video.playbackRate) < 0.01);
+
+        if (currentIndex === -1) {
+            currentIndex = speeds.findIndex(speed => speed >= video.playbackRate);
+            if (currentIndex === -1) currentIndex = speeds.length - 1;
+        }
+
+        if (direction === 'increase') {
+            currentIndex = Math.min(currentIndex + 1, speeds.length - 1);
+        } else {
+            currentIndex = Math.max(currentIndex - 1, 0);
+        }
+
+        video.playbackRate = speeds[currentIndex];
+        toast(`⚡ Speed: ${speeds[currentIndex]}x`);
+    };
+
+    const resetPlaybackSpeed = () => {
+        const video = getVideo();
+        if (!video) {
+            toast('❌ No Video Found');
+            return;
+        }
+
+        video.playbackRate = 1.0;
+        toast('⚡ Speed: Normal');
+    };
+
+
+    /* ------------ Jump Functions ------------ */
+    const jumpToPercentage = (percentage) => {
+        const video = getVideo();
+        if (!video || !video.duration) {
+            toast('❌ No Video Found');
+            return;
+        }
+
+        // Only realized while testing this, that Jellyfin has this functionality natively, might be unknown to some, so will leave the toast message for some visual feedback and in the hotkey panel
+
+        // const targetTime = (video.duration * percentage) / 100;
+        // video.currentTime = targetTime;
+        toast(`⏭️ Jumped to ${percentage}%`);
+    };
+
     const cycleSubtitleTrack = () => {
         // This function finds the subtitle menu and clicks the next available option. (There is probably a much better way to do this, but for the love of god, I cannot figure it out.)
         const performCycle = () => {
@@ -980,12 +1045,32 @@
                             <span style="color: rgba(255,255,255,0.8);">Cycle audio tracks</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">N</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Skip intro</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: clamp(10px, 1.5vw, 12px);">+ / =</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Increase playback speed</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: clamp(10px, 1.5vw, 12px);">- / _</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Decrease playback speed</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: clamp(10px, 1.5vw, 12px);">R</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Reset playback speed</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">B</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Bookmark current time</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">Shift + B</kbd></span>
                             <span style="color: rgba(255,255,255,0.8);">Go to Saved Bookmark</span>
+                        </div>
+                            <div style="display: flex; justify-content: space-between;">
+                            <span><kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-size: 12px;">0-9</kbd></span>
+                            <span style="color: rgba(255,255,255,0.8);">Jump to % video</span>
                         </div>
                     </div>
                 </div>
@@ -1218,31 +1303,6 @@
             toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
             resetAutoCloseTimer();
         });
-        // randomIncludeMovies.addEventListener('change', (e) => {
-        //     currentSettings.randomIncludeMovies = e.target.checked;
-        //     if (!currentSettings.randomIncludeMovies && !currentSettings.randomIncludeShows) {
-        //         currentSettings.randomIncludeMovies = true;
-        //         randomIncludeMovies.checked = true;
-        //         toast('⚠️ At least one item type must be selected', 5000);
-        //         return;
-        //     }
-        //     saveSettings(currentSettings);
-        //     toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
-        //     resetAutoCloseTimer();
-        // });
-
-        // randomIncludeShows.addEventListener('change', (e) => {
-        //     currentSettings.randomIncludeShows = e.target.checked;
-        //     if (!currentSettings.randomIncludeMovies && !currentSettings.randomIncludeShows) {
-        //         currentSettings.randomIncludeShows = true;
-        //         randomIncludeShows.checked = true;
-        //         toast('⚠️ At least one item type must be selected', 5000);
-        //         return;
-        //     }
-        //     saveSettings(currentSettings);
-        //     toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`);
-        //     resetAutoCloseTimer();
-        // });
 
         const checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
         checkUpdatesBtn.addEventListener('click', () => {
@@ -1422,7 +1482,7 @@
             return;
         }
 
-        if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.altKey && !e.metaKey && !isVideoPage()) {
             e.preventDefault();
             if (!currentSettings.randomButtonEnabled) {
                 toast('❌ Random Button is Disabled');
@@ -1481,8 +1541,8 @@
         const k = e.key.toLowerCase();
 
         // Prevent default for video hotkeys
-        const videoHotkeys = ['a', 'i', 's', 'c', 'v'];
-        if (videoHotkeys.includes(k)) {
+        const videoHotkeys = ['a', 'i', 's', 'c', 'v', 'n', 'r', '+', '=', '-', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        if (videoHotkeys.includes(k) || e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') {
             e.preventDefault();
             e.stopPropagation();
         }
@@ -1517,6 +1577,33 @@
                 break;
             case 'v':
                 cycleAudioTrack();
+                break;
+            case 'n':
+                skipIntro();
+                break;
+            case 'r':
+                resetPlaybackSpeed();
+                break;
+            case '+':
+            case '=':
+                adjustPlaybackSpeed('increase');
+                break;
+            case '-':
+            case '_':
+                adjustPlaybackSpeed('decrease');
+                break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                const percentage = parseInt(k) * 10;
+                jumpToPercentage(percentage);
                 break;
         }
     };
