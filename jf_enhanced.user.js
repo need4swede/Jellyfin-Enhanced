@@ -25,7 +25,7 @@
     };
 
     // --- Global variables ---
-    let shiftBTimer = null; // Timer for the 'Shift+B' (clear all bookmarks) Shortcut
+    let shiftBTimer = null;
     let shiftBTriggered = false; // Flag to prevent multiple triggers of the clear bookmarks action
 
     // --- Script metadata ---
