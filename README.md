@@ -1,154 +1,159 @@
 # Jellyfin Enhanced
 
-![Jellyfin Enhanced](panel.gif)
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/n00bcodr/Jellyfish/main?logo=semantic-release&logoColor=white&label=Last%20Updated&labelColor=black&color=AA5CC3&cacheSeconds=3600" alt="Last Updated">
+  <img src="https://img.shields.io/github/commit-activity/w/n00bcodr/Jellyfish?logo=git&label=Commit%20Activity&labelColor=black&color=00A4DC&cacheSeconds=600" alt="Commit Activity">
+  <img src="https://img.shields.io/badge/Jellyfin%20Version-10.10.7-AA5CC3?logo=jellyfin&logoColor=00A4DC&labelColor=black" alt="Jellyfin Version">
+</p>
+<br>
 
-An enhanced userscript that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item selection to Jellyfin's web interface.
+An userscript that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item button to Jellyfin's web interface.
+
+<img src="panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
+
+<br><details>
+<summary style="font-size: 1em; font-weight: 600;">Jellyfin Enhanced with Default Theme</summary>
+<br>
+<img src="panel.gif" width="800"/>
+</details><br>
 
 ## ✨ Features
 
+### 🔧 Configuration
+The script now includes a `CONFIG` section at the top, allowing you to easily customize timings without editing the core logic:
+- **Update Checks**: Set how often the script checks for new versions.
+- **Hotkey Delays**: Adjust the hold duration for actions like clearing all bookmarks.
+- **Toast Notifications**: Change how long on-screen messages appear.
+- **Panel Timers**: Modify delays for menus and other interface elements.
+
 ### ⌨️ Keyboard Shortcuts
 
-| Key              | Action                                                                 | Context       |
-|------------------|------------------------------------------------------------------------|---------------|
-| `?`              | Shows the settings panel with all hotkeys and customization options     | Global        |
-| `/`              | Opens search page                                                      | Global        |
-| `Shift + H`    | Go to Jellyfin Home Page                                               | Global        |
-| `D`              | Go to Dashboard                                                        | Global        |
-| `Q`              | Go to Quick Connect                                                    | Global        |
-| `R`              | Play a random item from your library (Movies and/or Shows)              | Global        |
-| Hold `Shift + B` | Clear all Bookmarks                                                    | Global        |
-|------------------|------------------------------------------------------------------------|---------------|
-| `A`              | Cycle through aspect ratios (Auto → Cover → Fill) with visual feedback | Video Player  |
-| `I`              | Shows playback info (stats overlay)                                    | Video Player  |
-| `S`              | Shows subtitle selection menu                                          | Video Player  |
-| `C`              | Cycle through subtitle tracks                                          | Video Player  |
-| `V`              | Cycle through audio tracks                                             | Video Player  |
-| `B`              | Bookmark current time                                                  | Video Player  |
-| `Shift + B`      | Go to saved bookmark                                                   | Video Player  |
+| Key | Action | Context |
+| :--- | :--- | :--- |
+| **`?`** | Show/hide the settings & hotkey panel | Global |
+| **`/`** | Focus the search bar | Global |
+| **`Shift`** + **`H`** | Go to the Jellyfin Home Page | Global |
+| **`D`** | Go to the Dashboard | Global |
+| **`Q`** | Go to Quick Connect | Global |
+| **`R`** | Play a random item from your library | Global |
+| **Hold `Shift`** + **`B`** | Clear all saved bookmarks (3-second hold) | Global |
+| :--- | :--- | :--- |
+| **`A`** | Cycle through aspect ratios (Auto → Cover → Fill) | Player |
+| **`I`** | Show playback info (stats overlay) | Player |
+| **`S`** | Show the subtitle selection menu | Player |
+| **`C`** | Cycle through available subtitle tracks | Player |
+| **`V`** | Cycle through available audio tracks | Player |
+| **`N`** | Activate the "Skip Intro" button if visible | Player |
+| **`B`** | Bookmark the current playback time | Player |
+| **`Shift`** + **`B`** | Go to the saved bookmark for the current item | Player |
+| **`0`**-**`9`** | Jump to 0% - 90% of the video duration | Player |
+| **`=`** / **`+`** | Increase playback speed | Player |
+| **`-`** / **`_`** | Decrease playback speed | Player |
+| **`R`** | Reset playback speed to normal (1.0x) | Player |
 
 ### 📝 Subtitle Settings
-- **6 Style Presets**: Clean White, Classic Black Box, Netflix Style, Cinema Yellow, Soft Gray, High Contrast
-- **5 Font Sizes**: Tiny, Small, Normal, Large, Extra Large
-- **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Roboto
-- **Persistent Settings**: All settings are automatically saved and will persist across sessions
+- **6 Style Presets**: Clean White, Classic Black Box, Netflix Style, Cinema Yellow, Soft Gray, High Contrast.
+- **5 Font Sizes**: Tiny, Small, Normal, Large, Extra Large.
+- **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Roboto.
+- **Persistent Settings**: All choices are automatically saved and persist for the session.
 
 ### ⏯️ Smart Auto-Pause/Resume
-- **Configurable Auto-Pause**: Automatically pause when switching tabs or losing focus
-- **Optional Auto-Resume**: Choose whether to resume playback when returning to the tab
+- **Configurable Auto-Pause**: Automatically pause video when switching tabs.
+- **Optional Auto-Resume**: Choose whether to resume playback upon returning to the tab.
 
 ### 🎲 Random Item Selection
-- **Random Button**: Adds a "Random" button to the header for quick access to play a random item
-- **Configurable Item Types**: Choose to include Movies, Shows, or both in random selection
-- **Hotkey Support**: Press `R` to instantly play a random item
-- **Persistent Settings**: Random button and item type preferences are saved across sessions
+- **Random Button**: Adds a "Random" button to the header for one-click access to a random item.
+- **Configurable Item Types**: Choose to include Movies, Shows, or both.
+- **Hotkey Support**: Press `R` (when not in the player) to instantly go to a random item.
+- **Persistent Settings**: Your preferences are saved and remembered.
 
 ### 📦 Update System
-- **Automatic Update Check**: Checks for updates every 24 hours
-- **Manual Update Check**: Use the "Check Updates" button in settings
-- **Update Notifications**: Update notifications with options to view latest script or release notes
-- **Version Management**: Tracks current version and compares with latest GitHub releases
-
+- **Automatic Update Check**: Checks for new versions every 24 hours.
+- **Manual Update Check**: Use the "Check Updates" button in the settings panel.
+- **Update Notifications**: Get notified of new versions with links to release notes.
 
 ## 🔧 Installation
 
-You can install the script in one of below ways:
+You can install the script using one of the methods below.
 
 ---
 
-### **Method 1: Direct Integration**
-
-*This method makes the enhancements available to all users on your Jellyfin server.*
-
-1. **Locate your Jellyfin web root directory:**
-   ```bash
-   # Common paths:
-   # Ubuntu/Debian: /usr/share/jellyfin/web/
-   # Docker: /jellyfin/jellyfin-web/
-   # Windows: C:\Program Files\Jellyfin\Server\jellyfin-web\
-   ```
-
-2. **Edit the index.html file:**
-   ```bash
-   sudo nano /usr/share/jellyfin/web/index.html
-   ```
-
-3. **Add the script reference before the closing `</head>` tag:**
-   ```html
-   <script defer src="jf_enhanced.js"></script>
-   ```
-
-4. **Download the script:**
-   ```bash
-   curl -o /usr/share/jellyfin/web/jf_enhanced.js https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js
-   ```
-   > [!Warning]
-   > If you are coming from using hotkeys.js, please remove hotkeys.js from your webroot. Apologies for the inconvenience!
-
-5. **Clear browser cache and reload Jellyfin**
-
-> [!TIP]
-> Check your Jellyfin server logs to find the exact web directory path for your installation.
-
----
-
-### **Method 2: Plugin**
-
-1. Install the [Custom JavaScript Plugin](https://github.com/johnpc/jellyfin-plugin-custom-javascript)
-
-2. Navigate to **Dashboard -> Plugins -> Custom JavaScript**
-
-3. Paste the contents of `jf_enhanced.js` into the text area
-
-4. Restart Jellyfin
-
-5. **Clear your browser cache** and **reload the Jellyfin Web Page**.
-
----
-
-### **Method 3: Browser Extension (User-Specific)**
+### **Method 1: Browser Extension (Recommended for Personal Use)**
 
 *This method works only in your browser and is perfect for personal use.*
 
-1. **Install a userscript manager:**
-   - [Tampermonkey](https://www.tampermonkey.net/) (Recommended)
-   - [Violentmonkey](https://violentmonkey.github.io/)
-   - [Greasemonkey](https://addons.mozilla.org/en-GB/firefox/addon/greasemonkey/) (Firefox)
+1.  **Install a userscript manager:**
+    * [Tampermonkey](https://www.tampermonkey.net/) (Recommended)
+    * [Violentmonkey](https://violentmonkey.github.io/)
+    * [Greasemonkey](https://addons.mozilla.org/en-GB/firefox/addon/greasemonkey/) (Firefox)
 
-2. **Install the script:**
+2.  **Install the script:**
 
-   [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/main/jf_enhanced.user.js)
+    [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/main/jf_enhanced.user.js)
 
-   > [!Warning]
-   > If you are coming from using hotkeys.js, please remove hotkeys.js from your userscripts. Apologies for the inconvenience!
+    > [!WARNING]
+    > If you previously used `hotkeys.js`, please remove it from your userscripts to avoid conflicts.
 
-3. **Alternative manual installation:**
-   - Create a new userscript in your extension
-   - Copy and paste the contents from the repository
-   - Save and enable the script
+---
+
+### **Method 2: Plugin (Server-Wide)**
+
+1.  Install the [Custom JavaScript Plugin](https://github.com/johnpc/jellyfin-plugin-custom-javascript) from the official Jellyfin repository.
+2.  Navigate to **Dashboard -> Plugins -> Custom JavaScript**.
+3.  Paste the contents of `jf_enhanced.user.js` into the text area.
+4.  Save the settings and restart your Jellyfin server.
+5.  **Clear your browser cache** and reload the Jellyfin Web Page.
+
+---
+
+### **Method 3: Direct Integration (Advanced, Server-Wide)**
+
+*This method makes the enhancements available to all users on your server but requires direct file system access.*
+
+1.  **Locate your Jellyfin web root directory:**
+    * **Ubuntu/Debian**: `/usr/share/jellyfin/web/`
+    * **Docker**: `/jellyfin/jellyfin-web/`
+    * **Windows**: `C:\Program Files\Jellyfin\Server\jellyfin-web\`
+
+2.  **Edit the `index.html` file:**
+    ```bash
+    sudo nano /usr/share/jellyfin/web/index.html
+    ```
+
+3.  **Add the script reference** before the closing `</head>` tag:
+    ```html
+    <script defer src="jf_enhanced.js"></script>
+    ```
+
+4.  **Download the script** into the web root directory:
+    ```bash
+    curl -o /usr/share/jellyfin/web/jf_enhanced.js [https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js](https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js)
+    ```
+
+5.  **Clear your browser cache** and reload Jellyfin.
 
 ---
 
 ## 🧪 Compatibility
 
 **Tested and Verified:**
-- Jellyfin 10.10.x Web UI and official Jellyfin Mobile Application
-- Jellyfin 10.11.0 Web UI and official Jellyfin Mobile Application
+- Jellyfin `10.8.x`, `10.9.x`
 - Chrome/Chromium browsers + Tampermonkey
 - Firefox + Violentmonkey/Greasemonkey
 
 ## 📸 Screenshots
 
-![Update Notification](update.png)
+![Update Notification](https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/update.png)
 
 ## 📄 License
 
-MIT License - free to use, modify, and distribute.
+This project is licensed under the MIT License
 
 ---
 
 <div align="center">
 
-**Enjoying Jellyfin Enhanced Hotkeys?**
+**Enjoying Jellyfin Enhanced?**
 
 ⭐ Star the repository | 🐛 Report issues | 💡 Suggest features
 
