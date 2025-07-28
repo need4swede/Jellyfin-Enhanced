@@ -7,7 +7,7 @@
 </p>
 <br>
 
-An userscript that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item button to Jellyfin's web interface.
+An script that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item button to Jellyfin's web interface.
 
 <img src="panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
 
@@ -144,6 +144,78 @@ You can install the script using one of the methods below.
 ## 📸 Screenshots
 
 ![Update Notification](https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/update.png)
+
+
+
+<br>
+<details>
+<summary style="font-size: 1.25em; font-weight: 600;">🎨 Custom Styling (For Any Theme)</summary>
+<br>
+
+While the script automatically themes itself with Jellyfish, you can apply your own custom look on any theme. The following CSS template can be used in a browser extension like Stylus to completely override the panel's appearance.
+
+Sample styling
+
+```css
+
+    /*
+    * ===================================================================
+    * Universal Style Override for the Jellyfin Enhanced Panel if you are using
+    * ===================================================================
+    */
+
+    /* Main Panel Container */
+    #jellyfin-enhanced-panel {
+    background: linear-gradient(135deg, #2c3e50, #1a2531) !important;
+    border: 1px solid #567 !important;
+    backdrop-filter: blur(5px) !important;
+    color: #ecf0f1 !important;
+    }
+
+    /* Panel Header & Footer */
+    #jellyfin-enhanced-panel > div:first-child,
+    #jellyfin-enhanced-panel > div:last-child {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-color: rgba(136, 153, 170, 0.4) !important; /* Corresponds to #567 with opacity */
+    }
+
+    /* Main Title ("Jellyfin Enhanced") */
+    #jellyfin-enhanced-panel div[style*="-webkit-background-clip: text"] {
+    /* For gradient titles, otherwise use 'color' */
+    background: linear-gradient(135deg, #1abc9c, #3498db) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    }
+
+    /* Section Headers (e.g., "Global", "Player") and Accent Color for Details */
+    #jellyfin-enhanced-panel h3,
+    #jellyfin-enhanced-panel details summary {
+    color: #1abc9c !important;
+    }
+
+    /* Collapsible <details> sections background */
+    #jellyfin-enhanced-panel details {
+        background-color: rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Keyboard Key Styling (<kbd>) */
+    #jellyfin-enhanced-panel kbd {
+    background: #34495e !important;
+    color: #ecf0f1 !important;
+    border-radius: 4px !important;
+    border: 1px solid #2c3e50 !important;
+    }
+
+    /* Style for Toast Notifications (after script edit) */
+    .jellyfin-enhanced-toast {
+        background: linear-gradient(135deg, #1abc9c, #16a085) !important;
+        color: white !important;
+        border: 1px solid #1abc9c !important;
+    }
+
+```
+
+</details>
 
 ## 📄 License
 
