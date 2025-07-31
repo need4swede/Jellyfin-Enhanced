@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jellyfin Enhanced
 // @namespace    https://github.com/n00bcodr/Jellyfin-Enhanced
-// @version      4.0
+// @version      4.1
 // @description  Userscript for Jellyfin with comprehensive shortcut support, subtitle customization, auto-pause functionality, random item selection, and update checking
 // @author       n00bcodr
 // @match        */web/*
@@ -29,7 +29,7 @@
     let shiftBTriggered = false; // Flag to prevent multiple triggers of the clear bookmarks action
 
     // --- Script metadata ---
-    const SCRIPT_VERSION = '4.0';
+    const SCRIPT_VERSION = '4.1';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
 
     /*
@@ -218,7 +218,7 @@
     const getJellyfinServerAddress = () => window.location.origin;
 
     // Fetches a random item (Movie or Series) from the user's library via the API.
-    const getRandomItem = async () => {
+    const getRandomItem = async (unwatchedOnly = false) => {
         const userId = ApiClient.getCurrentUserId();
         if (!userId) {
             console.error("Jellyfin Enhanced: User not logged in.");
@@ -233,7 +233,11 @@
         const includeItemTypes = itemTypes.length > 0 ? itemTypes.join(',') : 'Movie,Series';
 
         // Construct the API URL to fetch a list of random items
-        const apiUrl = `${serverAddress}/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls&_=${Date.now()}`;
+        let apiUrl = `${serverAddress}/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls`;
+        if (unwatchedOnly) {
+            apiUrl += '&IsPlayed=false';
+        }
+        apiUrl += `&_=${Date.now()}`;
 
         try {
             const response = await ApiClient.ajax({
@@ -303,7 +307,7 @@
             randomButton.innerHTML = '<i class="material-icons">hourglass_empty</i>';
 
             try {
-                const item = await getRandomItem();
+                const item = await getRandomItem(currentSettings.randomUnwatchedOnly);
                 if (item) {
                     navigateToItem(item);
                 }
@@ -522,7 +526,8 @@
                 selectedFontFamilyPresetIndex: 0,
                 randomButtonEnabled: true,
                 randomIncludeMovies: true,
-                randomIncludeShows: true
+                randomIncludeShows: true,
+                randomUnwatchedOnly: false
             };
         } catch (e) {
             console.error('Error loading settings:', e);
@@ -535,7 +540,8 @@
                 selectedFontFamilyPresetIndex: 0,
                 randomButtonEnabled: true,
                 randomIncludeMovies: true,
-                randomIncludeShows: true
+                randomIncludeShows: true,
+                randomUnwatchedOnly: false
             };
         }
     };
@@ -1069,6 +1075,8 @@
                         <div style="padding: 0 16px 16px 16px;">
                             <div style="margin-bottom:16px; padding:12px; background:${presetBoxBackground}; border-radius:6px; border-left:3px solid ${toggleAccentColor};">
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;"><input type="checkbox" id="randomButtonToggle" ${currentSettings.randomButtonEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;"><div><div style="font-weight:500;">Enable Random Button</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Show random button in header</div></div></label>
+                                <br>
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;"><input type="checkbox" id="randomUnwatchedOnly" ${currentSettings.randomUnwatchedOnly ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;"><div><div style="font-weight:500;">Unwatched Only</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Only select from unwatched items</div></div></label>
                             </div>
                             <div style="font-weight:500; margin-bottom:8px;">Item Types</div>
                             <div style="display:flex; gap:16px; padding:12px; background:${presetBoxBackground}; border-radius:6px; border-left:3px solid ${toggleAccentColor};">
@@ -1126,12 +1134,14 @@
         const autoPauseToggle = document.getElementById('autoPauseToggle');
         const autoResumeToggle = document.getElementById('autoResumeToggle');
         const randomButtonToggle = document.getElementById('randomButtonToggle');
+        const randomUnwatchedOnly = document.getElementById('randomUnwatchedOnly');
         const randomIncludeMovies = document.getElementById('randomIncludeMovies');
         const randomIncludeShows = document.getElementById('randomIncludeShows');
 
         autoPauseToggle.addEventListener('change', (e) => { currentSettings.autoPauseEnabled = e.target.checked; saveSettings(currentSettings); toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         autoResumeToggle.addEventListener('change', (e) => { currentSettings.autoResumeEnabled = e.target.checked; saveSettings(currentSettings); toast(`▶️ Auto-Resume ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         randomButtonToggle.addEventListener('change', (e) => { currentSettings.randomButtonEnabled = e.target.checked; saveSettings(currentSettings); toast(`🎲 Random Button ${e.target.checked ? 'Enabled' : 'Disabled'}`); addRandomButton(); resetAutoCloseTimer(); });
+        randomUnwatchedOnly.addEventListener('change', (e) => { currentSettings.randomUnwatchedOnly = e.target.checked; saveSettings(currentSettings); toast(`🎲 Unwatched Only ${e.target.checked ? 'Enabled' : 'Disabled'}`); const unwatchedFilterButton = document.getElementById('unwatchedFilterButton'); if(unwatchedFilterButton) {unwatchedFilterButton.style.color = currentSettings.randomUnwatchedOnly ? 'var(--primary-accent-color, #00A4DC)' : 'inherit';} resetAutoCloseTimer(); });
         randomIncludeMovies.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeShows.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeMovies = e.target.checked; saveSettings(currentSettings); toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         randomIncludeShows.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeMovies.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeShows = e.target.checked; saveSettings(currentSettings); toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         document.getElementById('checkUpdatesBtn').addEventListener('click', () => { if (updateAvailable && latestReleaseData) { showUpdateNotification(latestReleaseData); } else { checkForUpdates(true); } resetAutoCloseTimer(); });
