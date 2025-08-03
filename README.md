@@ -102,6 +102,20 @@ You can install the script using one of the methods below.
 2.  Navigate to **Dashboard -> Plugins -> JavaScript Injector**.
 3.  Click on "Add Script"
 4.  Paste the contents of `jf_enhanced.user.js` into the script area.
+   <br>
+   OR <br>
+   Paste the below code snippet to always pull the latest
+
+    ```js
+    (function() {
+    'use strict';
+    const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.type = 'text/javascript';
+    document.head.appendChild(script);
+    })();
+    ```
 5.  Save and Refresh.
 
 > [!NOTE]
