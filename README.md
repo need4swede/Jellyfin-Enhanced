@@ -78,7 +78,7 @@ You can install the script using one of the methods below.
 
 ---
 
-### **Method 1: Browser Extension (Recommended for Personal Use)**
+### **Method 1: Browser Extension (for Personal Use)**
 
 *This method works only in your browser and is perfect for personal use.*
 
@@ -118,8 +118,6 @@ You can install the script using one of the methods below.
     ```
 5.  Save and Refresh.
 
-
-
 > [!NOTE]
 > **Clear your cache** if you do not see changes reflect.
 
@@ -156,14 +154,13 @@ You can install the script using one of the methods below.
 ## 🧪 Compatibility
 
 **Tested and Verified:**
-- Jellyfin `10.8.x`, `10.9.x`
+- Jellyfin `10.9.x`, `10.10.x`
 - Chrome/Chromium browsers + Tampermonkey
 - Firefox + Violentmonkey/Greasemonkey
 
 ## 📸 Screenshots
 
 ![Update Notification](https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/update.png)
-
 
 
 <br>
