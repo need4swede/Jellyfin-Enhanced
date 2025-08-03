@@ -91,31 +91,31 @@ You can install the script using one of the methods below.
 
     [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/main/jf_enhanced.user.js)
 
-    > [!WARNING]
-    > If you previously used `hotkeys.js`, please remove it from your userscripts to avoid conflicts.
+> [!WARNING]
+> If you previously used `hotkeys.js`, please remove it from your userscripts to avoid conflicts.
 
 ---
 
-### **Method 2: Plugin (Server-Wide)**
+### **Method 2 (Recommended): Plugin (Server-Wide)**
 
 1.  Install the [Jellyfin JavaScript Injector Plugin](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) and reboot your Jellyfin server.
 2.  Navigate to **Dashboard -> Plugins -> JavaScript Injector**.
 3.  Click on "Add Script"
-4.  Paste the contents of `jf_enhanced.user.js` into the script area.
+4. Paste the contents of [jf_enhanced.js](jf_enhanced.js) into the script area.
    <br>
-   OR <br>
+   **OR** <br>
    Paste the below code snippet to always pull the latest
 
-    ```js
-    (function() {
-    'use strict';
-    const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
-    const script = document.createElement('script');
-    script.src = scriptUrl;
-    script.type = 'text/javascript';
-    document.head.appendChild(script);
-    })();
-    ```
+   ```js 
+   (function() {
+   'use strict';
+   const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
+   const script = document.createElement('script');
+   script.src = scriptUrl;
+   script.type = 'text/javascript';
+   document.head.appendChild(script);
+   })();
+   
 5.  Save and Refresh.
 
 > [!NOTE]
