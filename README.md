@@ -98,21 +98,30 @@ You can install the script using one of the methods below.
 
 ### **Method 2: Plugin (Server-Wide)**
 
-1.  Install the [Custom JavaScript Plugin](https://github.com/johnpc/jellyfin-plugin-custom-javascript) from the official Jellyfin repository.
-2.  Navigate to **Dashboard -> Plugins -> Custom JavaScript**.
-3.  Paste this code into the text area.
-```
-(function() {
-  'use strict';
-  const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
-  const script = document.createElement('script');
-  script.src = scriptUrl;
-  script.type = 'text/javascript';
-  document.head.appendChild(script);
-})();
-```
-5.  Save the settings and restart your Jellyfin server.
-6.  **Clear your browser cache** and reload the Jellyfin Web Page.
+1.  Install the [Jellyfin JavaScript Injector Plugin](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) and reboot your Jellyfin server.
+2.  Navigate to **Dashboard -> Plugins -> JavaScript Injector**.
+3.  Click on "Add Script"
+4.  Paste the contents of `jf_enhanced.user.js` into the script area.
+   <br>
+   OR <br>
+   Paste the below code snippet to always pull the latest
+
+    ```js
+    (function() {
+    'use strict';
+    const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.type = 'text/javascript';
+    document.head.appendChild(script);
+    })();
+    ```
+5.  Save and Refresh.
+
+
+
+> [!NOTE]
+> **Clear your cache** if you do not see changes reflect.
 
 ---
 
