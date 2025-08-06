@@ -76,7 +76,9 @@ The script now includes a `CONFIG` section at the top, allowing you to easily cu
 
 You can install the script using one of the methods below.
 
----
+<p align="center">
+----
+</p>
 
 ### **Method 1: Browser Extension (for Personal Use)**
 
@@ -94,7 +96,9 @@ You can install the script using one of the methods below.
 > [!WARNING]
 > If you previously used `hotkeys.js`, please remove it from your userscripts to avoid conflicts.
 
----
+<p align="center">
+----
+</p>
 
 ### **Method 2 (Recommended): Plugin (Server-Wide)**
 
@@ -106,7 +110,7 @@ You can install the script using one of the methods below.
    **OR** <br>
    Paste the below code snippet to always pull the latest
 
-   ```js 
+   ```js
    (function() {
    'use strict';
    const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
@@ -115,13 +119,15 @@ You can install the script using one of the methods below.
    script.type = 'text/javascript';
    document.head.appendChild(script);
    })();
-   
+
 5.  Save and Refresh.
 
 > [!NOTE]
 > **Clear your cache** if you do not see changes reflect.
 
----
+<p align="center">
+----
+</p>
 
 ### **Method 3: Direct Integration (Advanced, Server-Wide)**
 
@@ -241,10 +247,13 @@ This project is licensed under the MIT License
 
 <div align="center">
 
-**Enjoying Jellyfin Enhanced?**
+**Made with 💜 for Jellyfin and the community**
 
-⭐ Star the repository | 🐛 Report issues | 💡 Suggest features
+### Enjoying Jellyfin Enhanced?
 
-[GitHub Repository](https://github.com/n00bcodr/Jellyfin-Enhanced) • [Latest Release](https://github.com/n00bcodr/Jellyfin-Enhanced/releases)
+Checkout my other repos!
+
+[Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) (javascript) • [Jellyfin-Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere) (javascript) • [Jellyfin-Tweaks](https://github.com/n00bcodr/JellyfinTweaks) (plugin) • [Jellyfin-JavaScript-Injector](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) (plugin) • [Jellyfish](https://github.com/n00bcodr/Jellyfish/) (theme)
+
 
 </div>
