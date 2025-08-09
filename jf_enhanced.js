@@ -192,6 +192,219 @@
         document.head.appendChild(style);
     };
 
+
+
+    /*
+     * --------------------------------------------------------------------------------
+     * HELPER FUNCTIONS & UI
+     * - General utility functions used throughout the script.
+     * --------------------------------------------------------------------------------
+     */
+
+    // Checks if the current page is a video playback page.
+    const isVideoPage = () => location.hash.startsWith('#/video');
+
+    // Finds the main settings button in the video player OSD.
+    const settingsBtn = () => document.querySelector('button[title="Settings"],button[aria-label="Settings"]');
+
+    // Opens the player settings menu and executes a callback function.
+    const openSettings = (cb) => {
+        settingsBtn()?.click();
+        setTimeout(cb, 120); // Wait for the menu to animate open
+    };
+
+    // Displays a short-lived message (toast notification) at the bottom-right of the screen.
+    const toast = (txt, duration = CONFIG.TOAST_DURATION) => {
+        const getJellyfinThemeVariable = (variableName, defaultValue) => {
+            const rootStyle = getComputedStyle(document.documentElement);
+            const value = rootStyle.getPropertyValue(variableName).trim();
+            return value ? value : defaultValue;
+        };
+
+        const isJellyfishThemeActive = getJellyfinThemeVariable('--theme-updated-on', '') !== '' || getJellyfinThemeVariable('--theme-name', '').toLowerCase().includes('jellyfish');
+        let toastBg, toastBlur, toastBorder;
+
+        if (isJellyfishThemeActive) {
+            toastBg = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.6)');
+            toastBlur = getJellyfinThemeVariable('--blur', '15px');
+            toastBorder = `1px solid ${getJellyfinThemeVariable('--primary-accent-color', 'rgba(255,255,255,0.1)')}`;
+        } else {
+            toastBg = 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(40,40,40,0.9))';
+            toastBlur = '15px';
+            toastBorder = '1px solid rgba(255,255,255,0.1)';
+        }
+
+        const t = document.createElement('div');
+        t.className = 'jellyfin-enhanced-toast';
+        Object.assign(t.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            transform: 'translateX(100%)',
+            background: toastBg,
+            color: '#fff',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            zIndex: 99999,
+            fontSize: 'clamp(13px, 2vw, 16px)',
+            fontWeight: '500',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            backdropFilter: `blur(${toastBlur})`,
+            border: toastBorder,
+            transition: 'transform 0.3s ease-out',
+            maxWidth: 'clamp(280px, 80vw, 350px)'
+        });
+        t.textContent = txt;
+        document.body.appendChild(t);
+        setTimeout(() => t.style.transform = 'translateX(0)', 10);
+        setTimeout(() => {
+            t.style.transform = 'translateX(100%)';
+            setTimeout(() => t.remove(), 300);
+        }, duration);
+    };
+
+    /*
+     * --------------------------------------------------------------------------------
+     * SETTINGS PERSISTENCE
+     * - Saves and loads script settings from localStorage.
+     * --------------------------------------------------------------------------------
+     */
+    const saveSettings = (settings) => {
+        try {
+            localStorage.setItem('jellyfinEnhancedSettings', JSON.stringify(settings));
+        } catch (e) {
+            console.error('Failed to save settings:', e);
+        }
+    };
+
+    const loadSettings = () => {
+        try {
+            const settings = JSON.parse(localStorage.getItem('jellyfinEnhancedSettings'));
+            // Return saved settings or a default configuration.
+            return settings || {
+                autoPauseEnabled: true,
+                autoResumeEnabled: false,
+                selectedStylePresetIndex: 0,
+                selectedFontSizePresetIndex: 2,
+                selectedFontFamilyPresetIndex: 0,
+                randomButtonEnabled: true,
+                randomIncludeMovies: true,
+                randomIncludeShows: true,
+                randomUnwatchedOnly: false
+            };
+        } catch (e) {
+            console.error('Error loading settings:', e);
+            // Fallback to default settings on error.
+            return {
+                autoPauseEnabled: true,
+                autoResumeEnabled: false,
+                selectedStylePresetIndex: 0,
+                selectedFontSizePresetIndex: 2,
+                selectedFontFamilyPresetIndex: 0,
+                randomButtonEnabled: true,
+                randomIncludeMovies: true,
+                randomIncludeShows: true,
+                randomUnwatchedOnly: false
+            };
+        }
+    };
+
+    let currentSettings = loadSettings();
+
+    // Applies the saved subtitle styles when the script loads.
+    const applySavedStylesWhenReady = () => {
+        const savedStyleIndex = currentSettings.selectedStylePresetIndex ?? 0;
+        const savedFontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
+        const savedFontFamilyIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
+
+        const stylePreset = subtitlePresets[savedStyleIndex];
+        const fontSizePreset = fontSizePresets[savedFontSizeIndex];
+        const fontFamilyPreset = fontFamilyPresets[savedFontFamilyIndex];
+
+        if (stylePreset && fontSizePreset && fontFamilyPreset) {
+            applySubtitleStyles(
+                stylePreset.textColor,
+                stylePreset.bgColor,
+                fontSizePreset.size,
+                fontFamilyPreset.family
+            );
+        }
+    };
+
+    /*
+     * --------------------------------------------------------------------------------
+     * SUBTITLE CUSTOMIZATION
+     * - Presets and functions for changing subtitle appearance.
+     * --------------------------------------------------------------------------------
+     */
+    const subtitlePresets = [
+        { name: "Clean White", textColor: "#FFFFFFFF", bgColor: "transparent", previewText: "Aa" },
+        { name: "Classic Black Box", textColor: "#FFFFFFFF", bgColor: "#000000FF", previewText: "Aa" },
+        { name: "Netflix Style", textColor: "#FFFFFFFF", bgColor: "#000000B2", previewText: "Aa" },
+        { name: "Cinema Yellow", textColor: "#FFFF00FF", bgColor: "#000000B2", previewText: "Aa" },
+        { name: "Soft Gray", textColor: "#FFFFFFFF", bgColor: "#444444B2", previewText: "Aa" },
+        { name: "High Contrast", textColor: "#000000FF", bgColor: "#FFFFFFFF", previewText: "Aa" }
+    ];
+
+    const fontSizePresets = [
+        { name: "Tiny", size: 0.6, previewText: "Aa" },
+        { name: "Small", size: 0.8, previewText: "Aa" },
+        { name: "Normal", size: 1.0, previewText: "Aa" },
+        { name: "Large", size: 1.3, previewText: "Aa" },
+        { name: "Extra Large", size: 1.6, previewText: "Aa" }
+    ];
+
+    const fontFamilyPresets = [
+        { name: "Default", family: "inherit", previewText: "AaBb" },
+        { name: "Noto Sans", family: "Noto Sans,sans-serif", previewText: "AaBb" },
+        { name: "Sans Serif", family: "Arial,Helvetica,sans-serif", previewText: "AaBb" },
+        { name: "Typewriter", family: "Courier New,Courier,monospace", previewText: "AaBb" },
+        { name: "Roboto", family: "Roboto Mono,monospace", previewText: "AaBb" }
+    ];
+
+    // Applies the selected subtitle styles by modifying or creating a style element.
+    const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
+        let styleElement = document.getElementById('htmlvideoplayer-cuestyle');
+        let isFallback = false;
+
+        if (!styleElement) {
+            styleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
+            if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.id = 'jellyfin-enhanced-subtitle-styles';
+                document.head.appendChild(styleElement);
+            }
+            isFallback = true;
+        }
+
+        const sheet = styleElement.sheet;
+        if (!sheet) return;
+
+        const selectors = isFallback ?
+            ['.htmlvideoplayer::cue', 'video::cue', '::cue', 'video > track::cue'] :
+            ['.htmlvideoplayer::cue'];
+
+        try {
+            // Clear existing rules to avoid conflicts
+            while (sheet.cssRules.length > 0) {
+                sheet.deleteRule(0);
+            }
+            // Insert the new, consolidated rule
+            const newRule = `
+                ${selectors.join(', ')} {
+                    background-color: ${bgColor} !important;
+                    color: ${textColor} !important;
+                    font-size: ${fontSize}em !important;
+                    font-family: ${fontFamily} !important;
+                }
+            `;
+            sheet.insertRule(newRule, 0);
+
+        } catch (e) {
+            console.error("Failed to apply subtitle styles:", e);
+        }
+    };
+
     /*
      * --------------------------------------------------------------------------------
      * RANDOM BUTTON FUNCTIONALITY
@@ -341,217 +554,6 @@
     };
 
     initializeScript();
-
-    /*
-     * --------------------------------------------------------------------------------
-     * HELPER FUNCTIONS & UI
-     * - General utility functions used throughout the script.
-     * --------------------------------------------------------------------------------
-     */
-
-    // Checks if the current page is a video playback page.
-    const isVideoPage = () => location.hash.startsWith('#/video');
-
-    // Finds the main settings button in the video player OSD.
-    const settingsBtn = () => document.querySelector('button[title="Settings"],button[aria-label="Settings"]');
-
-    // Opens the player settings menu and executes a callback function.
-    const openSettings = (cb) => {
-        settingsBtn()?.click();
-        setTimeout(cb, 120); // Wait for the menu to animate open
-    };
-
-    // Displays a short-lived message (toast notification) at the bottom-right of the screen.
-    const toast = (txt, duration = CONFIG.TOAST_DURATION) => {
-        const getJellyfinThemeVariable = (variableName, defaultValue) => {
-            const rootStyle = getComputedStyle(document.documentElement);
-            const value = rootStyle.getPropertyValue(variableName).trim();
-            return value ? value : defaultValue;
-        };
-
-        const isJellyfishThemeActive = getJellyfinThemeVariable('--theme-updated-on', '') !== '' || getJellyfinThemeVariable('--theme-name', '').toLowerCase().includes('jellyfish');
-        let toastBg, toastBlur, toastBorder;
-
-        if (isJellyfishThemeActive) {
-            toastBg = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.6)');
-            toastBlur = getJellyfinThemeVariable('--blur', '15px');
-            toastBorder = `1px solid ${getJellyfinThemeVariable('--primary-accent-color', 'rgba(255,255,255,0.1)')}`;
-        } else {
-            toastBg = 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(40,40,40,0.9))';
-            toastBlur = '15px';
-            toastBorder = '1px solid rgba(255,255,255,0.1)';
-        }
-
-        const t = document.createElement('div');
-        t.className = 'jellyfin-enhanced-toast';
-        Object.assign(t.style, {
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            transform: 'translateX(100%)',
-            background: toastBg,
-            color: '#fff',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            zIndex: 99999,
-            fontSize: 'clamp(13px, 2vw, 16px)',
-            fontWeight: '500',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-            backdropFilter: `blur(${toastBlur})`,
-            border: toastBorder,
-            transition: 'transform 0.3s ease-out',
-            maxWidth: 'clamp(280px, 80vw, 350px)'
-        });
-        t.textContent = txt;
-        document.body.appendChild(t);
-        setTimeout(() => t.style.transform = 'translateX(0)', 10);
-        setTimeout(() => {
-            t.style.transform = 'translateX(100%)';
-            setTimeout(() => t.remove(), 300);
-        }, duration);
-    };
-
-    /*
-     * --------------------------------------------------------------------------------
-     * SUBTITLE CUSTOMIZATION
-     * - Presets and functions for changing subtitle appearance.
-     * --------------------------------------------------------------------------------
-     */
-    const subtitlePresets = [
-        { name: "Clean White", textColor: "#FFFFFFFF", bgColor: "transparent", previewText: "Aa" },
-        { name: "Classic Black Box", textColor: "#FFFFFFFF", bgColor: "#000000FF", previewText: "Aa" },
-        { name: "Netflix Style", textColor: "#FFFFFFFF", bgColor: "#000000B2", previewText: "Aa" },
-        { name: "Cinema Yellow", textColor: "#FFFF00FF", bgColor: "#000000B2", previewText: "Aa" },
-        { name: "Soft Gray", textColor: "#FFFFFFFF", bgColor: "#444444B2", previewText: "Aa" },
-        { name: "High Contrast", textColor: "#000000FF", bgColor: "#FFFFFFFF", previewText: "Aa" }
-    ];
-
-    const fontSizePresets = [
-        { name: "Tiny", size: 0.6, previewText: "Aa" },
-        { name: "Small", size: 0.8, previewText: "Aa" },
-        { name: "Normal", size: 1.0, previewText: "Aa" },
-        { name: "Large", size: 1.3, previewText: "Aa" },
-        { name: "Extra Large", size: 1.6, previewText: "Aa" }
-    ];
-
-    const fontFamilyPresets = [
-        { name: "Default", family: "inherit", previewText: "AaBb" },
-        { name: "Noto Sans", family: "Noto Sans,sans-serif", previewText: "AaBb" },
-        { name: "Sans Serif", family: "Arial,Helvetica,sans-serif", previewText: "AaBb" },
-        { name: "Typewriter", family: "Courier New,Courier,monospace", previewText: "AaBb" },
-        { name: "Roboto", family: "Roboto Mono,monospace", previewText: "AaBb" }
-    ];
-
-    // Applies the selected subtitle styles by modifying or creating a style element.
-    const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
-        let styleElement = document.getElementById('htmlvideoplayer-cuestyle');
-        let isFallback = false;
-
-        if (!styleElement) {
-            styleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
-            if (!styleElement) {
-                styleElement = document.createElement('style');
-                styleElement.id = 'jellyfin-enhanced-subtitle-styles';
-                document.head.appendChild(styleElement);
-            }
-            isFallback = true;
-        }
-
-        const sheet = styleElement.sheet;
-        if (!sheet) return;
-
-        const selectors = isFallback ?
-            ['.htmlvideoplayer::cue', 'video::cue', '::cue', 'video > track::cue'] :
-            ['.htmlvideoplayer::cue'];
-
-        try {
-            // Clear existing rules to avoid conflicts
-            while (sheet.cssRules.length > 0) {
-                sheet.deleteRule(0);
-            }
-            // Insert the new, consolidated rule
-            const newRule = `
-                ${selectors.join(', ')} {
-                    background-color: ${bgColor} !important;
-                    color: ${textColor} !important;
-                    font-size: ${fontSize}em !important;
-                    font-family: ${fontFamily} !important;
-                }
-            `;
-            sheet.insertRule(newRule, 0);
-
-        } catch (e) {
-            console.error("Failed to apply subtitle styles:", e);
-        }
-    };
-
-    /*
-     * --------------------------------------------------------------------------------
-     * SETTINGS PERSISTENCE
-     * - Saves and loads script settings from localStorage.
-     * --------------------------------------------------------------------------------
-     */
-    const saveSettings = (settings) => {
-        try {
-            localStorage.setItem('jellyfinEnhancedSettings', JSON.stringify(settings));
-        } catch (e) {
-            console.error('Failed to save settings:', e);
-        }
-    };
-
-    const loadSettings = () => {
-        try {
-            const settings = JSON.parse(localStorage.getItem('jellyfinEnhancedSettings'));
-            // Return saved settings or a default configuration.
-            return settings || {
-                autoPauseEnabled: true,
-                autoResumeEnabled: false,
-                selectedStylePresetIndex: 0,
-                selectedFontSizePresetIndex: 2,
-                selectedFontFamilyPresetIndex: 0,
-                randomButtonEnabled: true,
-                randomIncludeMovies: true,
-                randomIncludeShows: true,
-                randomUnwatchedOnly: false
-            };
-        } catch (e) {
-            console.error('Error loading settings:', e);
-            // Fallback to default settings on error.
-            return {
-                autoPauseEnabled: true,
-                autoResumeEnabled: false,
-                selectedStylePresetIndex: 0,
-                selectedFontSizePresetIndex: 2,
-                selectedFontFamilyPresetIndex: 0,
-                randomButtonEnabled: true,
-                randomIncludeMovies: true,
-                randomIncludeShows: true,
-                randomUnwatchedOnly: false
-            };
-        }
-    };
-
-    let currentSettings = loadSettings();
-
-    // Applies the saved subtitle styles when the script loads.
-    const applySavedStylesWhenReady = () => {
-        const savedStyleIndex = currentSettings.selectedStylePresetIndex ?? 0;
-        const savedFontSizeIndex = currentSettings.selectedFontSizePresetIndex ?? 2;
-        const savedFontFamilyIndex = currentSettings.selectedFontFamilyPresetIndex ?? 0;
-
-        const stylePreset = subtitlePresets[savedStyleIndex];
-        const fontSizePreset = fontSizePresets[savedFontSizeIndex];
-        const fontFamilyPreset = fontFamilyPresets[savedFontFamilyIndex];
-
-        if (stylePreset && fontSizePreset && fontFamilyPreset) {
-            applySubtitleStyles(
-                stylePreset.textColor,
-                stylePreset.bgColor,
-                fontSizePreset.size,
-                fontFamilyPreset.family
-            );
-        }
-    };
 
     /*
      * --------------------------------------------------------------------------------
