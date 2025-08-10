@@ -9,12 +9,12 @@
 
 An script that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item button to Jellyfin's web interface.
 
-<img src="panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
+<img src="images/panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
 
 <br><details>
 <summary style="font-size: 1em; font-weight: 600;">Jellyfin Enhanced with Default Theme</summary>
 <br>
-<img src="panel.gif" width="800"/>
+<img src="images/panel.gif" width="800"/>
 </details><br>
 
 ## ✨ Features
@@ -166,7 +166,7 @@ You can install the script using one of the methods below.
 
 ## 📸 Screenshots
 
-![Update Notification](https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/update.png)
+![Update Notification](images/update.png)
 
 
 <br>
