@@ -7,14 +7,16 @@
         CLEAR_BOOKMARKS_DELAY: 3000, // 3 seconds
         TOAST_DURATION: 1500, // milliseconds
         HELP_PANEL_AUTOCLOSE_DELAY: 15000, // 15 seconds
+        AUTOSKIP_INTERVAL: 500, // check for skip buttons every 500ms
     };
 
     // --- Global variables ---
     let shiftBTimer = null;
     let shiftBTriggered = false; // Flag to prevent multiple triggers of the clear bookmarks action
+    let autoSkipInterval = null; // To hold the interval for auto-skipping
 
     // --- Script metadata ---
-    const SCRIPT_VERSION = '4.1';
+    const SCRIPT_VERSION = '4.2';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
 
     /*
@@ -284,13 +286,16 @@
             return settings || {
                 autoPauseEnabled: true,
                 autoResumeEnabled: false,
+                autoSkipIntro: false,
+                autoSkipOutro: false,
                 selectedStylePresetIndex: 0,
                 selectedFontSizePresetIndex: 2,
                 selectedFontFamilyPresetIndex: 0,
                 randomButtonEnabled: true,
                 randomIncludeMovies: true,
                 randomIncludeShows: true,
-                randomUnwatchedOnly: false
+                randomUnwatchedOnly: false,
+                lastOpenedTab: 'shortcuts'
             };
         } catch (e) {
             console.error('Error loading settings:', e);
@@ -298,13 +303,16 @@
             return {
                 autoPauseEnabled: true,
                 autoResumeEnabled: false,
+                autoSkipIntro: false,
+                autoSkipOutro: false,
                 selectedStylePresetIndex: 0,
                 selectedFontSizePresetIndex: 2,
                 selectedFontFamilyPresetIndex: 0,
                 randomButtonEnabled: true,
                 randomIncludeMovies: true,
                 randomIncludeShows: true,
-                randomUnwatchedOnly: false
+                randomUnwatchedOnly: false,
+                lastOpenedTab: 'shortcuts'
             };
         }
     };
@@ -389,7 +397,7 @@
             while (sheet.cssRules.length > 0) {
                 sheet.deleteRule(0);
             }
-            // Insert the new, consolidated rule
+            // Insert the new, consolidated rule for non-positional styles
             const newRule = `
                 ${selectors.join(', ')} {
                     background-color: ${bgColor} !important;
@@ -404,6 +412,39 @@
             console.error("Failed to apply subtitle styles:", e);
         }
     };
+
+    /*
+     * --------------------------------------------------------------------------------
+     * AUTO-SKIP FUNCTIONALITY
+     * --------------------------------------------------------------------------------
+     */
+    const autoSkipHandler = () => {
+        const skipButton = document.querySelector('button.skip-button.emby-button:not(.skip-button-hidden):not(.hide)');
+        if (!skipButton) return;
+
+        const buttonText = skipButton.textContent || '';
+        if (currentSettings.autoSkipIntro && buttonText.includes('Skip Intro')) {
+            skipButton.click();
+            toast('↪️ Auto-Skipped Intro');
+        } else if (currentSettings.autoSkipOutro && buttonText.includes('Skip Outro')) {
+            skipButton.click();
+            toast('↪️ Auto-Skipped Outro');
+        }
+    };
+
+    const startAutoSkip = () => {
+        if (!autoSkipInterval) {
+            autoSkipInterval = setInterval(autoSkipHandler, CONFIG.AUTOSKIP_INTERVAL);
+        }
+    };
+
+    const stopAutoSkip = () => {
+        if (autoSkipInterval) {
+            clearInterval(autoSkipInterval);
+            autoSkipInterval = null;
+        }
+    };
+
 
     /*
      * --------------------------------------------------------------------------------
@@ -599,6 +640,9 @@
             }
             if (isVideoPage()) {
                 addOsdSettingsButton();
+                startAutoSkip();
+            } else {
+                stopAutoSkip();
             }
         });
 
@@ -624,17 +668,6 @@
 
     // Gets the current video element on the page.
     const getVideo = () => document.querySelector('video');
-
-    // Clicks the "Skip Intro" button if it's visible.
-    const skipIntro = () => {
-        const skipButton = document.querySelector('button.skip-button.emby-button:not(.skip-button-hidden):not(.hide)');
-        if (skipButton && skipButton.textContent.includes('Skip Intro')) {
-            skipButton.click();
-            toast('⏭️ Skipped');
-        } else {
-            toast('❌ Skip Intro not available');
-        }
-    };
 
     // Adjusts playback speed up or down through a predefined list of speeds.
     const adjustPlaybackSpeed = (direction) => {
@@ -911,8 +944,8 @@
             zIndex: 999999,
             fontSize: '14px',
             backdropFilter: `blur(${panelBlurValue})`,
+            minWidth: '350px',
             maxWidth: '90vw',
-            minWidth: '300px',
             maxHeight: '90vh',
             boxShadow: '0 10px 30px rgba(0,0,0,0.7)',
             border: '1px solid rgba(255,255,255,0.1)',
@@ -994,16 +1027,28 @@
         };
 
         help.innerHTML = `
+            <style>
+                #jellyfin-enhanced-panel .tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+                #jellyfin-enhanced-panel .tab-button { font-family: inherit; flex: 1; padding: 14px; text-align: center; cursor: pointer; background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 15px; font-weight: 600; transition: all 0.2s; border-bottom: 2px solid transparent; background: ${panelBgColor}; }
+                #jellyfin-enhanced-panel .tab-button:hover { background: ${panelBgColor}; color: #fff; }
+                #jellyfin-enhanced-panel .tab-button.active { color: #fff; border-bottom-color: ${primaryAccentColor}; background: ${headerFooterBg}; }
+                #jellyfin-enhanced-panel .tab-content { display: none; }
+                #jellyfin-enhanced-panel .tab-content.active { display: block; }
+            </style>
             <div style="padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg};">
                 <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: ${primaryAccentColor}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪼 Jellyfin Enhanced</div>
                 <div style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.8);">Version ${SCRIPT_VERSION}</div>
             </div>
+            <div class="tabs">
+                <button class="tab-button" data-tab="shortcuts">Shortcuts</button>
+                <button class="tab-button" data-tab="settings">Settings</button>
+            </div>
             <div style="padding: 0 20px; flex: 1; overflow-y: auto; position: relative; background: ${panelBgColor};">
-                <div style="padding-top: 20px; padding-bottom: 20px;">
+                 <div id="shortcuts-content" class="tab-content" style="padding-top: 20px; padding-bottom: 20px;">
                     <!-- Keyboard Shortcut Sections -->
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
                         <div style="flex: 1; min-width: 400px;">
-                            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor};">Global</h3>
+                            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Global</h3>
                             <div style="display: grid; gap: 8px; font-size: 14px;">
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">/</kbd></span><span>Open search</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">Shift + H</kbd></span><span>Go to home</span></div>
@@ -1014,14 +1059,13 @@
                             </div>
                         </div>
                         <div style="flex: 1; min-width: 400px;">
-                            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor};">Player</h3>
+                            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Player</h3>
                             <div style="display: grid; gap: 8px; font-size: 14px;">
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">A</kbd></span><span>Cycle aspect ratio</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">I</kbd></span><span>Show playback info</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">S</kbd></span><span>Subtitle menu</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">C</kbd></span><span>Cycle subtitle tracks</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">V</kbd></span><span>Cycle audio tracks</span></div>
-                                <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">N</kbd></span><span>Skip intro</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">+ / =</kbd></span><span>Increase playback speed</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">- / _</kbd></span><span>Decrease playback speed</span></div>
                                 <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">R</kbd></span><span>Reset playback speed</span></div>
@@ -1031,9 +1075,11 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div id="settings-content" class="tab-content" style="padding-top: 20px; padding-bottom: 20px; width: 50vw;">
                     <!-- Settings Sections -->
-                    <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
-                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none;">⏯️ Auto-Pause Settings</summary>
+                    <details open style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
+                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">⏯️ Playback Settings</summary>
                         <div style="padding: 0 16px 16px 16px;">
                             <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
@@ -1050,15 +1096,32 @@
                         </div>
                     </details>
                     <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
-                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none;">📝 Subtitle Settings</summary>
+                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">↪️ Auto-Skip Settings</summary>
                         <div style="padding: 0 16px 16px 16px;">
-                            <div style="margin-bottom: 16px;"><div style="font-weight: 600; margin-bottom: 8px;">Style</div><div id="subtitle-style-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(subtitlePresets, 'style')}</div></div>
-                            <div style="margin-bottom: 16px;"><div style="font-weight: 600; margin-bottom: 8px;">Size</div><div id="font-size-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(fontSizePresets, 'font-size')}</div></div>
-                            <div><div style="font-weight: 600; margin-bottom: 8px;">Font</div><div id="font-family-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(fontFamilyPresets, 'font-family')}</div></div>
+                            <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="autoSkipIntroToggle" ${currentSettings.autoSkipIntro ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                    <div><div style="font-weight:500;">Automatically Skip Intro</div></div>
+                                </label>
+                            </div>
+                            <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="autoSkipOutroToggle" ${currentSettings.autoSkipOutro ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                    <div><div style="font-weight:500;">Automatically Skip Outro</div></div>
+                                </label>
+                            </div>
                         </div>
                     </details>
                     <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
-                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none;">🎲 Random Button Settings</summary>
+                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">📝 Subtitle Settings</summary>
+                        <div style="padding: 0 16px 16px 16px;">
+                            <div style="margin-bottom: 16px;"><div style="font-weight: 600; margin-bottom: 8px;">Style</div><div id="subtitle-style-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(subtitlePresets, 'style')}</div></div>
+                            <div style="margin-bottom: 16px;"><div style="font-weight: 600; margin-bottom: 8px;">Size</div><div id="font-size-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(fontSizePresets, 'font-size')}</div></div>
+                            <div style="margin-bottom: 16px;"><div style="font-weight: 600; margin-bottom: 8px;">Font</div><div id="font-family-presets-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px;">${generatePresetHTML(fontFamilyPresets, 'font-family')}</div></div>
+                        </div>
+                    </details>
+                    <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
+                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">🎲 Random Button Settings</summary>
                         <div style="padding: 0 16px 16px 16px;">
                             <div style="margin-bottom:16px; padding:12px; background:${presetBoxBackground}; border-radius:6px; border-left:3px solid ${toggleAccentColor};">
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;"><input type="checkbox" id="randomButtonToggle" ${currentSettings.randomButtonEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;"><div><div style="font-weight:500;">Enable Random Button</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Show random button in header</div></div></label>
@@ -1087,6 +1150,36 @@
 
         document.body.appendChild(help);
         resetAutoCloseTimer();
+
+        // --- Remember last opened tab ---
+        const tabButtons = help.querySelectorAll('.tab-button');
+        const tabContents = help.querySelectorAll('.tab-content');
+
+        // Set initial tab based on saved settings
+        const lastTab = currentSettings.lastOpenedTab || 'shortcuts';
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        help.querySelector(`.tab-button[data-tab="${lastTab}"]`).classList.add('active');
+        help.querySelector(`#${lastTab}-content`).classList.add('active');
+
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tab = button.dataset.tab;
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tab}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+                currentSettings.lastOpenedTab = tab;
+                saveSettings(currentSettings);
+                resetAutoCloseTimer();
+            });
+        });
+
 
         // Autoscroll when details sections open
         const allDetails = help.querySelectorAll('details');
@@ -1120,6 +1213,8 @@
         // --- Variable declarations and event listeners ---
         const autoPauseToggle = document.getElementById('autoPauseToggle');
         const autoResumeToggle = document.getElementById('autoResumeToggle');
+        const autoSkipIntroToggle = document.getElementById('autoSkipIntroToggle');
+        const autoSkipOutroToggle = document.getElementById('autoSkipOutroToggle');
         const randomButtonToggle = document.getElementById('randomButtonToggle');
         const randomUnwatchedOnly = document.getElementById('randomUnwatchedOnly');
         const randomIncludeMovies = document.getElementById('randomIncludeMovies');
@@ -1127,11 +1222,14 @@
 
         autoPauseToggle.addEventListener('change', (e) => { currentSettings.autoPauseEnabled = e.target.checked; saveSettings(currentSettings); toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         autoResumeToggle.addEventListener('change', (e) => { currentSettings.autoResumeEnabled = e.target.checked; saveSettings(currentSettings); toast(`▶️ Auto-Resume ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
+        autoSkipIntroToggle.addEventListener('change', (e) => { currentSettings.autoSkipIntro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Intro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
+        autoSkipOutroToggle.addEventListener('change', (e) => { currentSettings.autoSkipOutro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Outro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         randomButtonToggle.addEventListener('change', (e) => { currentSettings.randomButtonEnabled = e.target.checked; saveSettings(currentSettings); toast(`🎲 Random Button ${e.target.checked ? 'Enabled' : 'Disabled'}`); addRandomButton(); resetAutoCloseTimer(); });
         randomUnwatchedOnly.addEventListener('change', (e) => { currentSettings.randomUnwatchedOnly = e.target.checked; saveSettings(currentSettings); toast(`🎲 Unwatched Only ${e.target.checked ? 'Enabled' : 'Disabled'}`); const unwatchedFilterButton = document.getElementById('unwatchedFilterButton'); if(unwatchedFilterButton) {unwatchedFilterButton.style.color = currentSettings.randomUnwatchedOnly ? 'var(--primary-accent-color, #00A4DC)' : 'inherit';} resetAutoCloseTimer(); });
         randomIncludeMovies.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeShows.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeMovies = e.target.checked; saveSettings(currentSettings); toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         randomIncludeShows.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeMovies.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeShows = e.target.checked; saveSettings(currentSettings); toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         document.getElementById('checkUpdatesBtn').addEventListener('click', () => { if (updateAvailable && latestReleaseData) { showUpdateNotification(latestReleaseData); } else { checkForUpdates(true); } resetAutoCloseTimer(); });
+
 
         const setupPresetHandlers = (containerId, presets, type) => {
             const container = document.getElementById(containerId);
@@ -1267,7 +1365,7 @@
         if (!isVideoPage()) return;
 
         // Prevent default browser actions for player shortcuts.
-        const playerShortcuts = ['a', 'i', 's', 'c', 'v', 'n', 'r', 'b', '+', '=', '-', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const playerShortcuts = ['a', 'i', 's', 'c', 'v', 'r', 'b', '+', '=', '-', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         if (playerShortcuts.includes(key) || e.key === 'B') {
             e.preventDefault();
             e.stopPropagation();
@@ -1307,7 +1405,6 @@
             case 's': case 'S': document.querySelector('button.btnSubtitles')?.click(); break;
             case 'c': case 'C': cycleSubtitleTrack(); break;
             case 'v': case 'V': cycleAudioTrack(); break;
-            case 'n': case 'N': skipIntro(); break;
             case 'r': case 'R': resetPlaybackSpeed(); break;
             case '+': case '=': adjustPlaybackSpeed('increase'); break;
             case '-': case '_': adjustPlaybackSpeed('decrease'); break;
