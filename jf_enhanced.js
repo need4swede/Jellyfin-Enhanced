@@ -16,7 +16,7 @@
     let autoSkipInterval = null; // To hold the interval for auto-skipping
 
     // --- Script metadata ---
-    const SCRIPT_VERSION = '4.2';
+    const SCRIPT_VERSION = '4.3';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
 
     /*
@@ -206,6 +206,9 @@
     // Checks if the current page is a video playback page.
     const isVideoPage = () => location.hash.startsWith('#/video');
 
+    // Checks if the current page is an item details page.
+    const isDetailsPage = () => location.hash.includes('/details?id=');
+
     // Finds the main settings button in the video player OSD.
     const settingsBtn = () => document.querySelector('button[title="Settings"],button[aria-label="Settings"]');
 
@@ -265,6 +268,21 @@
         }, duration);
     };
 
+    /**
+     * Converts bytes into a human-readable format (e.g., KB, MB, GB) for item size functionality.
+     * @param {number} bytes The size in bytes.
+     * @returns {string} The human-readable file size.
+     */
+    function formatSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(2));
+        const unit = sizes[i];
+        return `${formattedSize} ${unit}`;
+    }
+
     /*
      * --------------------------------------------------------------------------------
      * SETTINGS PERSISTENCE
@@ -295,6 +313,7 @@
                 randomIncludeMovies: true,
                 randomIncludeShows: true,
                 randomUnwatchedOnly: false,
+                showFileSizes: false,
                 lastOpenedTab: 'shortcuts'
             };
         } catch (e) {
@@ -312,6 +331,7 @@
                 randomIncludeMovies: true,
                 randomIncludeShows: true,
                 randomUnwatchedOnly: false,
+                showFileSizes: false,
                 lastOpenedTab: 'shortcuts'
             };
         }
@@ -574,6 +594,71 @@
         }
     };
 
+
+    /*
+     * --------------------------------------------------------------------------------
+     * FILE SIZE DISPLAY
+     * - Shows the total file size of an item on its details page.
+     * --------------------------------------------------------------------------------
+     */
+    const displayItemSize = async (itemId) => {
+        const targetSelector = '.itemMiscInfo.itemMiscInfo-primary';
+        const elementClassName = 'mediaInfoItem-fileSize';
+        const processingClassName = 'fileSize-processing';
+        const container = document.querySelector(targetSelector);
+
+        // Exit if container doesn't exist, size is already present, or if it's already being processed.
+        if (!container || container.querySelector(`.${elementClassName}`) || container.classList.contains(processingClassName)) {
+            return;
+        }
+
+        // Add a flag to the container to prevent multiple simultaneous runs.
+        container.classList.add(processingClassName);
+
+        try {
+            const item = await ApiClient.getItem(ApiClient.getCurrentUserId(), itemId);
+            if (item && item.MediaSources && item.MediaSources.length > 0) {
+                // Sum the 'Size' property from all media sources
+                const totalSize = item.MediaSources.reduce((sum, source) => sum + (source.Size || 0), 0);
+
+                if (totalSize > 0) {
+                    // Check again in case another process finished while we were waiting for the API
+                    if (container.querySelector(`.${elementClassName}`)) {
+                        return;
+                    }
+                    const sizeText = formatSize(totalSize);
+
+                    // Create and inject the element
+                    const sizeElement = document.createElement('div');
+                    sizeElement.className = `mediaInfoItem ${elementClassName}`;
+                    sizeElement.title = "Total File Size";
+                    sizeElement.style.display = 'flex';
+                    sizeElement.style.alignItems = 'center';
+
+                    const icon = document.createElement('span');
+                    icon.className = 'material-icons';
+                    icon.textContent = 'hard_disk';
+                    icon.style.fontSize = 'inherit';
+                    icon.style.marginRight = '0.3em';
+
+                    const textNode = document.createTextNode(sizeText);
+
+                    sizeElement.appendChild(icon);
+                    sizeElement.appendChild(textNode);
+                    container.appendChild(sizeElement);
+                }
+            }
+        } catch (error) {
+            console.error(`Jellyfin Enhanced: Error fetching item size for ID ${itemId}:`, error);
+        } finally {
+            // Always remove the processing flag when done.
+            if (container) {
+                container.classList.remove(processingClassName);
+            }
+        }
+    };
+
+
     // Waits for Jellyfin's API client to be available before running functions that depend on it.
     const waitForApiClient = () => {
         if (typeof ApiClient !== 'undefined' && typeof ApiClient.getCurrentUserId === 'function' && typeof ApiClient.ajax === 'function') {
@@ -581,9 +666,11 @@
             // Use a MutationObserver to re-apply the button if the header is ever re-rendered by Jellyfin.
             const observer = new MutationObserver(() => {
                 addRandomButton();
+                runFileSizeCheck();
             });
             observer.observe(document.body, { childList: true, subtree: true });
             addRandomButton(); // Initial call
+            runFileSizeCheck(); // Initial call
         } else {
             setTimeout(waitForApiClient, 200); // Check again shortly
         }
@@ -602,6 +689,30 @@
      * - React to changes in the DOM and browser state.
      * --------------------------------------------------------------------------------
      */
+
+    // This function runs checks based on the current page type.
+    const runPageSpecificFunctions = () => {
+        if (isVideoPage()) {
+            addOsdSettingsButton();
+            startAutoSkip();
+        } else {
+            stopAutoSkip();
+        }
+    };
+
+    // This function specifically handles triggering the file size display
+    const runFileSizeCheck = () => {
+        if (currentSettings.showFileSizes && isDetailsPage()) {
+            try {
+                const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+                const itemId = urlParams.get('id');
+                if (itemId) {
+                    displayItemSize(itemId);
+                }
+            } catch (e) { /* ignore errors from malformed URLs during page transitions */ }
+        }
+    };
+
 
     // Adds a button to the mobile video player OSD to open the settings panel.
     const addOsdSettingsButton = () => {
@@ -630,7 +741,7 @@
     const setupStyleObserver = () => {
         let isApplyingStyles = false;
         const observer = new MutationObserver(() => {
-            // Apply subtitle styles and add OSD button when needed.
+            // Apply subtitle styles when needed.
             if (!isApplyingStyles) {
                 isApplyingStyles = true;
                 setTimeout(() => {
@@ -638,12 +749,7 @@
                     isApplyingStyles = false;
                 }, 100);
             }
-            if (isVideoPage()) {
-                addOsdSettingsButton();
-                startAutoSkip();
-            } else {
-                stopAutoSkip();
-            }
+            runPageSpecificFunctions();
         });
 
         observer.observe(document.body, { childList: true, subtree: true, attributes: false });
@@ -658,6 +764,7 @@
 
     setupStyleObserver();
     applySavedStylesWhenReady();
+
 
     /*
      * --------------------------------------------------------------------------------
@@ -1135,6 +1242,17 @@
                             </div>
                         </div>
                     </details>
+                    <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
+                        <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">📄 UI Settings</summary>
+                        <div style="padding: 0 16px 16px 16px;">
+                            <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="showFileSizesToggle" ${currentSettings.showFileSizes ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                    <div><div style="font-weight:500;">Show File Sizes</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Display total file size on item detail pages.</div></div>
+                                </label>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
             <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg}; display: flex; justify-content: space-between; align-items: center;">
@@ -1197,7 +1315,7 @@
         // --- Event Handlers for Settings Panel ---
         const closeHelp = (ev) => {
             if ((ev.type === 'keydown' && (ev.key === 'Escape' || ev.key === '?')) || (ev.type === 'click' && ev.target.id === 'closeSettingsPanel')) {
-                if(autoCloseTimer) clearTimeout(autoCloseTimer);
+                if (autoCloseTimer) clearTimeout(autoCloseTimer);
                 help.remove();
                 document.removeEventListener('keydown', closeHelp);
                 document.removeEventListener('mousemove', handleMouseMove);
@@ -1219,16 +1337,26 @@
         const randomUnwatchedOnly = document.getElementById('randomUnwatchedOnly');
         const randomIncludeMovies = document.getElementById('randomIncludeMovies');
         const randomIncludeShows = document.getElementById('randomIncludeShows');
+        const showFileSizesToggle = document.getElementById('showFileSizesToggle');
 
         autoPauseToggle.addEventListener('change', (e) => { currentSettings.autoPauseEnabled = e.target.checked; saveSettings(currentSettings); toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         autoResumeToggle.addEventListener('change', (e) => { currentSettings.autoResumeEnabled = e.target.checked; saveSettings(currentSettings); toast(`▶️ Auto-Resume ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         autoSkipIntroToggle.addEventListener('change', (e) => { currentSettings.autoSkipIntro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Intro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         autoSkipOutroToggle.addEventListener('change', (e) => { currentSettings.autoSkipOutro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Outro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
         randomButtonToggle.addEventListener('change', (e) => { currentSettings.randomButtonEnabled = e.target.checked; saveSettings(currentSettings); toast(`🎲 Random Button ${e.target.checked ? 'Enabled' : 'Disabled'}`); addRandomButton(); resetAutoCloseTimer(); });
-        randomUnwatchedOnly.addEventListener('change', (e) => { currentSettings.randomUnwatchedOnly = e.target.checked; saveSettings(currentSettings); toast(`🎲 Unwatched Only ${e.target.checked ? 'Enabled' : 'Disabled'}`); const unwatchedFilterButton = document.getElementById('unwatchedFilterButton'); if(unwatchedFilterButton) {unwatchedFilterButton.style.color = currentSettings.randomUnwatchedOnly ? 'var(--primary-accent-color, #00A4DC)' : 'inherit';} resetAutoCloseTimer(); });
+        randomUnwatchedOnly.addEventListener('change', (e) => { currentSettings.randomUnwatchedOnly = e.target.checked; saveSettings(currentSettings); toast(`🎲 Unwatched Only ${e.target.checked ? 'Enabled' : 'Disabled'}`); const unwatchedFilterButton = document.getElementById('unwatchedFilterButton'); if (unwatchedFilterButton) { unwatchedFilterButton.style.color = currentSettings.randomUnwatchedOnly ? 'var(--primary-accent-color, #00A4DC)' : 'inherit'; } resetAutoCloseTimer(); });
         randomIncludeMovies.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeShows.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeMovies = e.target.checked; saveSettings(currentSettings); toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         randomIncludeShows.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeMovies.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeShows = e.target.checked; saveSettings(currentSettings); toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         document.getElementById('checkUpdatesBtn').addEventListener('click', () => { if (updateAvailable && latestReleaseData) { showUpdateNotification(latestReleaseData); } else { checkForUpdates(true); } resetAutoCloseTimer(); });
+        showFileSizesToggle.addEventListener('change', (e) => {
+            currentSettings.showFileSizes = e.target.checked;
+            saveSettings(currentSettings);
+            toast(`📄 File Size Display ${e.target.checked ? 'Enabled' : 'Disabled'}`);
+            if (!e.target.checked) {
+                document.querySelectorAll('.mediaInfoItem-fileSize').forEach(el => el.remove());
+            }
+            resetAutoCloseTimer();
+        });
 
 
         const setupPresetHandlers = (containerId, presets, type) => {
