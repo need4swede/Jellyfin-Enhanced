@@ -16,6 +16,8 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             DEFAULT_REGION = "US";
             DEFAULT_PROVIDERS = "";
             IGNORE_PROVIDERS = "";
+
+            ClearLocalStorageTimestamp = 0;
         }
 
         // Jellyfin Enhanced Settings
@@ -28,5 +30,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public string DEFAULT_REGION { get; set; }
         public string DEFAULT_PROVIDERS { get; set; }
         public string IGNORE_PROVIDERS { get; set; }
+        public long ClearLocalStorageTimestamp { get; set; }
     }
 }
