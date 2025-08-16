@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Jellyfin Enhanced</title>
+</head>
+<body>
+<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox" data-role="page" id="JellyfinEnhancedPage">
+    <div data-role="content">
+        <div class="content-primary">
+            <div class="verticalSection">
+                <div class="sectionTitleContainer">
+                     <h2 class="sectionTitle">Jellyfin Enhanced</h2>
+                        <a is="emby-linkbutton" class="raised raised-mini emby-button" style="margin-left: 2em;" target="_blank" href="https://github.com/n00bcodr/Jellyfin-Enhanced">
+                            <i class="md-icon button-icon button-icon-left secondaryText"></i>
+                            <span>Help</span>
+                        </a>
+                </div>
+            </div>
+            <hr class="solid">
+            <form id="JellyfinEnhancedForm">
+                <!-- Jellyfin Enhanced Settings -->
+                <fieldset class="verticalSection-extrabottompadding">
+                <legend><h3>Jellyfin Enhanced Settings</h3></legend>
+                <div class="configSection">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HelpPanelAutocloseDelay">Help Panel Autoclose Delay (in milliseconds)</label>
+                        <input id="HelpPanelAutocloseDelay" is="emby-input" name="HelpPanelAutocloseDelay" type="number"/>
+                        <div class="fieldDescription">How long the help panel stays open before auto-closing.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ToastDuration">Toast Duration (in milliseconds)</label>
+                        <input id="ToastDuration" is="emby-input" name="ToastDuration" type="number"/>
+                        <div class="fieldDescription">How long toast notifications are displayed.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ClearBookmarksDelay">Clear Bookmarks Delay (in milliseconds)</label>
+                        <input id="ClearBookmarksDelay" is="emby-input" name="ClearBookmarksDelay" type="number"/>
+                        <div class="fieldDescription">How long to hold Shift+B to clear all bookmarks.</div>
+                    </div>
+                </div>
+            </fieldset>
+                <!-- Jellyfin Elsewhere Settings -->
+                <fieldset class="verticalSection-extrabottompadding">
+                <legend><h3>Jellyfin Elsewhere Settings</h3></legend>
+                <div class="configSection">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="TMDB_API_KEY">TMDB API Key</label>
+                        <input id="TMDB_API_KEY" is="emby-input" name="TMDB_API_KEY" type="text"/>
+                        <div class="fieldDescription">Your API key from The Movie DB (TMDB). <a target="_blank" href="https://www.themoviedb.org/settings/api">How to?</a></div>
+                        <div class="fieldDescription">Leaving this blank will not load Jellyfin Elsewhere</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DEFAULT_REGION">Default Region</label>
+                        <input id="DEFAULT_REGION" is="emby-input" name="DEFAULT_REGION" type="text" placeholder="e.g., US"/>
+                        <div class="fieldDescription">The default two-letter country code for streaming provider lookups. <a target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/regions.txt">List</a></div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DEFAULT_PROVIDERS">Default Providers</label>
+                        <input id="DEFAULT_PROVIDERS" is="emby-input" name="DEFAULT_PROVIDERS" type="text" placeholder="e.g., Netflix,Hulu"/>
+                        <div class="fieldDescription">A comma-separated list of default streaming providers to show. Leave blank to show all. <a target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/providers.txt">List</a></div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="IGNORE_PROVIDERS">Ignore Providers</label>
+                        <input id="IGNORE_PROVIDERS" is="emby-input" name="IGNORE_PROVIDERS" type="text" placeholder="e.g., .*with Ads, Hulu"/>
+                        <div class="fieldDescription">A comma-separated list of providers to ignore from the default region (supports regex).</div>
+                    </div>
+                </div>
+                </fieldset>
+                <br>
+                <div>
+                    <button class="raised button-submit block emby-button" is="emby-button" type="submit">
+                        <span>Save</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+<script type="text/javascript">
+        (() => {
+            const pluginId = 'f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b';
+            const page = document.querySelector('#JellyfinEnhancedPage');
+            const form = document.querySelector('#JellyfinEnhancedForm');
+
+            function loadConfig() {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then((config) => {
+                    document.querySelector('#ClearBookmarksDelay').value = config.ClearBookmarksDelay;
+                    document.querySelector('#ToastDuration').value = config.ToastDuration;
+                    document.querySelector('#HelpPanelAutocloseDelay').value = config.HelpPanelAutocloseDelay;
+                    document.querySelector('#TMDB_API_KEY').value = config.TMDB_API_KEY;
+                    document.querySelector('#DEFAULT_REGION').value = config.DEFAULT_REGION;
+                    document.querySelector('#DEFAULT_PROVIDERS').value = config.DEFAULT_PROVIDERS;
+                    document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
+                    Dashboard.hideLoadingMsg();
+                });
+            }
+
+            function saveConfig(e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
+                const config = {
+                    ClearBookmarksDelay: parseInt(document.querySelector('#ClearBookmarksDelay').value, 10),
+                    ToastDuration: parseInt(document.querySelector('#ToastDuration').value, 10),
+                    HelpPanelAutocloseDelay: parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10),
+                    TMDB_API_KEY: document.querySelector('#TMDB_API_KEY').value,
+                    DEFAULT_REGION: document.querySelector('#DEFAULT_REGION').value,
+                    DEFAULT_PROVIDERS: document.querySelector('#DEFAULT_PROVIDERS').value,
+                    IGNORE_PROVIDERS: document.querySelector('#IGNORE_PROVIDERS').value
+                };
+
+                ApiClient.updatePluginConfiguration(pluginId, config)
+                    .then((result) => {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    })
+                    .catch(() => {
+                        Dashboard.hideLoadingMsg();
+                    });
+
+                return false;
+            }
+
+            page.addEventListener('pageshow', loadConfig);
+            form.addEventListener('submit', saveConfig);
+
+        })();
+    </script>
+</div>
+</body>
+</html>

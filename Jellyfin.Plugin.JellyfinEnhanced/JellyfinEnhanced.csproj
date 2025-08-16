@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
+    <FileVersion>5.0.0.0</FileVersion>
+    <RootNamespace>Jellyfin.Plugin.JellyfinEnhanced</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.JellyfinEnhanced</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Controller" Version="10.9.4"/>
+    <PackageReference Include="Jellyfin.Model" Version="10.9.4"/>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Remove="Configuration\configPage.html"/>
+    <EmbeddedResource Include="Configuration\configPage.html"/>
+    <None Remove="plugin.js"/>
+    <EmbeddedResource Include="plugin.js"/>
+  </ItemGroup>
+
+</Project>
