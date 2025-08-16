@@ -7,7 +7,7 @@
 </p>
 <br>
 
-An script that adds powerful keyboard shortcuts, customizable subtitle styling, smart auto-pause features, and random item button to Jellyfin's web interface.
+The ultimate enhancement for your Jellyfin experience. This plugin (previously script) combines the powerful features of Jellyfin Enhanced and [Jellyfin Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere/) into one easy-to-install package.
 
 <img src="images/panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
 
@@ -19,12 +19,7 @@ An script that adds powerful keyboard shortcuts, customizable subtitle styling, 
 
 ## ✨ Features
 
-### 🔧 Configuration
-The script now includes a `CONFIG` section at the top, allowing you to easily customize timings without editing the core logic:
-- **Update Checks**: Set how often the script checks for new versions.
-- **Hotkey Delays**: Adjust the hold duration for actions like clearing all bookmarks.
-- **Toast Notifications**: Change how long on-screen messages appear.
-- **Panel Timers**: Modify delays for menus and other interface elements.
+The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web interface:
 
 ### ⌨️ Keyboard Shortcuts
 
@@ -43,7 +38,6 @@ The script now includes a `CONFIG` section at the top, allowing you to easily cu
 | **`S`** | Show the subtitle selection menu | Player |
 | **`C`** | Cycle through available subtitle tracks | Player |
 | **`V`** | Cycle through available audio tracks | Player |
-| **`N`** | Activate the "Skip Intro" button if visible | Player |
 | **`B`** | Bookmark the current playback time | Player |
 | **`Shift`** + **`B`** | Go to the saved bookmark for the current item | Player |
 | **`0`**-**`9`** | Jump to 0% - 90% of the video duration | Player |
@@ -65,14 +59,67 @@ The script now includes a `CONFIG` section at the top, allowing you to easily cu
 - **Random Button**: Adds a "Random" button to the header for one-click access to a random item.
 - **Configurable Item Types**: Choose to include Movies, Shows, or both.
 - **Hotkey Support**: Press `R` (when not in the player) to instantly go to a random item.
-- **Persistent Settings**: Your preferences are saved and remembered.
+- **Only show unwatched**: Option to only show unwatched items in the randomized result
 
-### 📦 Update System
-- **Automatic Update Check**: Checks for new versions every 24 hours.
-- **Manual Update Check**: Use the "Check Updates" button in the settings panel.
-- **Update Notifications**: Get notified of new versions with links to release notes.
+### ↪️ Auto Skip Intro/Outro
+- Options to automatically skip intro and outro for uninterrupted binge watching! (Dependent on Skip Intro Plugin!)
+
+### 👁️ Remove from continue watching
+- An option to remove items from the continue watching row!
+
+### 🔍 Streaming Provider Information with multiple region search
+- See where else your movies and shows are available to stream, right on the item details page.
+- Configure your preferred default region and streaming services from the plugin settings and search more regions and services from the item details page!
+
+### **And more...**
+- File sizes - Display filesizes for each movie or episode in the item details page \
+    ... and many more to come!
+
 
 ## 🔧 Installation
+
+1.  In Jellyfin, go to **Dashboard** > **Plugins** > **Catalog** > ⚙️
+2.  Click **➕** and give the repository a name (e.g., "JavaScript Injector Repo").
+3.  Set the **Repository URL** to: `https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/manifest.json`
+4.  Click **Save**.
+5.  Go to the **Catalog** tab, find **JavaScript Injector** in the list, and click **Install**.
+6.  **Restart** your Jellyfin server to complete the installation.
+
+
+#### 🐳 Docker Installation Notes
+
+If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/usr/share/jellyfin/web/index.html' is denied.` in your logs, you will need to map the `index.html` file manually:
+
+1. Copy the index.html file from your container:
+
+   ```bash
+   docker cp jellyfin:/usr/share/jellyfin/web/index.html /path/to/your/jellyfin/config/index.html
+   ```
+
+2. Add a volume mapping to your Docker run command:
+
+   ```yaml
+   -v /path/to/your/jellyfin/config/index.html:/usr/share/jellyfin/web/index.html
+   ```
+
+3. Or for Docker Compose, add this to your volumes section:
+   ```yaml
+   services:
+     jellyfin:
+       # ... other config
+       volumes:
+         - /path/to/your/jellyfin/config:/config
+         - /path/to/your/jellyfin/config/index.html:/usr/share/jellyfin/web/index.html
+         # ... other volumes
+   ```
+
+This gives the plugin the necessary permissions to inject JavaScript into the web interface.
+
+
+<br>
+<details>
+<summary style="font-size: 1.25em; font-weight: 600;">Script Installation (OLD)</summary>
+<br>
 
 You can install the script using one of the methods below.
 
@@ -155,18 +202,29 @@ You can install the script using one of the methods below.
 
 5.  **Clear your browser cache** and reload Jellyfin.
 
+</details>
 ---
 
 ## 🧪 Compatibility
 
-**Tested and Verified:**
-- Jellyfin `10.9.x`, `10.10.x`
-- Chrome/Chromium browsers + Tampermonkey
-- Firefox + Violentmonkey/Greasemonkey
+- Official Jellyfin Web UI
+- Official Jellyfin Android and iOS Apps
+- Official Jellyfin Desktop Apps
+
+This does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
 
 ## 📸 Screenshots
 
-![Update Notification](images/update.png)
+<table align="center">
+  <tr>
+    <th style="text-align:center">Shortcuts</th>
+    <th style="text-align:center">Settings</th>
+  </tr>
+  <tr>
+    <td><img src="images/shortcuts.png" width="1000"/></td>
+    <td><img src="images/settings.png" width="1000"/></td>
+  </tr>
+  </table>
 
 
 <br>
@@ -253,7 +311,7 @@ This project is licensed under the MIT License
 
 Checkout my other repos!
 
-[Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) (javascript) • [Jellyfin-Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere) (javascript) • [Jellyfin-Tweaks](https://github.com/n00bcodr/JellyfinTweaks) (plugin) • [Jellyfin-JavaScript-Injector](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) (plugin) • [Jellyfish](https://github.com/n00bcodr/Jellyfish/) (theme)
+[Jellyfin-Enhanced](https://github.com/n00bcodr/Jellyfin-Enhanced) (javascript/plugin) • [Jellyfin-Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere) (javascript) • [Jellyfin-Tweaks](https://github.com/n00bcodr/JellyfinTweaks) (plugin) • [Jellyfin-JavaScript-Injector](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) (plugin) • [Jellyfish](https://github.com/n00bcodr/Jellyfish/) (theme)
 
 
 </div>
