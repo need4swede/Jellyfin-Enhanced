@@ -1907,8 +1907,8 @@
         // Configuration from plugin settings
         const TMDB_API_KEY = pluginConfig.TMDB_API_KEY || '';
         const DEFAULT_REGION = pluginConfig.DEFAULT_REGION || 'US';
-        const DEFAULT_PROVIDERS = pluginConfig.DEFAULT_PROVIDERS ? pluginConfig.DEFAULT_PROVIDERS.split(',').map(s => s.trim()).filter(s => s) : [];
-        const IGNORE_PROVIDERS = pluginConfig.IGNORE_PROVIDERS ? pluginConfig.IGNORE_PROVIDERS.split(',').map(s => s.trim()).filter(s => s) : [];
+        const DEFAULT_PROVIDERS = pluginConfig.DEFAULT_PROVIDERS ? pluginConfig.DEFAULT_PROVIDERS.replace(/'/g, '').replace(/\n/g, ',').split(',').map(s => s.trim()).filter(s => s) : [];
+        const IGNORE_PROVIDERS = pluginConfig.IGNORE_PROVIDERS ? pluginConfig.IGNORE_PROVIDERS.replace(/'/g, '').replace(/\n/g, ',').split(',').map(s => s.trim()).filter(s => s) : [];
 
         // Skip initialization if no API key is configured
         if (!TMDB_API_KEY) {
