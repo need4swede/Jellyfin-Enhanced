@@ -36,6 +36,15 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
 
         public string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
 
+        /// <summary>
+        /// Called when the plugin is being uninstalled.
+        /// </summary>
+        public override void OnUninstalling()
+        {
+            RemoveScript();
+            base.OnUninstalling();
+        }
+
         private void InjectScript()
         {
             try
@@ -84,6 +93,40 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while trying to inject script into index.html.");
+            }
+        }
+
+        /// <summary>
+        /// Removes the script tag from index.htmlon uninstall.
+        /// </summary>
+        private void RemoveScript()
+        {
+            try
+            {
+                var indexPath = IndexHtmlPath;
+                if (string.IsNullOrEmpty(indexPath) || !File.Exists(indexPath))
+                {
+                    _logger.LogError("Could not find index.html at path: {Path}", indexPath);
+                    return;
+                }
+
+                var content = File.ReadAllText(indexPath);
+                // A broader regex to find any script tag from this plugin.
+                var regex = new Regex($"<script plugin=\"{Name}\".*?></script>\\n?");
+                if (regex.IsMatch(content))
+                {
+                    content = regex.Replace(content, string.Empty);
+                    File.WriteAllText(indexPath, content);
+                    _logger.LogInformation("Successfully removed the {Name} script from index.html.", Name);
+                }
+                else
+                {
+                    _logger.LogInformation("Could not find the {Name} script in index.html. No changes needed.", Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while trying to remove script from index.html.");
             }
         }
 
