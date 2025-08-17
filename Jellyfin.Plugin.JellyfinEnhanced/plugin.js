@@ -24,19 +24,6 @@
             if (config) {
                 pluginConfig = { ...pluginConfig, ...config };
                 console.log('🪼 Jellyfin Enhanced: Plugin configuration loaded', pluginConfig);
-                // Check if we need to clear local storage
-                const serverClearTimestamp = config.ClearLocalStorageTimestamp || 0;
-                const localClearedTimestamp = parseInt(localStorage.getItem('jellyfinEnhancedLastCleared') || '0', 10);
-
-                if (serverClearTimestamp > localClearedTimestamp) {
-                    localStorage.removeItem('jellyfinEnhancedSettings');
-                    // Update the local timestamp to prevent clearing again
-                    localStorage.setItem('jellyfinEnhancedLastCleared', serverClearTimestamp.toString());
-                    console.log(`🪼 Jellyfin Enhanced: Reset triggered by admin at ${new Date(serverClearTimestamp).toLocaleString()}.`);
-                    setTimeout(() => {
-                        toast('⚙️ Settings have been reset by the server admin.');
-                    }, 2000); // 2-second delay
-                }
             }
         }).catch(err => {
             console.warn('🪼 Jellyfin Enhanced: Could not load plugin configuration, using defaults', err);
@@ -1885,6 +1872,19 @@
         };
 
         // --- SCRIPT INITIALIZATION ---
+        // Check if we need to clear local storage
+        const serverClearTimestamp = pluginConfig.ClearLocalStorageTimestamp || 0;
+        const localClearedTimestamp = parseInt(localStorage.getItem('jellyfinEnhancedLastCleared') || '0', 10);
+
+        if (serverClearTimestamp > localClearedTimestamp) {
+            localStorage.removeItem('jellyfinEnhancedSettings');
+            localStorage.setItem('jellyfinEnhancedLastCleared', serverClearTimestamp.toString());
+
+            setTimeout(() => {
+                console.log(`🪼 Jellyfin Enhanced: Local storage cleared by admin request.`);
+                toast('⚙️ All settings have been reset by the server admin.', 5000); //Show toast for 5 seconds
+            }, 2000); // Delay of 2 seconds to allow any initial UI to load
+        }
         injectRandomButtonStyles();
         addPluginMenuButton();
 
