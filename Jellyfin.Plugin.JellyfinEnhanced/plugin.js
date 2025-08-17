@@ -286,7 +286,7 @@
                 });
 
                 pluginSettingsSection.appendChild(jellyfinEnhancedLink);
-                console.log('Jellyfin Enhanced: Menu button added to existing Plugin Settings section');
+                console.log('🪼 Jellyfin Enhanced: Menu button added to existing Plugin Settings section');
             }
         };
 
@@ -1872,6 +1872,19 @@
         };
 
         // --- SCRIPT INITIALIZATION ---
+        // Check if we need to clear local storage
+        const serverClearTimestamp = pluginConfig.ClearLocalStorageTimestamp || 0;
+        const localClearedTimestamp = parseInt(localStorage.getItem('jellyfinEnhancedLastCleared') || '0', 10);
+
+        if (serverClearTimestamp > localClearedTimestamp) {
+            localStorage.removeItem('jellyfinEnhancedSettings');
+            localStorage.setItem('jellyfinEnhancedLastCleared', serverClearTimestamp.toString());
+
+            setTimeout(() => {
+                console.log(`🪼 Jellyfin Enhanced: Local storage cleared by admin request.`);
+                toast('⚙️ All settings have been reset by the server admin.', 5000); //Show toast for 5 seconds
+            }, 2000); // Delay of 2 seconds to allow any initial UI to load
+        }
         injectRandomButtonStyles();
         addPluginMenuButton();
 

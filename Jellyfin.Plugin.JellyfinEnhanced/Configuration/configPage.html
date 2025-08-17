@@ -38,6 +38,12 @@
                         <div class="fieldDescription">How long to hold Shift+B to clear all bookmarks.</div>
                     </div>
                 </div>
+                <br>
+                <div>
+                    <button id="clearLocalStorageBtn" class="raised button-cancel block emby-button" is="emby-button" type="button">
+                        <span>Reset Jellyfin Enhanced Settings for all users</span>
+                    </button>
+                </div>
             </fieldset>
                 <!-- Jellyfin Elsewhere Settings -->
                 <fieldset class="verticalSection-extrabottompadding">
@@ -81,6 +87,7 @@
             const pluginId = 'f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b';
             const page = document.querySelector('#JellyfinEnhancedPage');
             const form = document.querySelector('#JellyfinEnhancedForm');
+            const clearLocalStorageBtn = document.querySelector('#clearLocalStorageBtn');
 
             function loadConfig() {
                 Dashboard.showLoadingMsg();
@@ -120,9 +127,21 @@
                 return false;
             }
 
+            function clearLocalStorage() {
+                if (confirm("Are you sure?\n\nThis will reset Jellyfin Enhanced settings for all users to defaults on next load.")) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then((config) => {
+                        config.ClearLocalStorageTimestamp = Date.now();
+                        ApiClient.updatePluginConfiguration(pluginId, config).then((result) => {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+                }
+            }
+
             page.addEventListener('pageshow', loadConfig);
             form.addEventListener('submit', saveConfig);
-
+            clearLocalStorageBtn.addEventListener('click', clearLocalStorage);
         })();
     </script>
 </div>
