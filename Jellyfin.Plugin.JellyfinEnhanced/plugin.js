@@ -92,7 +92,7 @@
                 if (!response.ok) throw new Error('Failed to fetch release data');
                 release = await response.json();
             } catch (error) {
-                console.error('Failed to fetch release notes:', error);
+                console.error('🪼 Jellyfin Enhanced: Failed to fetch release notes:', error);
                 toast('❌ Could not load release notes.');
                 return;
             }
@@ -387,7 +387,7 @@
             try {
                 localStorage.setItem('jellyfinEnhancedSettings', JSON.stringify(settings));
             } catch (e) {
-                console.error('Failed to save settings:', e);
+                console.error('🪼 Jellyfin Enhanced: Failed to save settings:', e);
             }
         };
 
@@ -412,7 +412,7 @@
                     lastOpenedTab: 'shortcuts'
                 };
             } catch (e) {
-                console.error('Error loading settings:', e);
+                console.error('🪼 Jellyfin Enhanced: Error loading settings:', e);
                 // Fallback to default settings on error.
                 return {
                     autoPauseEnabled: true,
@@ -473,11 +473,11 @@
                 } else if (window.Emby?.Notifications) {
                     window.Emby.Notifications.show({ title: message, type: type, timeout: 3000 });
                 } else {
-                    console.log(`Notification (${type}): ${message}`);
+                    console.log(`🪼 Jellyfin Enhanced: Notification (${type}): ${message}`);
                 }
             } catch (e) {
-                console.error("Failed to show notification", e);
-                console.log(`Notification (${type}): ${message}`);
+                console.error("🪼 Jellyfin Enhanced: Failed to show notification", e);
+                console.log(`🪼 Jellyfin Enhanced: Notification (${type}): ${message}`);
             }
         };
 
@@ -486,13 +486,13 @@
             const userId = ApiClient.getCurrentUserId();
 
             if (!userId) {
-                console.error("Remove Continue Watching: User ID not found.");
+                console.error("🪼 Jellyfin Enhanced: Remove Continue Watching: User ID not found.");
                 showNotification("Please log in to use this feature.", "error");
                 return false;
             }
 
             if (!itemId) {
-                console.error("Remove Continue Watching: No item ID provided.");
+                console.error("🪼 Jellyfin Enhanced: Remove Continue Watching: No item ID provided.");
                 showNotification("No item selected.", "error");
                 return false;
             }
@@ -500,7 +500,7 @@
             const serverAddress = getJellyfinServerAddress();
 
             try {
-                console.log("Remove Continue Watching: Attempting to reset user data for item:", itemId);
+                console.log("🪼 Jellyfin Enhanced: Remove Continue Watching: Attempting to reset user data for item:", itemId);
                 const userDataUrl = `${serverAddress}/Users/${userId}/Items/${itemId}/UserData`;
                 await ApiClient.ajax({
                     type: 'POST',
@@ -509,10 +509,10 @@
                     headers: { 'Content-Type': 'application/json' }
                 });
 
-                console.log("Remove Continue Watching: Successfully reset user data:", itemId);
+                console.log("🪼 Jellyfin Enhanced: Remove Continue Watching: Successfully reset user data:", itemId);
                 return true;
             } catch (error) {
-                console.error("Remove Continue Watching: API call failed:", error);
+                console.error("🪼 Jellyfin Enhanced: Remove Continue Watching: API call failed:", error);
                 const errorMessage = error.responseJSON?.Message || error.statusText || error.message || 'Unknown error occurred';
                 showNotification(`Unable to remove item: ${errorMessage}`, "error");
                 return false;
@@ -537,7 +537,7 @@
             button.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log("Remove Continue Watching: 'Remove' button clicked. Item ID:", itemId);
+                console.log("🪼 Jellyfin Enhanced: Remove Continue Watching: 'Remove' button clicked. Item ID:", itemId);
 
                 if (!itemId) {
                     showNotification("Could not determine which item to remove.", "error");
@@ -569,12 +569,12 @@
                             el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
                             el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
                             el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                            console.log("Simulated outside click to close action sheet.");
+                            console.debug("🪼 Jellyfin Enhanced: Simulated outside click to close action sheet.");
                         } else {
-                            console.log("No element found to click outside.");
+                            console.debug("🪼 Jellyfin Enhanced: No element found to click outside.");
                         }
                     } else {
-                        console.log("No open action sheet found.");
+                        console.debug("🪼 Jellyfin Enhanced: No open action sheet found.");
                     }
 
                     // Show notification after closing
@@ -590,7 +590,7 @@
                                 window.dispatchEvent(new CustomEvent('libraryupdated'));
                             }
                         } catch (refreshError) {
-                            console.log("Could not auto-refresh view:", refreshError);
+                            console.log("🪼 Jellyfin Enhanced: Could not auto-refresh view:", refreshError);
                             showNotification("Item removed. Please refresh the page to see changes.", "info");
                         }
                     }, 500);
@@ -619,7 +619,7 @@
 
             const itemId = currentContextItemId;
             if (!itemId) {
-                console.error("Remove Continue Watching: Context was correct, but could not get item ID.");
+                console.error("🪼 Jellyfin Enhanced: Remove Continue Watching: Context was correct, but could not get item ID.");
                 return;
             }
 
@@ -640,7 +640,7 @@
                 actionSheetContent.appendChild(removeButton);
             }
 
-            console.log("Remove Continue Watching: Button successfully added to action sheet for item:", itemId);
+            console.log("🪼 Jellyfin Enhanced: Remove Continue Watching: Button successfully added to action sheet for item:", itemId);
         };
 
         // Observes action sheets for the remove button
@@ -694,7 +694,7 @@
                         if (isPluginSection || isDefaultSection) {
                             isContinueWatchingContext = true;
                             currentContextItemId = itemElement.dataset.id;
-                            console.log("Remove Continue Watching: Captured 'Continue Watching' context for item:", currentContextItemId);
+                            console.log("🪼 Jellyfin Enhanced: Remove Continue Watching: Captured 'Continue Watching' context for item:", currentContextItemId);
                         }
                     }
                 }
@@ -771,7 +771,7 @@
                 sheet.insertRule(newRule, 0);
 
             } catch (e) {
-                console.error("Failed to apply subtitle styles:", e);
+                console.error("🪼 Jellyfin Enhanced: Failed to apply subtitle styles:", e);
             }
         };
 
@@ -819,7 +819,7 @@
         const getRandomItem = async (unwatchedOnly = false) => {
             const userId = ApiClient.getCurrentUserId();
             if (!userId) {
-                console.error("Jellyfin Enhanced: User not logged in.");
+                console.error("🪼 Jellyfin Enhanced: User not logged in.");
                 return null;
             }
 
@@ -853,7 +853,7 @@
                     throw new Error('No items found in selected libraries.');
                 }
             } catch (error) {
-                console.error('Jellyfin Enhanced: Error fetching random item:', error);
+                console.error('🪼 Jellyfin Enhanced: Error fetching random item:', error);
                 toast(`❌ ${error.message || 'Unknown error'}`, 2000);
                 return null;
             }
@@ -868,7 +868,7 @@
                 window.location.href = itemUrl;
                 toast(`🎲 Random Item Loaded`, 2000);
             } else {
-                console.error('Jellyfin Enhanced: Invalid item object or ID:', item);
+                console.error('🪼 Jellyfin Enhanced: Invalid item object or ID:', item);
                 toast('❌ Uh oh! Something went wrong!', 2000);
             }
         };
@@ -988,7 +988,7 @@
                     }
                 }
             } catch (error) {
-                console.error(`Jellyfin Enhanced: Error fetching item size for ID ${itemId}:`, error);
+                console.error(`🪼 Jellyfin Enhanced: Error fetching item size for ID ${itemId}:`, error);
             } finally {
                 // Always remove the processing flag when done.
                 if (container) {
@@ -1925,7 +1925,7 @@
 
         // Skip initialization if no API key is configured
         if (!TMDB_API_KEY) {
-            console.log('🎬 Jellyfin Elsewhere: No TMDB API key configured, skipping initialization');
+            console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: No TMDB API key configured, skipping initialization');
             return;
         }
 
@@ -1935,7 +1935,7 @@
         let availableRegions = {};
         let availableProviders = [];
 
-        console.log('🎬 Jellyfin Elsewhere starting...');
+        console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere starting...');
 
         // Load regions and providers from GitHub repo
         function loadRegionsAndProviders() {
@@ -2316,7 +2316,7 @@
                     userRegions = settings.regions || [];
                     userServices = settings.services || [];
                 } catch (e) {
-                    console.log('Error loading settings:', e);
+                    console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: Error loading settings:', e);
                 }
             }
         }
@@ -2544,7 +2544,7 @@
                             !ignorePatterns.some(regex => regex.test(service.provider_name))
                         );
                     } catch (e) {
-                        console.error('Jellyfin Elsewhere: Invalid regex in IGNORE_PROVIDERS.', e);
+                        console.error('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere: Invalid regex in IGNORE_PROVIDERS.', e);
                     }
                 }
 
@@ -2920,7 +2920,7 @@
         // Initial scan
         setTimeout(addStreamingLookup, 1000);
 
-        console.log('🎬 Jellyfin Elsewhere loaded!');
+        console.log('🪼 Jellyfin Enhanced: 🎬 Jellyfin Elsewhere loaded!');
     }
 
     // Initialize the script
