@@ -1516,6 +1516,7 @@
                         </details>
                         <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
                             <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">↪️ Auto-Skip Settings</summary>
+                            <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-left: 18px; margin-bottom: 10px;"> ⓘ Depends on Intro-Skipper Plugin being available</div>
                             <div style="padding: 0 16px 16px 16px;">
                                 <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                     <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
