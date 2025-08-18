@@ -92,12 +92,14 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Services
                 }
                 else
                 {
-                    _logger.LogWarning("Could not find PluginInterface in FileTransformation assembly. Script will not be injected.");
+                    _logger.LogWarning("Could not find PluginInterface in FileTransformation assembly. Using fallback injection method.");
+                    JellyfinEnhanced.Instance?.InjectScript();
                 }
             }
             else
             {
-                _logger.LogWarning("File Transformation plugin not found. Jellyfin Enhanced script will not be injected.");
+                _logger.LogWarning("File Transformation plugin not found. Using fallback injection method.");
+                JellyfinEnhanced.Instance?.InjectScript();
             }
         }
 
