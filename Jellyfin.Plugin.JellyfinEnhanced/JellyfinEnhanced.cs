@@ -10,7 +10,6 @@ using System;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 
-
 namespace Jellyfin.Plugin.JellyfinEnhanced
 {
     public class JellyfinEnhanced : BasePlugin<PluginConfiguration>, IHasWebPages
@@ -23,29 +22,14 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             Instance = this;
             _applicationPaths = applicationPaths;
             _logger = loggerFactory.CreateLogger<JellyfinEnhanced>();
-
-            // Inject script on plugin initialization
-            InjectScript();
         }
 
         public override string Name => "Jellyfin Enhanced";
-
         public override Guid Id => Guid.Parse("f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b");
-
         public static JellyfinEnhanced? Instance { get; private set; }
-
         public string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
 
-        /// <summary>
-        /// Called when the plugin is being uninstalled.
-        /// </summary>
-        public override void OnUninstalling()
-        {
-            RemoveScript();
-            base.OnUninstalling();
-        }
-
-        private void InjectScript()
+        public void InjectScript()
         {
             try
             {
@@ -62,14 +46,12 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
 
                 var content = File.ReadAllText(indexPath);
 
-                // If the exact correct script tag is already present, do nothing.
                 if (content.Contains(scriptTag))
                 {
                     _logger.LogInformation("JellyfinEnhanced script is already correctly injected. No changes needed.");
                     return;
                 }
 
-                // Regex to find any old/previous versions of our script tag.
                 var regex = new Regex($"<script[^>]*src=[\"']{scriptUrl}[\"'][^>]*>\\s*</script>\\n?");
 
                 if (regex.IsMatch(content))
@@ -97,10 +79,11 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
         }
 
         /// <summary>
-        /// Removes the script tag from index.htmlon uninstall.
+        /// Called when the plugin is being uninstalled.
         /// </summary>
-        private void RemoveScript()
+        public override void OnUninstalling()
         {
+            // Final cleanup on uninstall to be safe
             try
             {
                 var indexPath = IndexHtmlPath;
@@ -111,23 +94,20 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 }
 
                 var content = File.ReadAllText(indexPath);
-                // A broader regex to find any script tag from this plugin.
                 var regex = new Regex($"<script plugin=\"{Name}\".*?></script>\\n?");
                 if (regex.IsMatch(content))
                 {
                     content = regex.Replace(content, string.Empty);
                     File.WriteAllText(indexPath, content);
-                    _logger.LogInformation("Successfully removed the {Name} script from index.html.", Name);
-                }
-                else
-                {
-                    _logger.LogInformation("Could not find the {Name} script in index.html. No changes needed.", Name);
+                    _logger.LogInformation("Successfully removed the {Name} script from index.html during uninstall.", Name);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while trying to remove script from index.html.");
+                _logger.LogError(ex, "Error while trying to remove script from index.html during uninstall.");
             }
+
+            base.OnUninstalling();
         }
 
         public IEnumerable<PluginPageInfo> GetPages()
