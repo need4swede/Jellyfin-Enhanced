@@ -88,6 +88,10 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 
 #### 🐳 Docker Installation Notes
 
+> [!NOTE]
+> If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
+
+
 If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/usr/share/jellyfin/web/index.html' is denied.` in your logs, you will need to map the `index.html` file manually:
 
 1. Copy the index.html file from your container:
