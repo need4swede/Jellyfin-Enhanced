@@ -18,6 +18,18 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             IGNORE_PROVIDERS = "";
 
             ClearLocalStorageTimestamp = 0;
+
+            // Default User Settings
+            AutoPauseEnabled = true;
+            AutoResumeEnabled = false;
+            AutoSkipIntro = false;
+            AutoSkipOutro = false;
+            RandomButtonEnabled = true;
+            RandomIncludeMovies = true;
+            RandomIncludeShows = true;
+            RandomUnwatchedOnly = false;
+            ShowFileSizes = false;
+            RemoveContinueWatchingEnabled = false;
         }
 
         // Jellyfin Enhanced Settings
@@ -31,5 +43,17 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public string DEFAULT_PROVIDERS { get; set; }
         public string IGNORE_PROVIDERS { get; set; }
         public long ClearLocalStorageTimestamp { get; set; }
+
+        // Default User Settings
+        public bool AutoPauseEnabled { get; set; }
+        public bool AutoResumeEnabled { get; set; }
+        public bool AutoSkipIntro { get; set; }
+        public bool AutoSkipOutro { get; set; }
+        public bool RandomButtonEnabled { get; set; }
+        public bool RandomIncludeMovies { get; set; }
+        public bool RandomIncludeShows { get; set; }
+        public bool RandomUnwatchedOnly { get; set; }
+        public bool ShowFileSizes { get; set; }
+        public bool RemoveContinueWatchingEnabled { get; set; }
     }
 }
