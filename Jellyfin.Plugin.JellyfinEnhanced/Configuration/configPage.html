@@ -4,7 +4,7 @@
     <title>Jellyfin Enhanced</title>
 </head>
 <body>
-<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox" data-role="page" id="JellyfinEnhancedPage" style="color: #eee;">
+<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox,emby-select" data-role="page" id="JellyfinEnhancedPage" style="color: #eee;">
     <div data-role="content">
         <div class="content-primary">
             <div class="verticalSection">
@@ -19,7 +19,7 @@
             <hr>
 
             <div style="margin-bottom: 1em;">
-                <button class="jellyfin-tab-button active" data-tab="enhanced" style="background: none; border: none; color: var(--primary-accent-color, #fff); cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: var(--primary-accent-color, #fff);"><h3>Enhanced Settings</h3></button>
+                <button class="jellyfin-tab-button active" data-tab="enhanced" style="background: none; border: none; color: var(--primary-accent-color, #fff); cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid var(--primary-accent-color, #fff);"><h3>Enhanced Settings</h3></button>
                 <button class="jellyfin-tab-button" data-tab="elsewhere" style="background: none; border: none; color: #ccc; cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid transparent;"><h3>Elsewhere Settings</h3></button>
             </div>
             <form id="JellyfinEnhancedForm">
@@ -60,6 +60,30 @@
                                 </div>
                             </details>
                         </div>
+                    </fieldset>
+                    <fieldset class="verticalSection-extrabottompadding">
+                        <legend class="sectionTitle"><h3>Shortcut Overrides</h3></legend>
+                        <div style="margin-bottom: 2em; padding-bottom: 1.5em; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <h4 class="sectionTitle" style="margin-top: 0;">Add Override</h4>
+                            <div style="display: flex; gap: 1em; align-items: flex-end;">
+                                <div style="flex: 1;">
+                                    <select is="emby-select" id="add-shortcut-select" label="Shortcut Action"></select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <input is="emby-input" id="add-shortcut-key" type="text" label="New Key"/>
+                                </div>
+                                <button is="emby-button" type="button" id="add-shortcut-btn" class="raised button-submit" style="top: 10px;">
+                                    <span>Add</span>
+                                </button>
+                            </div>
+                            <div id="shortcut-error-comment" style="display: none; color: #ffdddd; font-size: 0.9em; margin-top: 0.75em; background-color: rgba(220, 53, 69, 0.2); padding: 0.5em; border-radius: 4px; border-left: 3px solid #dc3545;"></div>
+                            <p class="fieldDescription" style="margin-top: 1em;">
+                                <b>Modifier Keys:</b> Use `Shift+`, `Ctrl+`, or `Alt+`. Examples: `Shift+A`, `Ctrl+S`.
+                            </p>
+                        </div>
+                        <p class="fieldDescription">Only custom shortcut overrides are displayed below. All other shortcuts will use default values.</p>
+                        <div id="shortcut-list-container" style="display: flex; flex-direction: column; gap: 0.75em; margin-top: 1em;">
+                            </div>
                     </fieldset>
                     <fieldset class="verticalSection-extrabottompadding">
                         <legend class="sectionTitle"><h3>Timeout Settings</h3></legend>
@@ -135,7 +159,28 @@
             const form = document.querySelector('#JellyfinEnhancedForm');
             const clearLocalStorageBtn = document.querySelector('#clearLocalStorageBtn');
 
-            // Tab functionality
+            const shortcutListContainer = document.getElementById('shortcut-list-container');
+            const addShortcutSelect = document.getElementById('add-shortcut-select');
+            const addShortcutKeyInput = document.getElementById('add-shortcut-key');
+            const addShortcutBtn = document.getElementById('add-shortcut-btn');
+            const shortcutErrorComment = document.getElementById('shortcut-error-comment');
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    10%, 90% { transform: translate3d(-1px, 0, 0); }
+                    20%, 80% { transform: translate3d(2px, 0, 0); }
+                    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                    40%, 60% { transform: translate3d(4px, 0, 0); }
+                }
+                .shake {
+                    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+                }
+            `;
+            document.head.appendChild(style);
+
+            let shortcutOverrides = [];
+
             const tabs = document.querySelectorAll('.jellyfin-tab-button');
             const tabContents = document.querySelectorAll('.jellyfin-tab-content');
             tabs.forEach(tab => {
@@ -158,53 +203,190 @@
                 });
             });
 
-            function loadConfig() {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(pluginId).then((config) => {
-                    document.querySelector('#ClearBookmarksDelay').value = config.ClearBookmarksDelay;
-                    document.querySelector('#ToastDuration').value = config.ToastDuration;
-                    document.querySelector('#HelpPanelAutocloseDelay').value = config.HelpPanelAutocloseDelay;
-                    document.querySelector('#TMDB_API_KEY').value = config.TMDB_API_KEY;
-                    document.querySelector('#DEFAULT_REGION').value = config.DEFAULT_REGION;
-                    document.querySelector('#DEFAULT_PROVIDERS').value = config.DEFAULT_PROVIDERS;
-                    document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
-                    document.querySelector('#autoPauseEnabled').checked = config.AutoPauseEnabled;
-                    document.querySelector('#autoResumeEnabled').checked = config.AutoResumeEnabled;
-                    document.querySelector('#autoSkipIntro').checked = config.AutoSkipIntro;
-                    document.querySelector('#autoSkipOutro').checked = config.AutoSkipOutro;
-                    document.querySelector('#randomButtonEnabled').checked = config.RandomButtonEnabled;
-                    document.querySelector('#randomIncludeMovies').checked = config.RandomIncludeMovies;
-                    document.querySelector('#randomIncludeShows').checked = config.RandomIncludeShows;
-                    document.querySelector('#randomUnwatchedOnly').checked = config.RandomUnwatchedOnly;
-                    document.querySelector('#showFileSizes').checked = config.ShowFileSizes;
-                    document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
+        const defaultShortcuts = [
+            { Name: "OpenSearch", Key: "/", Label: "Open Search", Category: "Global" },
+            { Name: "GoToHome", Key: "Shift+H", Label: "Go to Home", Category: "Global" },
+            { Name: "GoToDashboard", Key: "D", Label: "Go to Dashboard", Category: "Global" },
+            { Name: "QuickConnect", Key: "Q", Label: "Quick Connect", Category: "Global" },
+            { Name: "PlayRandomItem", Key: "R", Label: "Play Random Item", Category: "Global" },
+            { Name: "ClearAllBookmarks", Key: "Shift+B", Label: "Clear All Bookmarks (Hold)", Category: "Global" },
+            { Name: "CycleAspectRatio", Key: "A", Label: "Cycle Aspect Ratio", Category: "Player" },
+            { Name: "ShowPlaybackInfo", Key: "I", Label: "Show Playback Info", Category: "Player" },
+            { Name: "SubtitleMenu", Key: "S", Label: "Subtitle Menu", Category: "Player" },
+            { Name: "CycleSubtitleTracks", Key: "C", Label: "Cycle Subtitle Tracks", Category: "Player" },
+            { Name: "CycleAudioTracks", Key: "V", Label: "Cycle Audio Tracks", Category: "Player" },
+            { Name: "IncreasePlaybackSpeed", Key: "+", Label: "Increase Playback Speed", Category: "Player" },
+            { Name: "DecreasePlaybackSpeed", Key: "-", Label: "Decrease Playback Speed", Category: "Player" },
+            { Name: "ResetPlaybackSpeed", Key: "R", Label: "Reset Playback Speed", Category: "Player" },
+            { Name: "BookmarkCurrentTime", Key: "B", Label: "Bookmark Current Time", Category: "Player" },
+            { Name: "GoToSavedBookmark", Key: "Shift+B", Label: "Go to Saved Bookmark", Category: "Player" }
+        ];
 
-                    Dashboard.hideLoadingMsg();
+        function renderOverrides() {
+            shortcutListContainer.innerHTML = '';
+            if (shortcutOverrides.length === 0) {
+                 shortcutListContainer.innerHTML = '<p class="fieldDescription" style="text-align: center;">No overrides configured. All shortcuts are using default values.</p>';
+            }
+            shortcutOverrides.forEach((shortcut, index) => {
+                const row = document.createElement('div');
+                row.className = 'inputContainer';
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '1em';
+
+                const label = document.createElement('label');
+                label.className = 'inputLabel';
+                label.textContent = shortcut.Label;
+                label.style.flex = '1';
+
+                const input = document.createElement('input');
+                input.setAttribute('is', 'emby-input');
+                input.type = 'text';
+                input.value = shortcut.Key;
+                input.style.flex = '1';
+                input.addEventListener('input', (e) => {
+                    shortcutOverrides[index].Key = e.target.value;
                 });
+
+                const buttonContainer = document.createElement('div');
+                const removeBtn = document.createElement('button');
+                removeBtn.setAttribute('is', 'emby-button');
+                removeBtn.type = 'button';
+                removeBtn.textContent = 'Remove';
+                removeBtn.className = 'raised button-cancel';
+                removeBtn.style.marginLeft = '1em';
+                removeBtn.addEventListener('click', () => {
+                    shortcutOverrides.splice(index, 1);
+                    renderOverrides();
+                    populateAddShortcutDropdown();
+                });
+
+                buttonContainer.appendChild(removeBtn);
+                row.appendChild(label);
+                row.appendChild(input);
+                row.appendChild(buttonContainer);
+                shortcutListContainer.appendChild(row);
+            });
+        }
+
+        function populateAddShortcutDropdown() {
+            addShortcutSelect.innerHTML = '';
+            const overriddenNames = shortcutOverrides.map(s => s.Name);
+            const availableShortcuts = defaultShortcuts.filter(s => !overriddenNames.includes(s.Name));
+
+            availableShortcuts.forEach(shortcut => {
+                const option = document.createElement('option');
+                option.value = shortcut.Name;
+                option.textContent = shortcut.Label;
+                addShortcutSelect.appendChild(option);
+            });
+            addShortcutBtn.disabled = availableShortcuts.length === 0;
+            addShortcutKeyInput.disabled = availableShortcuts.length === 0;
+        }
+
+        function showValidationError(elementToShake, message) {
+            shortcutErrorComment.textContent = message;
+            shortcutErrorComment.style.display = 'block';
+            elementToShake.classList.add('shake');
+
+            setTimeout(() => {
+                elementToShake.classList.remove('shake');
+                shortcutErrorComment.style.display = 'none';
+            }, 8000);
+        }
+
+        addShortcutBtn.addEventListener('click', () => {
+            const selectedName = addShortcutSelect.value;
+            const newKey = addShortcutKeyInput.value.trim();
+
+            if (!selectedName || !newKey) {
+                showValidationError(addShortcutBtn, 'Please enter an override key.');
+                return;
             }
 
-            function saveConfig(e) {
-                e.preventDefault();
-                Dashboard.showLoadingMsg();
-                const config = {
-                    ClearBookmarksDelay: parseInt(document.querySelector('#ClearBookmarksDelay').value, 10),
-                    ToastDuration: parseInt(document.querySelector('#ToastDuration').value, 10),
-                    HelpPanelAutocloseDelay: parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10),
-                    TMDB_API_KEY: document.querySelector('#TMDB_API_KEY').value,
-                    DEFAULT_REGION: document.querySelector('#DEFAULT_REGION').value,
-                    DEFAULT_PROVIDERS: document.querySelector('#DEFAULT_PROVIDERS').value,
-                    IGNORE_PROVIDERS: document.querySelector('#IGNORE_PROVIDERS').value,
-                    AutoPauseEnabled: document.querySelector('#autoPauseEnabled').checked,
-                    AutoResumeEnabled: document.querySelector('#autoResumeEnabled').checked,
-                    AutoSkipIntro: document.querySelector('#autoSkipIntro').checked,
-                    AutoSkipOutro: document.querySelector('#autoSkipOutro').checked,
-                    RandomButtonEnabled: document.querySelector('#randomButtonEnabled').checked,
-                    RandomIncludeMovies: document.querySelector('#randomIncludeMovies').checked,
-                    RandomIncludeShows: document.querySelector('#randomIncludeShows').checked,
-                    RandomUnwatchedOnly: document.querySelector('#randomUnwatchedOnly').checked,
-                    ShowFileSizes: document.querySelector('#showFileSizes').checked,
-                    RemoveContinueWatchingEnabled: document.querySelector('#removeContinueWatchingEnabled').checked
-                };
+            const isKeyInUse = shortcutOverrides.some(s => s.Key.toLowerCase() === newKey.toLowerCase());
+
+            if (isKeyInUse) {
+                showValidationError(addShortcutKeyInput.parentElement, 'The key is already assigned to another override.');
+                return;
+            }
+
+            const defaultConfig = defaultShortcuts.find(s => s.Name === selectedName);
+            if (defaultConfig) {
+                shortcutOverrides.push({ ...defaultConfig, Key: newKey });
+                renderOverrides();
+                populateAddShortcutDropdown();
+                addShortcutKeyInput.value = '';
+            }
+        });
+
+        function loadConfig() {
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(pluginId).then((config) => {
+                const savedShortcuts = (config.Shortcuts && config.Shortcuts.length > 0) ? config.Shortcuts : defaultShortcuts;
+                shortcutOverrides = savedShortcuts.filter(saved => {
+                    const def = defaultShortcuts.find(d => d.Name === saved.Name);
+                    return !def || saved.Key !== def.Key;
+                });
+
+                renderOverrides();
+                populateAddShortcutDropdown();
+
+                // Load all other settings
+                document.querySelector('#ClearBookmarksDelay').value = config.ClearBookmarksDelay;
+                document.querySelector('#ToastDuration').value = config.ToastDuration;
+                document.querySelector('#HelpPanelAutocloseDelay').value = config.HelpPanelAutocloseDelay;
+                document.querySelector('#TMDB_API_KEY').value = config.TMDB_API_KEY;
+                document.querySelector('#DEFAULT_REGION').value = config.DEFAULT_REGION;
+                document.querySelector('#DEFAULT_PROVIDERS').value = config.DEFAULT_PROVIDERS;
+                document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
+                document.querySelector('#autoPauseEnabled').checked = config.AutoPauseEnabled;
+                document.querySelector('#autoResumeEnabled').checked = config.AutoResumeEnabled;
+                document.querySelector('#autoSkipIntro').checked = config.AutoSkipIntro;
+                document.querySelector('#autoSkipOutro').checked = config.AutoSkipOutro;
+                document.querySelector('#randomButtonEnabled').checked = config.RandomButtonEnabled;
+                document.querySelector('#randomIncludeMovies').checked = config.RandomIncludeMovies;
+                document.querySelector('#randomIncludeShows').checked = config.RandomIncludeShows;
+                document.querySelector('#randomUnwatchedOnly').checked = config.RandomUnwatchedOnly;
+                document.querySelector('#showFileSizes').checked = config.ShowFileSizes;
+                document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
+
+                Dashboard.hideLoadingMsg();
+            });
+        }
+
+        function saveConfig(e) {
+            e.preventDefault();
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(pluginId).then(config => {
+
+                const finalShortcuts = [...defaultShortcuts];
+                shortcutOverrides.forEach(override => {
+                    const index = finalShortcuts.findIndex(s => s.Name === override.Name);
+                    if (index !== -1) {
+                        finalShortcuts[index] = override;
+                    }
+                });
+                config.Shortcuts = finalShortcuts;
+
+                // Save all other settings
+                config.ClearBookmarksDelay = parseInt(document.querySelector('#ClearBookmarksDelay').value, 10);
+                config.ToastDuration = parseInt(document.querySelector('#ToastDuration').value, 10);
+                config.HelpPanelAutocloseDelay = parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10);
+                config.TMDB_API_KEY = document.querySelector('#TMDB_API_KEY').value;
+                config.DEFAULT_REGION = document.querySelector('#DEFAULT_REGION').value;
+                config.DEFAULT_PROVIDERS = document.querySelector('#DEFAULT_PROVIDERS').value;
+                config.IGNORE_PROVIDERS = document.querySelector('#IGNORE_PROVIDERS').value;
+                config.AutoPauseEnabled = document.querySelector('#autoPauseEnabled').checked;
+                config.AutoResumeEnabled = document.querySelector('#autoResumeEnabled').checked;
+                config.AutoSkipIntro = document.querySelector('#autoSkipIntro').checked;
+                config.AutoSkipOutro = document.querySelector('#autoSkipOutro').checked;
+                config.RandomButtonEnabled = document.querySelector('#randomButtonEnabled').checked;
+                config.RandomIncludeMovies = document.querySelector('#randomIncludeMovies').checked;
+                config.RandomIncludeShows = document.querySelector('#randomIncludeShows').checked;
+                config.RandomUnwatchedOnly = document.querySelector('#randomUnwatchedOnly').checked;
+                config.ShowFileSizes = document.querySelector('#showFileSizes').checked;
+                config.RemoveContinueWatchingEnabled = document.querySelector('#removeContinueWatchingEnabled').checked;
 
                 ApiClient.updatePluginConfiguration(pluginId, config)
                     .then((result) => {
@@ -213,27 +395,27 @@
                     .catch(() => {
                         Dashboard.hideLoadingMsg();
                     });
+            });
+            return false;
+        }
 
-                return false;
-            }
-
-            function clearLocalStorage() {
-                if (confirm("Are you sure?\n\nThis will reset Jellyfin Enhanced settings for all users to defaults on next load.")) {
-                    Dashboard.showLoadingMsg();
-                    ApiClient.getPluginConfiguration(pluginId).then((config) => {
-                        config.ClearLocalStorageTimestamp = Date.now();
-                        ApiClient.updatePluginConfiguration(pluginId, config).then((result) => {
-                            Dashboard.processPluginConfigurationUpdateResult(result);
-                        });
+        function clearLocalStorage() {
+            if (confirm("Are you sure?\n\nThis will reset Jellyfin Enhanced settings for all users to defaults on next load.")) {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then((config) => {
+                    config.ClearLocalStorageTimestamp = Date.now();
+                    ApiClient.updatePluginConfiguration(pluginId, config).then((result) => {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
                     });
-                }
+                });
             }
+        }
 
-            page.addEventListener('pageshow', loadConfig);
-            form.addEventListener('submit', saveConfig);
-            clearLocalStorageBtn.addEventListener('click', clearLocalStorage);
-        })();
-    </script>
+        page.addEventListener('pageshow', loadConfig);
+        form.addEventListener('submit', saveConfig);
+        clearLocalStorageBtn.addEventListener('click', clearLocalStorage);
+    })();
+</script>
 </div>
 </body>
 </html>

@@ -2,6 +2,13 @@ using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
 {
+    public class Shortcut
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+    }
     public class PluginConfiguration : BasePluginConfiguration
     {
         public PluginConfiguration()
@@ -30,6 +37,26 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             RandomUnwatchedOnly = false;
             ShowFileSizes = false;
             RemoveContinueWatchingEnabled = false;
+
+            Shortcuts = new List<Shortcut>
+            {
+                new Shortcut { Name = "OpenSearch", Key = "/", Label = "Open Search", Category = "Global" },
+                new Shortcut { Name = "GoToHome", Key = "Shift+H", Label = "Go to Home", Category = "Global" },
+                new Shortcut { Name = "GoToDashboard", Key = "D", Label = "Go to Dashboard", Category = "Global" },
+                new Shortcut { Name = "QuickConnect", Key = "Q", Label = "Quick Connect", Category = "Global" },
+                new Shortcut { Name = "PlayRandomItem", Key = "R", Label = "Play Random Item", Category = "Global" },
+                new Shortcut { Name = "ClearAllBookmarks", Key = "Shift+B", Label = "Clear All Bookmarks (Hold)", Category = "Global" },
+                new Shortcut { Name = "CycleAspectRatio", Key = "A", Label = "Cycle Aspect Ratio", Category = "Player" },
+                new Shortcut { Name = "ShowPlaybackInfo", Key = "I", Label = "Show Playback Info", Category = "Player" },
+                new Shortcut { Name = "SubtitleMenu", Key = "S", Label = "Subtitle Menu", Category = "Player" },
+                new Shortcut { Name = "CycleSubtitleTracks", Key = "C", Label = "Cycle Subtitle Tracks", Category = "Player" },
+                new Shortcut { Name = "CycleAudioTracks", Key = "V", Label = "Cycle Audio Tracks", Category = "Player" },
+                new Shortcut { Name = "IncreasePlaybackSpeed", Key = "+", Label = "Increase Playback Speed", Category = "Player" },
+                new Shortcut { Name = "DecreasePlaybackSpeed", Key = "-", Label = "Decrease Playback Speed", Category = "Player" },
+                new Shortcut { Name = "ResetPlaybackSpeed", Key = "R", Label = "Reset Playback Speed", Category = "Player" },
+                new Shortcut { Name = "BookmarkCurrentTime", Key = "B", Label = "Bookmark Current Time", Category = "Player" },
+                new Shortcut { Name = "GoToSavedBookmark", Key = "Shift+B", Label = "Go to Saved Bookmark", Category = "Player" }
+            };
         }
 
         // Jellyfin Enhanced Settings
@@ -55,5 +82,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public bool RandomUnwatchedOnly { get; set; }
         public bool ShowFileSizes { get; set; }
         public bool RemoveContinueWatchingEnabled { get; set; }
+        public List<Shortcut> Shortcuts { get; set; }
     }
 }
