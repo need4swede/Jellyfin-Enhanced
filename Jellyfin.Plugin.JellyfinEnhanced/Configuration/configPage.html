@@ -245,8 +245,15 @@
                 input.value = shortcut.Key;
                 input.style.flex = '1';
                 input.addEventListener('input', (e) => {
-                    shortcutOverrides[index].Key = e.target.value;
+                    let value = e.target.value;
+                    // Automatically convert single lowercase letters to uppercase ***
+                    if (value.match(/^[a-z]$/)) {
+                        value = value.toUpperCase();
+                        e.target.value = value;
+                    }
+                    shortcutOverrides[index].Key = value;
                 });
+
 
                 const buttonContainer = document.createElement('div');
                 const removeBtn = document.createElement('button');
@@ -297,17 +304,34 @@
 
         addShortcutBtn.addEventListener('click', () => {
             const selectedName = addShortcutSelect.value;
-            const newKey = addShortcutKeyInput.value.trim();
+            let newKey = addShortcutKeyInput.value.trim();
 
+            // Automatically convert single lowercase letters to uppercase ***
+            if (newKey.match(/^[a-z]$/)) {
+                newKey = newKey.toUpperCase();
+            }
+
+            // Check 0: See if there is a key being added
             if (!selectedName || !newKey) {
-                showValidationError(addShortcutBtn, 'Please enter an override key.');
+                showValidationError(addShortcutBtn, 'Please enter a key to use as override.');
                 return;
             }
 
-            const isKeyInUse = shortcutOverrides.some(s => s.Key.toLowerCase() === newKey.toLowerCase());
+            // Check 1: See if the key is already used in another custom override.
+            const overrideConflict = shortcutOverrides.find(s => s.Key.toLowerCase() === newKey.toLowerCase());
 
-            if (isKeyInUse) {
-                showValidationError(addShortcutKeyInput.parentElement, 'The key is already assigned to another override.');
+            if (overrideConflict) {
+                const errorMessage = "The key '" + newKey + "' is already assigned to '" + overrideConflict.Label + "' as an override.";
+                showValidationError(addShortcutKeyInput.parentElement, errorMessage);
+                return;
+            }
+
+            // Check 2: See if the key is used by another default shortcut.
+            const defaultConflict = defaultShortcuts.find(s => s.Key.toLowerCase() === newKey.toLowerCase() && s.Name !== selectedName);
+
+            if (defaultConflict) {
+                const errorMessage = "The key '" + newKey + "' is already used by '" + defaultConflict.Label + "'.";
+                showValidationError(addShortcutKeyInput.parentElement, errorMessage);
                 return;
             }
 
