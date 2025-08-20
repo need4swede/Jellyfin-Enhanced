@@ -3,7 +3,6 @@
 
     // --- Configuration ---
     const CONFIG = { // all timeouts in milliseconds
-        UPDATE_CHECK_INTERVAL: 24 * 60 * 60 * 1000, // 24 hours
         CLEAR_BOOKMARKS_DELAY: 3000, // 3 seconds
         TOAST_DURATION: 1500, // milliseconds
         HELP_PANEL_AUTOCLOSE_DELAY: 15000, // 15 seconds
@@ -16,155 +15,32 @@
     let autoSkipInterval = null; // To hold the interval for auto-skipping
 
     // --- Script metadata ---
-    const SCRIPT_VERSION = '4.3';
+    const SCRIPT_VERSION = '4.4';
     const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
 
     /*
      * --------------------------------------------------------------------------------
-     * UPDATE SYSTEM
-     * - Checks GitHub for new script versions and displays a notification.
+     * SCRIPT MIGRATION & CLEANUP
+     * - Functions to handle the transition from older script versions.
      * --------------------------------------------------------------------------------
      */
-    let updateAvailable = false;
-    let latestVersion = null;
-    let latestReleaseData = null;
 
-    // Fetches the latest release information from the GitHub repository.
-    const checkForUpdates = async (showToast = false) => {
-        try {
-            const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
-            if (!response.ok) throw new Error('Failed to fetch release data');
-
-            const release = await response.json();
-            const latestVersionFromGitHub = release.tag_name.replace(/^v/, '');
-
-            latestVersion = latestVersionFromGitHub;
-            latestReleaseData = release;
-
-            const isNewer = compareVersions(latestVersionFromGitHub, SCRIPT_VERSION) > 0;
-            updateAvailable = isNewer;
-
-            if (isNewer) {
-                showUpdateNotification(release);
-            } else if (showToast) {
-                toast('✅ You have the latest and greatest!', 2000);
-            }
-            // Store the timestamp of the last check.
-            localStorage.setItem('jellyfinEnhancedLastUpdateCheck', Date.now().toString());
-        } catch (error) {
-            console.error('Update check failed:', error);
-            if (showToast) {
-                toast('❌ Update Check Failed!', 2000);
+    /**
+     * As the update checker was removed, this function cleans up the obsolete
+     * 'jellyfinEnhancedLastUpdateCheck' key from localStorage to keep things tidy.
+     * It checks if the item exists before attempting to remove it.
+     */
+    const clearLegacyUpdateTimestamp = () => {
+        const updateCheckKey = 'jellyfinEnhancedLastUpdateCheck';
+        if (localStorage.getItem(updateCheckKey)) {
+            try {
+                localStorage.removeItem(updateCheckKey);
+                console.log('🪼 Jellyfin Enhanced: Cleared obsolete update check timestamp from local storage.');
+            } catch (error) {
+                console.error('🪼 Jellyfin Enhanced: Failed to clear obsolete data.', error);
             }
         }
     };
-
-    // Compares two version strings (e.g., "1.2.3" vs "1.2.4").
-    const compareVersions = (a, b) => {
-        const parseVersion = (v) => v.split('.').map(n => parseInt(n, 10));
-        const [aMajor, aMinor, aPatch] = parseVersion(a);
-        const [bMajor, bMinor, bPatch] = parseVersion(b);
-
-        if (aMajor !== bMajor) return aMajor - bMajor;
-        if (aMinor !== bMinor) return aMinor - bMinor;
-        return aPatch - bPatch;
-    };
-
-    // Displays a dismissible notification panel when an update is available.
-    const showUpdateNotification = (release) => {
-        const notificationId = 'jellyfin-update-notification';
-        const existing = document.getElementById(notificationId);
-        if (existing) existing.remove();
-
-        const notification = document.createElement('div');
-        notification.id = notificationId;
-
-        const getJellyfinThemeVariable = (variableName, defaultValue) => {
-            const rootStyle = getComputedStyle(document.documentElement);
-            const value = rootStyle.getPropertyValue(variableName).trim();
-            return value || defaultValue;
-        };
-
-        const isJellyfishThemeActive = getJellyfinThemeVariable('--theme-updated-on', '') !== '' || getJellyfinThemeVariable('--theme-name', '').toLowerCase().includes('jellyfish');
-
-        let panelBg, panelBorder, panelBlur, textColor;
-
-        if (isJellyfishThemeActive) {
-            panelBg = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.95)');
-            panelBorder = `1px solid ${getJellyfinThemeVariable('--primary-accent-color', 'rgba(255,255,255,0.1)')}`;
-            textColor = getJellyfinThemeVariable('--text-color', '#fff');
-            panelBlur = getJellyfinThemeVariable('--blur', '20px');
-        } else {
-            // Fallback to original styles if theme is not active
-            panelBg = 'linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95))';
-            panelBorder = '1px solid rgba(255,255,255,0.1)';
-            textColor = '#fff';
-            panelBlur = '20px';
-        }
-
-        // Styles for the notification panel
-        Object.assign(notification.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            background: panelBg,
-            color: textColor,
-            padding: '20px',
-            borderRadius: '12px',
-            zIndex: 999999,
-            fontSize: '14px',
-            fontWeight: '500',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            backdropFilter: `blur(${panelBlur})`,
-            border: panelBorder,
-            maxWidth: '400px',
-            transform: 'translateX(100%)',
-            transition: 'transform 0.3s ease-out',
-            fontFamily: 'inherit'
-        });
-
-        const releaseNotes = release.body ?
-            (release.body.length > 500 ? release.body.substring(0, 200) + '...' : release.body) :
-            'No release notes available.';
-
-        // HTML content for the notification
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 40px; height: 40px; background: #4ade80; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;">🔄</div>
-                <div>
-                    <div style="font-weight: 600; font-size: 16px; color: #4ade80;">Update Available!</div>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.7);">v${SCRIPT_VERSION} → v${release.tag_name.replace(/^v/, '')}</div>
-                </div>
-            </div>
-            <div style="margin-bottom: 16px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4;">
-                <strong>What's New:</strong><br><br> ${releaseNotes}
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <a href="https://raw.githubusercontent.com/${GITHUB_REPO}/main/jf_enhanced.js" target="_blank" style="background: #1a5f1a; border: 1px solid #4ade80; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">📄 View Latest</a>
-                <a href="https://github.com/${GITHUB_REPO}/releases/latest" target="_blank" style="background: #3e74f2bd; border: 1px solid #779aeadc; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">📋 Release Notes</a>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: #f25151b5; border: 1px solid #f2515133; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-family: inherit; font-weight: 500; cursor: pointer;">✕ Later</button>
-            </div>
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.6);">
-                Please update through your userscript manager or installation method.
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-        setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 10);
-        setTimeout(() => {
-            if (document.getElementById(notificationId)) {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => { notification.remove(); }, 300);
-            }
-        }, CONFIG.HELP_PANEL_AUTOCLOSE_DELAY);
-    };
-
-    // Automatically check for updates on script load if it has been longer than the defined interval.
-    const lastCheck = localStorage.getItem('jellyfinEnhancedLastUpdateCheck');
-    if (!lastCheck || Date.now() - parseInt(lastCheck) > CONFIG.UPDATE_CHECK_INTERVAL) {
-        setTimeout(() => checkForUpdates(), 2000);
-    }
-
     // Injects custom CSS for animations and other minor style adjustments.
     const injectRandomButtonStyles = () => {
         const styleId = 'jellyfin-enhanced-styles';
@@ -678,6 +554,7 @@
 
     // Initializer function.
     const initializeScript = () => {
+        clearLegacyUpdateTimestamp(); // Run cleanup for obsolete data
         waitForApiClient();
     };
 
@@ -1005,7 +882,7 @@
 
         // this should definetely need improvement, 1. to identify Jellyfish Theme, 2. to use the variables in a more consistent way, but for now it works
         const isJellyfishThemeActive = getJellyfinThemeVariable('--theme-updated-on', '') !== '' || getJellyfinThemeVariable('--theme-name', '').toLowerCase().includes('jellyfish');
-        let panelBgColor, secondaryBg, headerFooterBg, primaryAccentColor, toggleAccentColor, kbdBackground, presetBoxBackground, detailsBackground, panelBlurValue, githubButtonBg, checkUpdatesBg, checkUpdatesBorder, checkUpdatesTextColor, logoUrl;
+        let panelBgColor, secondaryBg, headerFooterBg, primaryAccentColor, toggleAccentColor, kbdBackground, presetBoxBackground, detailsBackground, panelBlurValue, githubButtonBg, logoUrl;
         if (isJellyfishThemeActive) {
             panelBgColor = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.95)');
             secondaryBg = getJellyfinThemeVariable('--secondary-background-transparent', 'rgba(0,0,0,0.2)');
@@ -1017,9 +894,6 @@
             presetBoxBackground = getJellyfinThemeVariable('--alt-accent-color', '#ffffff20');
             panelBlurValue = getJellyfinThemeVariable('--blur', '20px');
             githubButtonBg = 'rgba(102, 179, 255, 0.1)';
-            checkUpdatesBg = primaryAccentColor;
-            checkUpdatesBorder = `1px solid ${primaryAccentColor}`;
-            checkUpdatesTextColor = getJellyfinThemeVariable('--text-color', '#000000');
             const rawLogoValue = getJellyfinThemeVariable('--logo', '');
             logoUrl = rawLogoValue.replace(/url\(['"]?(.*?)['"]?\)/i, '$1');
         } else {
@@ -1032,9 +906,6 @@
             presetBoxBackground = 'rgba(255,255,255,0.05)';
             panelBlurValue = '20px';
             githubButtonBg = 'rgba(102, 179, 255, 0.1)';
-            checkUpdatesBg = 'linear-gradient(135deg, #AA5CC3, #00A4DC)';
-            checkUpdatesBorder = `1px solid ${primaryAccentColor}`;
-            checkUpdatesTextColor = '#FFFFFF';
         }
 
         const help = document.createElement('div');
@@ -1145,6 +1016,9 @@
             <div style="padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg};">
                 <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: ${primaryAccentColor}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪼 Jellyfin Enhanced</div>
                 <div style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.8);">Version ${SCRIPT_VERSION}</div>
+                <div style="text-align: center; font-size: 14px; color: #ffcc00; margin-top: 8px; padding: 4px; background: rgba(255, 204, 0, 0.2); border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 4px;">
+                    ⚠️ Development of this as a script has stopped. Please use the <a href="https://github.com/n00bcodr/Jellyfin-Enhanced" target="_blank" style="color: #ffcc00; text-decoration: underline;">plugin</a> for future changes. ⚠️
+                </div>
             </div>
             <div class="tabs">
                 <button class="tab-button" data-tab="shortcuts">Shortcuts</button>
@@ -1259,7 +1133,6 @@
                 <div style="font-size:12px; color:rgba(255,255,255,0.5);">Press <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">?</kbd> or <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">Esc</kbd> to close</div>
                 ${logoUrl ? `<img src="${logoUrl}" alt="Theme Logo" style="height: 40px;">` : ''}
                 <div style="display:flex; gap:12px; align-items:center;">
-                    <button id="checkUpdatesBtn" style="font-family:inherit; background:${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : checkUpdatesBg}; color:${checkUpdatesTextColor}; border:${updateAvailable ? '1px solid #4ade80' : checkUpdatesBorder}; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px;" onmouseover="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #2d8f2d, #4ade80)' : primaryAccentColor}'" onmouseout="this.style.background='${updateAvailable ? 'linear-gradient(135deg, #1a5f1a, #2d8f2d)' : checkUpdatesBg}'">${updateAvailable ? '📦 Update Available' : '🔄️ Check Updates'}</button>
                     <a href="https://github.com/${GITHUB_REPO}/" target="_blank" style="color:${primaryAccentColor}; text-decoration:none; display:flex; align-items:center; gap:6px; font-size:12px; padding:4px 8px; border-radius:4px; background:${githubButtonBg}; transition:background 0.2s;" onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='${githubButtonBg}'"><svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor"><path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path></svg> Contribute</a>
                 </div>
             </div>
@@ -1347,7 +1220,6 @@
         randomUnwatchedOnly.addEventListener('change', (e) => { currentSettings.randomUnwatchedOnly = e.target.checked; saveSettings(currentSettings); toast(`🎲 Unwatched Only ${e.target.checked ? 'Enabled' : 'Disabled'}`); const unwatchedFilterButton = document.getElementById('unwatchedFilterButton'); if (unwatchedFilterButton) { unwatchedFilterButton.style.color = currentSettings.randomUnwatchedOnly ? 'var(--primary-accent-color, #00A4DC)' : 'inherit'; } resetAutoCloseTimer(); });
         randomIncludeMovies.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeShows.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeMovies = e.target.checked; saveSettings(currentSettings); toast(`🎬 Movies ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
         randomIncludeShows.addEventListener('change', (e) => { if (!e.target.checked && !randomIncludeMovies.checked) { e.target.checked = true; toast('⚠️ At least one item type must be selected'); return; } currentSettings.randomIncludeShows = e.target.checked; saveSettings(currentSettings); toast(`🍿 Shows ${e.target.checked ? 'included in' : 'excluded from'} random selection`); resetAutoCloseTimer(); });
-        document.getElementById('checkUpdatesBtn').addEventListener('click', () => { if (updateAvailable && latestReleaseData) { showUpdateNotification(latestReleaseData); } else { checkForUpdates(true); } resetAutoCloseTimer(); });
         showFileSizesToggle.addEventListener('change', (e) => {
             currentSettings.showFileSizes = e.target.checked;
             saveSettings(currentSettings);
