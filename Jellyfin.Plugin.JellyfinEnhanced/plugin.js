@@ -18,7 +18,6 @@
         RandomUnwatchedOnly: false,
         ShowFileSizes: false,
         RemoveContinueWatchingEnabled: false,
-
         // Jellyfin Elsewhere Settings (defaults)
         TMDB_API_KEY: '',
         DEFAULT_REGION: 'US', // Default region to show results for
@@ -128,12 +127,10 @@
                 panelBg = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.95)');
                 panelBorder = `1px solid ${getJellyfinThemeVariable('--primary-accent-color', 'rgba(255,255,255,0.1)')}`;
                 textColor = getJellyfinThemeVariable('--text-color', '#fff');
-                panelBlur = getJellyfinThemeVariable('--blur', '20px');
             } else {
                 panelBg = 'linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95))';
                 panelBorder = '1px solid rgba(255,255,255,0.1)';
                 textColor = '#fff';
-                panelBlur = '20px';
             }
 
             // Styles for the notification panel
@@ -149,7 +146,7 @@
                 fontSize: '14px',
                 fontWeight: '500',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                backdropFilter: `blur(${panelBlur})`,
+                backdropFilter: `blur(50px)`,
                 border: panelBorder,
                 maxWidth: '400px',
                 transform: 'translateX(100%)',
@@ -157,8 +154,18 @@
                 fontFamily: 'inherit'
             });
 
+            const markdownToHtml = (text) => {
+                if (!text) return '';
+                return text
+                    // Links: [text](url)
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--primary-accent-color, #00a4dc); text-decoration: none;">$1</a>')
+                    // Newlines
+                    .replace(/\n/g, '<br>');
+            };
+
+
             const releaseNotes = release.body ?
-                (release.body.length > 500 ? release.body.substring(0, 200) + '...' : release.body) :
+                (release.body.length > 1500 ? release.body.substring(0, 200) + '...' : release.body) :
                 'No release notes available.';
 
             // HTML content for the notification
@@ -171,7 +178,7 @@
                     </div>
                 </div>
                 <div style="margin-bottom: 17px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; max-height: 200px; overflow-y: auto;">
-                    ${releaseNotes.replace(/\n/g, '<br>')}
+                    ${markdownToHtml(releaseNotes)}
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <a href="${release.html_url}" target="_blank" style="background: #3e74f2bd; border: 1px solid #779aeadc; color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">View on GitHub</a>
@@ -226,6 +233,35 @@
                 }
                 .remove-continue-watching-button:disabled .material-icons {
                     transform: none !important;
+                }
+                .layout-mobile #jellyfin-enhanced-panel {
+                    width: 95vw;
+                    max-width: 95vw;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .shortcuts-container {
+                    flex-direction: column;
+                }
+                .layout-mobile #jellyfin-enhanced-panel #settings-content {
+                    width: auto !important;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .panel-main-content {
+                    padding: 0 15px;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .panel-footer {
+                    flex-direction: row;
+                    gap: 16px;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .close-helptext {
+                    display: none;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .footer-buttons {
+                    flex-direction: column;
+                    align-items: flex-end !important;
+                    width: 100%;
+                    gap: 10px;
+                }
+                .layout-mobile #jellyfin-enhanced-panel .footer-buttons > * {
+                    justify-content: center;
                 }
             `;
             document.head.appendChild(style);
@@ -1472,10 +1508,10 @@
                     <button class="tab-button" data-tab="shortcuts">Shortcuts</button>
                     <button class="tab-button" data-tab="settings">Settings</button>
                 </div>
-                <div style="padding: 0 20px; flex: 1; overflow-y: auto; position: relative; background: ${panelBgColor};">
+                <div class="panel-main-content" style="padding: 0 20px; flex: 1; overflow-y: auto; position: relative; background: ${panelBgColor};">
                      <div id="shortcuts-content" class="tab-content" style="padding-top: 20px; padding-bottom: 20px;">
                      <!-- Keyboard Shortcut Sections -->
-                        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
+                     <div class="shortcuts-container" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 24px;">
                             <div style="flex: 1; min-width: 400px;">
                                 <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Global</h3>
                                 <div style="display: grid; gap: 8px; font-size: 14px;">
@@ -1585,10 +1621,10 @@
                         </details>
                     </div>
                 </div>
-                <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg}; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size:12px; color:rgba(255,255,255,0.5);">Press <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">?</kbd> or <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">Esc</kbd> to close</div>
-                    ${logoUrl ? `<img src="${logoUrl}" alt="Theme Logo" style="height: 40px;">` : ''}
-                    <div style="display:flex; gap:12px; align-items:center;">
+                <div class="panel-footer" style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg}; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="close-helptext" style="font-size:12px; color:rgba(255,255,255,0.5);">Press <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">?</kbd> or <kbd style="background:${kbdBackground}; padding:2px 4px; border-radius:3px;">Esc</kbd> to close</div>
+                    ${logoUrl ? `<img src="${logoUrl}" class="footer-logo" alt="Theme Logo" style="height: 40px;">` : ''}
+                    <div class="footer-buttons" style="display:flex; gap:12px; align-items:center;">
                         <button id="releaseNotesBtn" style="font-family:inherit; background:${releaseNotesBg}; color:${releaseNotesTextColor}; border:${checkUpdatesBorder}; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px;" onmouseover="this.style.background='${primaryAccentColor}'" onmouseout="this.style.background='${releaseNotesBg}'">📋 Release Notes</button>
                         <a href="https://github.com/${GITHUB_REPO}/" target="_blank" style="color:${primaryAccentColor}; text-decoration:none; display:flex; align-items:center; gap:6px; font-size:12px; padding:4px 8px; border-radius:4px; background:${githubButtonBg}; transition:background 0.2s;" onmouseover="this.style.background='rgba(102, 179, 255, 0.2)'" onmouseout="this.style.background='${githubButtonBg}'"><svg height="12" viewBox="0 0 24 24" width="12" fill="currentColor"><path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path></svg> Contribute</a>
                     </div>
