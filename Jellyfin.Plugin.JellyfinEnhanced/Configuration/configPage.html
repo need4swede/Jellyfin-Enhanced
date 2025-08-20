@@ -81,8 +81,9 @@
                                 <b>Modifier Keys:</b> Use `Shift+`, `Ctrl+`, or `Alt+`. Examples: `Shift+A`, `Ctrl+S`.
                             </p>
                         </div>
-                        <p class="fieldDescription">Only custom shortcut overrides are displayed below. All other shortcuts will use default values.</p>
-                        <div id="shortcut-list-container" style="display: flex; flex-direction: column; gap: 0.75em; margin-top: 1em;">
+                        <h4 class="sectionTitle" style="margin-top: 0;">Configured Overrides</h4>
+                        <div id="shortcut-list-container" style="display: flex; flex-direction: column; margin-top: 1em;">
+                            <!-- Automatically generated list of overrides will appear here. -->
                             </div>
                     </fieldset>
                     <fieldset class="verticalSection-extrabottompadding">
@@ -244,6 +245,7 @@
                 input.type = 'text';
                 input.value = shortcut.Key;
                 input.style.flex = '1';
+                input.style.textAlign = 'center';
                 input.addEventListener('input', (e) => {
                     let value = e.target.value;
                     // Automatically convert single lowercase letters to uppercase ***
