@@ -26,8 +26,6 @@
                 <div id="enhanced" class="jellyfin-tab-content active" style="display: block; font-family: inherit;">
                     <fieldset class="verticalSection-extrabottompadding">
                         <legend class="sectionTitle"><h3>Default User Settings</h3></legend>
-                        <aside>ℹ️ Changes only take effect when all the existing settings are Reset.</aside>
-                        <br><br>
                         <div class="configSection">
                             <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
                                 <summary style="cursor: pointer; font-weight: bold;">⏯️ Playback Settings</summary>
@@ -59,6 +57,13 @@
                                     <div class="checkboxContainer"><label><input id="removeContinueWatchingEnabled" is="emby-checkbox" type="checkbox"/><span>Enable "Remove from Continue Watching"</span></label></div>
                                 </div>
                             </details>
+                            <div
+                                style="background-color: rgba(255, 255, 255, 0.05); border-left: 4px solid #00a4dc; border-radius: 4px; padding: .5em 1em; margin: 2em 0 .5em 0; display: flex; align-items: center; gap: 1em;">
+                                <i class="material-icons" style="color: #00a4dc; font-size: 18px;">info</i>
+                                <div>
+                                    Changes only take effect when all the existing settings are Reset.
+                                </div>
+                            </div>
                         </div>
                     </fieldset>
                     <fieldset class="verticalSection-extrabottompadding">
@@ -106,8 +111,6 @@
                             </div>
                         </div>
                     </fieldset>
-
-
                     <div class="verticalSection">
                         <button id="clearLocalStorageBtn" class="raised button-cancel block emby-button" is="emby-button" type="button">
                             <span>Reset Settings for all users</span>
@@ -144,6 +147,14 @@
                     </fieldset>
                 </div>
                 <br>
+                <div
+                    style="background-color: rgba(255, 255, 255, 0.05); border-left: 4px solid #00a4dc; border-radius: 4px; padding: 1em 1.5em; margin: 1.5em 0; display: flex; align-items: center; gap: 1em;">
+                    <i class="material-icons" style="color: #00a4dc; font-size: 24px;">info</i>
+                    <div>
+                        All changes require a page refresh to take effect. <br/>
+                        If old settings persist, please force clear browser cache.
+                    </div>
+                </div>
                 <div>
                     <button class="raised button-submit block emby-button" is="emby-button" type="submit">
                         <span>Save</span>
@@ -315,7 +326,7 @@
 
             // Check 0: See if there is a key being added
             if (!selectedName || !newKey) {
-                showValidationError(addShortcutBtn, 'Please enter a key to use as override.');
+                showValidationError(addShortcutBtn, 'Please enter a key to use as an override.');
                 return;
             }
 
