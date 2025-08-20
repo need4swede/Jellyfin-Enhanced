@@ -4,7 +4,7 @@
     <title>Jellyfin Enhanced</title>
 </head>
 <body>
-<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox" data-role="page" id="JellyfinEnhancedPage">
+<div class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox" data-role="page" id="JellyfinEnhancedPage" style="color: #eee;">
     <div data-role="content">
         <div class="content-primary">
             <div class="verticalSection">
@@ -17,61 +17,107 @@
                 </div>
             </div>
             <hr>
+
+            <div style="margin-bottom: 1em;">
+                <button class="jellyfin-tab-button active" data-tab="enhanced" style="background: none; border: none; color: var(--primary-accent-color, #fff); cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: var(--primary-accent-color, #fff);"><h3>Enhanced Settings</h3></button>
+                <button class="jellyfin-tab-button" data-tab="elsewhere" style="background: none; border: none; color: #ccc; cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid transparent;"><h3>Elsewhere Settings</h3></button>
+            </div>
             <form id="JellyfinEnhancedForm">
-                <!-- Jellyfin Enhanced Settings -->
-                <fieldset class="verticalSection-extrabottompadding">
-                <legend class="sectionTitle"><h3>Jellyfin Enhanced Settings</h3></legend>
-                <div class="configSection">
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="HelpPanelAutocloseDelay">Help Panel Autoclose Delay (in milliseconds)</label>
-                        <input id="HelpPanelAutocloseDelay" is="emby-input" name="HelpPanelAutocloseDelay" type="number"/>
-                        <div class="fieldDescription">How long the help panel stays open before auto-closing.</div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="ToastDuration">Toast Duration (in milliseconds)</label>
-                        <input id="ToastDuration" is="emby-input" name="ToastDuration" type="number"/>
-                        <div class="fieldDescription">How long toast notifications are displayed.</div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="ClearBookmarksDelay">Clear Bookmarks Delay (in milliseconds)</label>
-                        <input id="ClearBookmarksDelay" is="emby-input" name="ClearBookmarksDelay" type="number"/>
-                        <div class="fieldDescription">How long to hold Shift+B to clear all bookmarks.</div>
+                <div id="enhanced" class="jellyfin-tab-content active" style="display: block; font-family: inherit;">
+                    <fieldset class="verticalSection-extrabottompadding">
+                        <legend class="sectionTitle"><h3>Default User Settings</h3></legend>
+                        <aside>ℹ️ Changes only take effect when all the existing settings are Reset.</aside>
+                        <br><br>
+                        <div class="configSection">
+                            <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
+                                <summary style="cursor: pointer; font-weight: bold;">⏯️ Playback Settings</summary>
+                                <div style="padding-top: 1em;">
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoPauseEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-pause on tab switch</span></label></div>
+                                    <div class="checkboxContainer"><label><input id="autoResumeEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-resume on tab switch</span></label></div>
+                                </div>
+                            </details>
+                            <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
+                                <summary style="cursor: pointer; font-weight: bold;">↪️ Auto-Skip Settings</summary>
+                                <div style="padding-top: 1em;">
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoSkipIntro" is="emby-checkbox" type="checkbox"/><span>Auto-skip Intro</span></label></div>
+                                    <div class="checkboxContainer"><label><input id="autoSkipOutro" is="emby-checkbox" type="checkbox"/><span>Auto-skip Outro</span></label></div>
+                                </div>
+                            </details>
+                            <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
+                                <summary style="cursor: pointer; font-weight: bold;">🎲 Random Button Settings</summary>
+                                <div style="padding-top: 1em;">
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomButtonEnabled" is="emby-checkbox" type="checkbox"/><span>Enable Random Button</span></label></div>
+                                    <div class="checkboxContainer"><label><input id="randomUnwatchedOnly" is="emby-checkbox" type="checkbox"/><span>Show unwatched only in random selection</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomIncludeMovies" is="emby-checkbox" type="checkbox"/><span>Include movies in random selection</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomIncludeShows" is="emby-checkbox" type="checkbox"/><span>Include shows in random selection</span></label></div>
+                                </div>
+                            </details>
+                            <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
+                                <summary style="cursor: pointer; font-weight: bold;">🖥️ UI Settings</summary>
+                                <div style="padding-top: 1em;">
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="showFileSizes" is="emby-checkbox" type="checkbox"/><span>Show file sizes</span></label></div>
+                                    <div class="checkboxContainer"><label><input id="removeContinueWatchingEnabled" is="emby-checkbox" type="checkbox"/><span>Enable "Remove from Continue Watching"</span></label></div>
+                                </div>
+                            </details>
+                        </div>
+                    </fieldset>
+                    <fieldset class="verticalSection-extrabottompadding">
+                        <legend class="sectionTitle"><h3>Timeout Settings</h3></legend>
+                        <div class="configSection">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="HelpPanelAutocloseDelay">Help Panel Autoclose Delay (in milliseconds)</label>
+                                <input id="HelpPanelAutocloseDelay" is="emby-input" name="HelpPanelAutocloseDelay" type="number"/>
+                                <div class="fieldDescription">How long the help panel stays open before auto-closing.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="ToastDuration">Toast Duration (in milliseconds)</label>
+                                <input id="ToastDuration" is="emby-input" name="ToastDuration" type="number"/>
+                                <div class="fieldDescription">How long toast notifications are displayed.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="ClearBookmarksDelay">Clear Bookmarks Delay (in milliseconds)</label>
+                                <input id="ClearBookmarksDelay" is="emby-input" name="ClearBookmarksDelay" type="number"/>
+                                <div class="fieldDescription">How long to hold Shift+B to clear all bookmarks.</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+
+                    <div class="verticalSection">
+                        <button id="clearLocalStorageBtn" class="raised button-cancel block emby-button" is="emby-button" type="button">
+                            <span>Reset Settings for all users</span>
+                        </button>
                     </div>
                 </div>
-                <br>
-                <div>
-                    <button id="clearLocalStorageBtn" class="raised button-cancel block emby-button" is="emby-button" type="button">
-                        <span>Reset Jellyfin Enhanced Settings for all users</span>
-                    </button>
+
+                <div id="elsewhere" class="jellyfin-tab-content" style="display: none; font-family: inherit;">
+                    <fieldset class="verticalSection-extrabottompadding">
+                        <legend class="sectionTitle"><h3>Configuration</h3></legend>
+                        <div class="configSection">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="TMDB_API_KEY">TMDB API Key</label>
+                                <input id="TMDB_API_KEY" is="emby-input" name="TMDB_API_KEY" type="text"/>
+                                <div class="fieldDescription">Your API key from The Movie DB (TMDB). <a class="sectionTitle" target="_blank" href="https://www.themoviedb.org/settings/api">How to?</a></div>
+                                <div class="fieldDescription">Leaving this blank will not load Jellyfin Elsewhere</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="DEFAULT_REGION">Default Region</label>
+                                <input id="DEFAULT_REGION" is="emby-input" name="DEFAULT_REGION" type="text" placeholder="e.g., US"/>
+                                <div class="fieldDescription">The default two-letter country code for streaming provider lookup. Empty defaults to US. <a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/regions.txt">Full List</a></div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="DEFAULT_PROVIDERS">Default Providers</label>
+                                <textarea style="display:block; height: 10vh !important;" class="emby-textarea emby-input" id="DEFAULT_PROVIDERS" name="DEFAULT_PROVIDERS" placeholder="e.g., Netflix,Hulu"></textarea>
+                                <div class="fieldDescription">A list of default streaming providers to show. Leave blank to show all. <a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/providers.txt">Full List</a></div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="IGNORE_PROVIDERS">Ignore Providers</label>
+                                <textarea style="display:block; height: 10vh !important;" class="emby-textarea emby-input" id="IGNORE_PROVIDERS" name="IGNORE_PROVIDERS" placeholder="e.g., .*with Ads, Hulu"></textarea>
+                                <div class="fieldDescription">A list of providers to ignore from the default region (supports regex).<a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/providers.txt">Full List</a></div>
+                            </div>
+                        </div>
+                    </fieldset>
                 </div>
-            </fieldset>
-                <!-- Jellyfin Elsewhere Settings -->
-                <fieldset class="verticalSection-extrabottompadding">
-                <legend class="sectionTitle"><h3>Jellyfin Elsewhere Settings</h3></legend>
-                <div class="configSection">
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="TMDB_API_KEY">TMDB API Key</label>
-                        <input id="TMDB_API_KEY" is="emby-input" name="TMDB_API_KEY" type="text"/>
-                        <div class="fieldDescription">Your API key from The Movie DB (TMDB). <a class="sectionTitle" target="_blank" href="https://www.themoviedb.org/settings/api">How to?</a></div>
-                        <div class="fieldDescription">Leaving this blank will not load Jellyfin Elsewhere</div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="DEFAULT_REGION">Default Region</label>
-                        <input id="DEFAULT_REGION" is="emby-input" name="DEFAULT_REGION" type="text" placeholder="e.g., US"/>
-                        <div class="fieldDescription">The default two-letter country code for streaming provider lookup. Empty defaults to US. <a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/regions.txt">Full List</a></div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="DEFAULT_PROVIDERS">Default Providers</label>
-                        <textarea style="display:block; height: 10vh !important;" class="emby-textarea emby-input" id="DEFAULT_PROVIDERS" name="DEFAULT_PROVIDERS" placeholder="e.g., Netflix,Hulu"></textarea>
-                        <div class="fieldDescription">A list of default streaming providers to show. Leave blank to show all. <a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/providers.txt">Full List</a></div>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="IGNORE_PROVIDERS">Ignore Providers</label>
-                        <textarea style="display:block; height: 10vh !important;" class="emby-textarea emby-input" id="IGNORE_PROVIDERS" name="IGNORE_PROVIDERS" placeholder="e.g., .*with Ads, Hulu"></textarea>
-                        <div class="fieldDescription">A list of providers to ignore from the default region (supports regex).<a class="sectionTitle" target="_blank" href="https://raw.githubusercontent.com/n00bcodr/Jellyfin-Elsewhere/refs/heads/main/resources/providers.txt">Full List</a></div>
-                    </div>
-                </div>
-                </fieldset>
                 <br>
                 <div>
                     <button class="raised button-submit block emby-button" is="emby-button" type="submit">
@@ -89,6 +135,29 @@
             const form = document.querySelector('#JellyfinEnhancedForm');
             const clearLocalStorageBtn = document.querySelector('#clearLocalStorageBtn');
 
+            // Tab functionality
+            const tabs = document.querySelectorAll('.jellyfin-tab-button');
+            const tabContents = document.querySelectorAll('.jellyfin-tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.style.color = '#ccc';
+                        t.style.borderBottom = '2px solid transparent';
+                    });
+                    tab.classList.add('active');
+                    tab.style.color = 'var(--primary-accent-color, #fff)';
+                    tab.style.borderBottom = '2px solid var(--primary-accent-color, #fff)';
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    });
+                    const activeTab = document.getElementById(tab.dataset.tab)
+                    activeTab.classList.add('active');
+                    activeTab.style.display = 'block';
+                });
+            });
+
             function loadConfig() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then((config) => {
@@ -99,6 +168,17 @@
                     document.querySelector('#DEFAULT_REGION').value = config.DEFAULT_REGION;
                     document.querySelector('#DEFAULT_PROVIDERS').value = config.DEFAULT_PROVIDERS;
                     document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
+                    document.querySelector('#autoPauseEnabled').checked = config.AutoPauseEnabled;
+                    document.querySelector('#autoResumeEnabled').checked = config.AutoResumeEnabled;
+                    document.querySelector('#autoSkipIntro').checked = config.AutoSkipIntro;
+                    document.querySelector('#autoSkipOutro').checked = config.AutoSkipOutro;
+                    document.querySelector('#randomButtonEnabled').checked = config.RandomButtonEnabled;
+                    document.querySelector('#randomIncludeMovies').checked = config.RandomIncludeMovies;
+                    document.querySelector('#randomIncludeShows').checked = config.RandomIncludeShows;
+                    document.querySelector('#randomUnwatchedOnly').checked = config.RandomUnwatchedOnly;
+                    document.querySelector('#showFileSizes').checked = config.ShowFileSizes;
+                    document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
+
                     Dashboard.hideLoadingMsg();
                 });
             }
@@ -113,7 +193,17 @@
                     TMDB_API_KEY: document.querySelector('#TMDB_API_KEY').value,
                     DEFAULT_REGION: document.querySelector('#DEFAULT_REGION').value,
                     DEFAULT_PROVIDERS: document.querySelector('#DEFAULT_PROVIDERS').value,
-                    IGNORE_PROVIDERS: document.querySelector('#IGNORE_PROVIDERS').value
+                    IGNORE_PROVIDERS: document.querySelector('#IGNORE_PROVIDERS').value,
+                    AutoPauseEnabled: document.querySelector('#autoPauseEnabled').checked,
+                    AutoResumeEnabled: document.querySelector('#autoResumeEnabled').checked,
+                    AutoSkipIntro: document.querySelector('#autoSkipIntro').checked,
+                    AutoSkipOutro: document.querySelector('#autoSkipOutro').checked,
+                    RandomButtonEnabled: document.querySelector('#randomButtonEnabled').checked,
+                    RandomIncludeMovies: document.querySelector('#randomIncludeMovies').checked,
+                    RandomIncludeShows: document.querySelector('#randomIncludeShows').checked,
+                    RandomUnwatchedOnly: document.querySelector('#randomUnwatchedOnly').checked,
+                    ShowFileSizes: document.querySelector('#showFileSizes').checked,
+                    RemoveContinueWatchingEnabled: document.querySelector('#removeContinueWatchingEnabled').checked
                 };
 
                 ApiClient.updatePluginConfiguration(pluginId, config)

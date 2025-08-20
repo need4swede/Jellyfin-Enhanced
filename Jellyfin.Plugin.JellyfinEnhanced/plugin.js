@@ -8,6 +8,16 @@
         ToastDuration: 1500,
         HelpPanelAutocloseDelay: 15000,
         AutoskipInterval: 500,
+        AutoPauseEnabled: true,
+        AutoResumeEnabled: false,
+        AutoSkipIntro: false,
+        AutoSkipOutro: false,
+        RandomButtonEnabled: true,
+        RandomIncludeMovies: true,
+        RandomIncludeShows: true,
+        RandomUnwatchedOnly: false,
+        ShowFileSizes: false,
+        RemoveContinueWatchingEnabled: false,
 
         // Jellyfin Elsewhere Settings (defaults)
         TMDB_API_KEY: '',
@@ -396,19 +406,19 @@
                 const settings = JSON.parse(localStorage.getItem('jellyfinEnhancedSettings'));
                 // Return saved settings or a default configuration.
                 return settings || {
-                    autoPauseEnabled: true,
-                    autoResumeEnabled: false,
-                    autoSkipIntro: false,
-                    autoSkipOutro: false,
+                    autoPauseEnabled: pluginConfig.AutoPauseEnabled,
+                    autoResumeEnabled: pluginConfig.AutoResumeEnabled,
+                    autoSkipIntro: pluginConfig.AutoSkipIntro,
+                    autoSkipOutro: pluginConfig.AutoSkipOutro,
                     selectedStylePresetIndex: 0,
                     selectedFontSizePresetIndex: 2,
                     selectedFontFamilyPresetIndex: 0,
-                    randomButtonEnabled: true,
-                    randomIncludeMovies: true,
-                    randomIncludeShows: true,
-                    randomUnwatchedOnly: false,
-                    showFileSizes: false,
-                    removeContinueWatchingEnabled: false,
+                    randomButtonEnabled: pluginConfig.RandomButtonEnabled,
+                    randomIncludeMovies: pluginConfig.RandomIncludeMovies,
+                    randomIncludeShows: pluginConfig.RandomIncludeShows,
+                    randomUnwatchedOnly: pluginConfig.RandomUnwatchedOnly,
+                    showFileSizes: pluginConfig.ShowFileSizes,
+                    removeContinueWatchingEnabled: pluginConfig.RemoveContinueWatchingEnabled,
                     lastOpenedTab: 'shortcuts'
                 };
             } catch (e) {
@@ -1556,7 +1566,7 @@
                             </div>
                         </details>
                         <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
-                            <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">📄 UI Settings</summary>
+                            <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">🖥️ UI Settings</summary>
                             <div style="padding: 0 16px 16px 16px;">
                                 <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                     <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">

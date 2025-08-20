@@ -21,7 +21,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Services
         public string Name => "Jellyfin Enhanced Startup";
         public string Key => "JellyfinEnhancedStartup";
         public string Description => "Injects the Jellyfin Enhanced script using the File Transformation plugin and performs necessary cleanups.";
-        public string Category => "Jellyfin Enhanced";
+        public string Category => "Startup Services";
 
         public StartupService(ILogger<StartupService> logger, IApplicationPaths applicationPaths)
         {
