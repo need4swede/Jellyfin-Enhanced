@@ -33,6 +33,16 @@
         const configPromise = ApiClient.getPluginConfiguration('f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b').then(config => {
             if (config) {
                 pluginConfig = { ...pluginConfig, ...config };
+
+                if (pluginConfig.Shortcuts && Array.isArray(pluginConfig.Shortcuts)) {
+                    const shortcutMap = new Map();
+                    for (const shortcut of pluginConfig.Shortcuts) {
+                        if (shortcut.Name) {
+                            shortcutMap.set(shortcut.Name, shortcut);
+                        }
+                    }
+                    pluginConfig.Shortcuts = Array.from(shortcutMap.values());
+                }
                 console.log('🪼 Jellyfin Enhanced: Plugin configuration loaded', pluginConfig);
             }
         }).catch(err => {
