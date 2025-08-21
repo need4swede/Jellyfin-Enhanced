@@ -18,6 +18,8 @@
         RandomUnwatchedOnly: false,
         ShowFileSizes: false,
         RemoveContinueWatchingEnabled: false,
+        Shortcuts: [],
+
         // Jellyfin Elsewhere Settings (defaults)
         TMDB_API_KEY: '',
         DEFAULT_REGION: 'US', // Default region to show results for
@@ -32,6 +34,16 @@
         const configPromise = ApiClient.getPluginConfiguration('f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b').then(config => {
             if (config) {
                 pluginConfig = { ...pluginConfig, ...config };
+
+                if (pluginConfig.Shortcuts && Array.isArray(pluginConfig.Shortcuts)) {
+                    const shortcutMap = new Map();
+                    for (const shortcut of pluginConfig.Shortcuts) {
+                        if (shortcut.Name) {
+                            shortcutMap.set(shortcut.Name, shortcut);
+                        }
+                    }
+                    pluginConfig.Shortcuts = Array.from(shortcutMap.values());
+                }
                 console.log('🪼 Jellyfin Enhanced: Plugin configuration loaded', pluginConfig);
             }
         }).catch(err => {
@@ -1422,6 +1434,7 @@
                 flexDirection: 'column'
             });
 
+            const shortcuts = pluginConfig.Shortcuts.reduce((acc, s) => ({ ...acc, [s.Name]: s }), {});
             // --- Draggable Panel Logic ---------
             let isDragging = false;
             let offset = { x: 0, y: 0 };
@@ -1515,34 +1528,23 @@
                             <div style="flex: 1; min-width: 400px;">
                                 <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Global</h3>
                                 <div style="display: grid; gap: 8px; font-size: 14px;">
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">/</kbd></span><span>Open search</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">Shift + H</kbd></span><span>Go to home</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">D</kbd></span><span>Go to dashboard</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">Q</kbd></span><span>Quick Connect</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">R</kbd></span><span>Play Random Item</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span>Hold <kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">Shift + B</kbd></span><span>Clear all Bookmarks</span></div>
+                                    ${pluginConfig.Shortcuts.filter(s => s.Category === 'Global').map(s => `
+                                        <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">${s.Key}</kbd></span><span>${s.Label}</span></div>
+                                    `).join('')}
                                 </div>
                             </div>
                             <div style="flex: 1; min-width: 400px;">
                                 <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Player</h3>
                                 <div style="display: grid; gap: 8px; font-size: 14px;">
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">A</kbd></span><span>Cycle aspect ratio</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">I</kbd></span><span>Show playback info</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">S</kbd></span><span>Subtitle menu</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">C</kbd></span><span>Cycle subtitle tracks</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">V</kbd></span><span>Cycle audio tracks</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">+ / =</kbd></span><span>Increase playback speed</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">- / _</kbd></span><span>Decrease playback speed</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">R</kbd></span><span>Reset playback speed</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">B</kbd></span><span>Bookmark current time</span></div>
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">Shift + B</kbd></span><span>Go to Saved Bookmark</span></div>
+                                    ${pluginConfig.Shortcuts.filter(s => s.Category === 'Player').map(s => `
+                                        <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">${s.Key}</kbd></span><span>${s.Label}</span></div>
+                                    `).join('')}
                                     <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">0-9</kbd></span><span>Jump to % of video</span></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div id="settings-content" class="tab-content" style="padding-top: 20px; padding-bottom: 20px; width: 50vw;">
-                        <!-- Settings Sections -->
                         <details open style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
                             <summary style="padding: 16px; font-weight: 600; color: ${primaryAccentColor}; cursor: pointer; user-select: none; font-family: inherit;">⏯️ Playback Settings</summary>
                             <div style="padding: 0 16px 16px 16px;">
@@ -1835,24 +1837,36 @@
             // Ignore shortcuts if typing in an input field.
             if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
-            const key = e.key.toLowerCase();
+            const key = e.key;
+            // Construct the key combination string (e.g., "Shift+B", "A")
+            const combo = (e.shiftKey ? 'Shift+' : '') +
+                        (e.ctrlKey ? 'Ctrl+' : '') +
+                        (e.altKey ? 'Alt+' : '') +
+                        (key.match(/^[a-zA-Z]$/) ? key.toUpperCase() : key);
+
+            // Create a simple object mapping shortcut names to their keys for easy lookup
+            const shortcuts = pluginConfig.Shortcuts.reduce((acc, s) => {
+                acc[s.Name] = s.Key;
+                return acc;
+            }, {});
+
             const video = getVideo();
 
             // --- Global Shortcuts ---
-            if (key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            if (combo === shortcuts.OpenSearch) {
                 e.preventDefault();
                 document.querySelector('button.headerSearchButton')?.click();
                 setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
                 toast('🔍 Search');
-            } else if (e.shiftKey && key === 'h') {
+            } else if (combo === shortcuts.GoToHome) {
                 e.preventDefault();
                 location.href = '/web/#/home.html';
                 toast('🏠 Home');
-            } else if (key === 'd' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            } else if (combo === shortcuts.GoToDashboard) {
                 e.preventDefault();
                 location.href = '/web/#/dashboard';
                 toast('📊 Dashboard');
-            } else if (key === 'q' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            } else if (combo === shortcuts.QuickConnect) {
                 e.preventDefault();
                 location.href = '/web/#/quickconnect';
                 toast('🔗 Quick Connect');
@@ -1860,7 +1874,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 showEnhancedPanel();
-            } else if (key === 'r' && !e.ctrlKey && !e.altKey && !e.metaKey && !isVideoPage()) {
+            } else if (combo === shortcuts.PlayRandomItem && !isVideoPage()) {
                 e.preventDefault();
                 document.getElementById('randomItemButton')?.click();
             }
@@ -1868,15 +1882,16 @@
             // --- Player-Only Shortcuts ---
             if (!isVideoPage()) return;
 
-            // Prevent default browser actions for player shortcuts.
-            const playerShortcuts = ['a', 'i', 's', 'c', 'v', 'r', 'b', '+', '=', '-', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-            if (playerShortcuts.includes(key) || e.key === 'B') {
+            // A simple way to check if the pressed key is a configured player shortcut
+            const isPlayerShortcut = pluginConfig.Shortcuts.some(s => s.Category === 'Player' && s.Key === combo);
+
+            if (isPlayerShortcut) {
                 e.preventDefault();
                 e.stopPropagation();
             }
 
-            switch (e.key) { // Use e.key to differentiate between 'b' and 'B'
-                case 'b': {// Set bookmark
+            switch (combo) {
+                case shortcuts.BookmarkCurrentTime: {
                     if (!video) return;
                     const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
                     const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
@@ -1888,8 +1903,7 @@
                     toast(`📍 Bookmarked at ${h_set > 0 ? `${h_set}:` : ''}${m_set.toString().padStart(h_set > 0 ? 2 : 1, '0')}:${s_set.toString().padStart(2, '0')}`);
                     break;
                 }
-                // Go to bookmark
-                case 'B': {
+                case shortcuts.GoToSavedBookmark: {
                     if (!video) return;
                     const videoId_get = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
                     const bookmarks_get = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
@@ -1905,16 +1919,19 @@
                     }
                     break;
                 }
-                case 'a': case 'A': openSettings(cycleAspect); break;
-                case 'i': case 'I': openSettings(() => document.querySelector('.actionSheetContent button[data-id="stats"]')?.click()); break;
-                case 's': case 'S': document.querySelector('button.btnSubtitles')?.click(); break;
-                case 'c': case 'C': cycleSubtitleTrack(); break;
-                case 'v': case 'V': cycleAudioTrack(); break;
-                case 'r': case 'R': resetPlaybackSpeed(); break;
-                case '+': case '=': adjustPlaybackSpeed('increase'); break;
-                case '-': case '_': adjustPlaybackSpeed('decrease'); break;
-                case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-                    jumpToPercentage(parseInt(e.key) * 10); break;
+                case shortcuts.CycleAspectRatio: openSettings(cycleAspect); break;
+                case shortcuts.ShowPlaybackInfo: openSettings(() => document.querySelector('.actionSheetContent button[data-id="stats"]')?.click()); break;
+                case shortcuts.SubtitleMenu: document.querySelector('button.btnSubtitles')?.click(); break;
+                case shortcuts.CycleSubtitleTracks: cycleSubtitleTrack(); break;
+                case shortcuts.CycleAudioTracks: cycleAudioTrack(); break;
+                case shortcuts.ResetPlaybackSpeed: resetPlaybackSpeed(); break;
+                case shortcuts.IncreasePlaybackSpeed: adjustPlaybackSpeed('increase'); break;
+                case shortcuts.DecreasePlaybackSpeed: adjustPlaybackSpeed('decrease'); break;
+            }
+
+            // Handle number keys for jumping
+            if (key.match(/^[0-9]$/)) {
+                jumpToPercentage(parseInt(key) * 10);
             }
         };
 
