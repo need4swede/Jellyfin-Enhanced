@@ -2455,7 +2455,37 @@
                     }
                 })
                 .then(data => callback(null, data))
-                .catch(error => callback(error.message || 'Network error'));
+                .catch(error => {
+                    let errorMessage;
+                    const errorMessageText = error.message || '';
+
+                    // Check 1: Network error (browser couldn't connect)
+                    if (error instanceof TypeError && errorMessageText === 'Failed to fetch') {
+                        errorMessage = 'TMDB API is unreachable.';
+
+                    // Check 2: Invalid API Key error
+                    } else if (errorMessageText.includes('401')) {
+                        errorMessage = 'Invalid TMDB API Key.';
+
+                    // Check 3: Item not found
+                    } else if (errorMessageText.includes('404')) {
+                        errorMessage = 'The requested item could not be found on TMDB.';
+
+                    // Check 4: Rate limit error
+                    } else if (errorMessageText.includes('429')) {
+                        errorMessage = 'Too many requests. Please wait a moment and try again.';
+
+                    // Check 5: TMDB server-side issues (e.g., 500, 502, 503, 504)
+                    } else if (errorMessageText.startsWith('API Error: 5')) {
+                        errorMessage = 'The TMDB service is temporarily unavailable. Please try again later.';
+
+                    // Fallback: All other errors
+                    } else {
+                        errorMessage = errorMessageText || 'An unknown error occurred';
+                    }
+
+                    callback(errorMessage);
+                });
         }
 
         // Process streaming data for default region (auto-load)
