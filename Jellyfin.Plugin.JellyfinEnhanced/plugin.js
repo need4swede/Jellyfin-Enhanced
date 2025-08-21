@@ -466,6 +466,7 @@
                     randomIncludeShows: pluginConfig.RandomIncludeShows,
                     randomUnwatchedOnly: pluginConfig.RandomUnwatchedOnly,
                     showFileSizes: pluginConfig.ShowFileSizes,
+                    showAudioLanguages: pluginConfig.ShowAudioLanguages,
                     removeContinueWatchingEnabled: pluginConfig.RemoveContinueWatchingEnabled,
                     lastOpenedTab: 'shortcuts'
                 };
@@ -1054,6 +1055,89 @@
                 }
             }
         };
+        /*
+        * --------------------------------------------------------------------------------
+        * AUDIO LANGUAGE DISPLAY
+        * - Shows the audio languages of an item on its details page.
+        * --------------------------------------------------------------------------------
+        */
+        const languageToCountryMap={English:"us",eng:"us",Japanese:"jp",jpn:"jp",Spanish:"es",spa:"es",French:"fr",fre:"fr",fra:"fr",German:"de",ger:"de",deu:"de",Italian:"it",ita:"it",Korean:"kr",kor:"kr",Chinese:"cn",chi:"cn",zho:"cn",Russian:"ru",rus:"ru",Portuguese:"pt",por:"pt",Hindi:"in",hin:"in",Dutch:"nl",dut:"nl",nld:"nl",Arabic:"sa",ara:"sa",Bengali:"bd",ben:"bd",Czech:"cz",ces:"cz",Danish:"dk",dan:"dk",Greek:"gr",ell:"gr",Finnish:"fi",fin:"fi",Hebrew:"il",heb:"il",Hungarian:"hu",hun:"hu",Indonesian:"id",ind:"id",Norwegian:"no",nor:"no",Polish:"pl",pol:"pl",Persian:"ir",per:"ir",fas:"ir",Romanian:"ro",ron:"ro",rum:"ro",Swedish:"se",swe:"se",Thai:"th",tha:"th",Turkish:"tr",tur:"tr",Ukrainian:"ua",ukr:"ua",Vietnamese:"vn",vie:"vn",Malay:"my",msa:"my",may:"my",Swahili:"ke",swa:"ke",Tagalog:"ph",tgl:"ph",Filipino:"ph",Tamil:"in",tam:"in",Telugu:"in",tel:"in",Marathi:"in",mar:"in",Punjabi:"in",pan:"in",Urdu:"pk",urd:"pk",Gujarati:"in",guj:"in",Kannada:"in",kan:"in",Malayalam:"in",mal:"in",Sinhala:"lk",sin:"lk",Nepali:"np",nep:"np",Pashto:"af",pus:"af",Kurdish:"iq",kur:"iq",Slovak:"sk",slk:"sk",Slovenian:"si",slv:"si",Serbian:"rs",srp:"rs",Croatian:"hr",hrv:"hr",Bulgarian:"bg",bul:"bg",Macedonian:"mk",mkd:"mk",Albanian:"al",sqi:"al",Estonian:"ee",est:"ee",Latvian:"lv",lav:"lv",Lithuanian:"lt",lit:"lt",Icelandic:"is",ice:"is",isl:"is",Georgian:"ge",kat:"ge",Armenian:"am",hye:"am",Mongolian:"mn",mon:"mn",Kazakh:"kz",kaz:"kz",Uzbek:"uz",uzb:"uz",Azerbaijani:"az",aze:"az",Belarusian:"by",bel:"by",Amharic:"et",amh:"et",Zulu:"za",zul:"za",Afrikaans:"za",afr:"za",Hausa:"ng",hau:"ng",Yoruba:"ng",yor:"ng",Igbo:"ng",ibo:"ng"};
+
+        const displayAudioLanguages = async (itemId) => {
+            const targetSelector = '.itemMiscInfo.itemMiscInfo-primary';
+            const elementClassName = 'mediaInfoItem-audioLanguage';
+            const container = document.querySelector(targetSelector);
+
+            if (!container || container.querySelector(`.${elementClassName}`) || container.classList.contains('language-processing')) {
+                return;
+            }
+            container.classList.add('language-processing');
+
+            try {
+                const item = await ApiClient.getItem(ApiClient.getCurrentUserId(), itemId);
+                const languages = new Set();
+                if (item && item.MediaSources) {
+                    item.MediaSources.forEach(source => {
+                        if (source.MediaStreams) {
+                            source.MediaStreams.filter(stream => stream.Type === 'Audio').forEach(stream => {
+                                const langCode = stream.Language;
+                                if (langCode && langCode.toLowerCase() !== 'und' && langCode.toLowerCase() !== 'root') {
+                                    try {
+                                        const langName = new Intl.DisplayNames(['en'], { type: 'language' }).of(langCode);
+                                        languages.add(JSON.stringify({ name: langName, code: langCode }));
+                                    } catch (e) {
+                                        languages.add(JSON.stringify({ name: langCode.toUpperCase(), code: langCode }));
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+
+                const uniqueLanguages = Array.from(languages).map(JSON.parse);
+
+                if (uniqueLanguages.length > 0) {
+                    const langElement = document.createElement('div');
+                    langElement.className = `mediaInfoItem ${elementClassName}`;
+                    langElement.title = "Audio Language(s)";
+                    langElement.style.display = 'flex';
+                    langElement.style.alignItems = 'center';
+
+                    const icon = document.createElement('span');
+                    icon.className = 'material-icons';
+                    icon.textContent = 'translate';
+                    icon.style.fontSize = 'inherit';
+                    icon.style.marginRight = '0.3em';
+                    langElement.appendChild(icon);
+
+                    uniqueLanguages.forEach((lang, index) => {
+                        const countryCode = languageToCountryMap[lang.name] || languageToCountryMap[lang.code];
+                        if (countryCode) {
+                            const flagImg = document.createElement('img');
+                            flagImg.src = `https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`;
+                            flagImg.alt = `${lang.name} flag`;
+                            flagImg.style.width = '18px';
+                            flagImg.style.marginRight = '0.3em';
+                            flagImg.style.borderRadius = '2px';
+                            langElement.appendChild(flagImg);
+                        }
+                        langElement.appendChild(document.createTextNode(lang.name));
+                        if (index < uniqueLanguages.length - 1) {
+                            const separator = document.createElement('span');
+                            separator.style.margin = '0 0.25em';
+                            separator.textContent = ', ';
+                            langElement.appendChild(separator);
+                        }
+                    });
+                    container.appendChild(langElement);
+                }
+            } catch (error) {
+                console.error(`🪼 Jellyfin Enhanced: Error fetching audio languages for ${itemId}:`, error);
+            } finally {
+                if (container) container.classList.remove('language-processing');
+            }
+        };
+
 
         /*
         * --------------------------------------------------------------------------------
@@ -1085,6 +1169,17 @@
             }
         };
 
+        const runLanguageCheck = () => {
+            if (currentSettings.showAudioLanguages && isDetailsPage()) {
+                try {
+                    const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+                    const itemId = urlParams.get('id');
+                    if (itemId) {
+                        displayAudioLanguages(itemId);
+                    }
+                } catch (e) { /* ignore */ }
+            }
+        };
 
         // Adds a button to the mobile video player OSD to open the settings panel.
         const addOsdSettingsButton = () => {
@@ -1612,6 +1707,12 @@
                                         <div><div style="font-weight:500;">Show File Sizes</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Display total file size on item detail pages.</div></div>
                                     </label>
                                 </div>
+                                <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                        <input type="checkbox" id="showAudioLanguagesToggle" ${currentSettings.showAudioLanguages ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                        <div><div style="font-weight:500;">Show Audio Languages</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Display available audio languages on detail pages.</div></div>
+                                    </label>
+                                </div>
                                 <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                     <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                         <input type="checkbox" id="removeContinueWatchingToggle" ${currentSettings.removeContinueWatchingEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
@@ -1706,6 +1807,7 @@
             const randomIncludeMovies = document.getElementById('randomIncludeMovies');
             const randomIncludeShows = document.getElementById('randomIncludeShows');
             const showFileSizesToggle = document.getElementById('showFileSizesToggle');
+            const showAudioLanguagesToggle = document.getElementById('showAudioLanguagesToggle');
             const removeContinueWatchingToggle = document.getElementById('removeContinueWatchingToggle');
 
             autoPauseToggle.addEventListener('change', (e) => { currentSettings.autoPauseEnabled = e.target.checked; saveSettings(currentSettings); toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
@@ -1726,6 +1828,17 @@
                 toast(`📄 File Size Display ${e.target.checked ? 'Enabled' : 'Disabled'}`);
                 if (!e.target.checked) {
                     document.querySelectorAll('.mediaInfoItem-fileSize').forEach(el => el.remove());
+                }
+                resetAutoCloseTimer();
+            });
+            showAudioLanguagesToggle.addEventListener('change', (e) => {
+                currentSettings.showAudioLanguages = e.target.checked;
+                saveSettings(currentSettings);
+                toast(`🗣️ Audio Language Display ${e.target.checked ? 'Enabled' : 'Disabled'}`);
+                if (!e.target.checked) {
+                    document.querySelectorAll('.mediaInfoItem-audioLanguage').forEach(el => el.remove());
+                } else {
+                    runLanguageCheck();
                 }
                 resetAutoCloseTimer();
             });
@@ -1959,10 +2072,12 @@
         const observer = new MutationObserver(() => {
             addRandomButton();
             runFileSizeCheck();
+            runLanguageCheck();
         });
         observer.observe(document.body, { childList: true, subtree: true });
         addRandomButton();
         runFileSizeCheck();
+        runLanguageCheck();
         document.addEventListener('keydown', keyListener);
 
         /* --- Auto-Pause/Resume on Tab Visibility Change --- */

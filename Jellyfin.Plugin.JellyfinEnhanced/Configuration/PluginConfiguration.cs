@@ -37,7 +37,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             RandomUnwatchedOnly = false;
             ShowFileSizes = false;
             RemoveContinueWatchingEnabled = false;
-
+            ShowAudioLanguages = true;
             Shortcuts = new List<Shortcut>
             {
                 new Shortcut { Name = "OpenSearch", Key = "/", Label = "Open Search", Category = "Global" },
@@ -82,6 +82,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public bool RandomUnwatchedOnly { get; set; }
         public bool ShowFileSizes { get; set; }
         public bool RemoveContinueWatchingEnabled { get; set; }
+        public bool ShowAudioLanguages { get; set; }
         public List<Shortcut> Shortcuts { get; set; }
     }
 }

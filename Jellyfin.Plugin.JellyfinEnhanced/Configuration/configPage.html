@@ -54,6 +54,7 @@
                                 <summary style="cursor: pointer; font-weight: bold;">🖥️ UI Settings</summary>
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="showFileSizes" is="emby-checkbox" type="checkbox"/><span>Show file sizes</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="showAudioLanguages" is="emby-checkbox" type="checkbox"/><span>Show available audio languages on item detail page</span></label></div>
                                     <div class="checkboxContainer"><label><input id="removeContinueWatchingEnabled" is="emby-checkbox" type="checkbox"/><span>Enable "Remove from Continue Watching"</span></label></div>
                                 </div>
                             </details>
@@ -146,7 +147,6 @@
                         </div>
                     </fieldset>
                 </div>
-                <br>
                 <div
                     style="background-color: rgba(255, 255, 255, 0.05); border-left: 4px solid #00a4dc; border-radius: 4px; padding: 1em 1.5em; margin: 1.5em 0; display: flex; align-items: center; gap: 1em;">
                     <i class="material-icons" style="color: #00a4dc; font-size: 24px;">info</i>
@@ -386,6 +386,7 @@
                 document.querySelector('#randomIncludeShows').checked = config.RandomIncludeShows;
                 document.querySelector('#randomUnwatchedOnly').checked = config.RandomUnwatchedOnly;
                 document.querySelector('#showFileSizes').checked = config.ShowFileSizes;
+                document.querySelector('#showAudioLanguages').checked = config.ShowAudioLanguages;
                 document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
 
                 Dashboard.hideLoadingMsg();
@@ -423,6 +424,7 @@
                 config.RandomIncludeShows = document.querySelector('#randomIncludeShows').checked;
                 config.RandomUnwatchedOnly = document.querySelector('#randomUnwatchedOnly').checked;
                 config.ShowFileSizes = document.querySelector('#showFileSizes').checked;
+                config.ShowAudioLanguages = document.querySelector('#showAudioLanguages').checked;
                 config.RemoveContinueWatchingEnabled = document.querySelector('#removeContinueWatchingEnabled').checked;
 
                 ApiClient.updatePluginConfiguration(pluginId, config)
