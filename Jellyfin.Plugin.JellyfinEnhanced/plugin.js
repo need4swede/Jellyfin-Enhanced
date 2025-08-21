@@ -379,15 +379,13 @@
             };
 
             const isJellyfishThemeActive = getJellyfinThemeVariable('--theme-updated-on', '') !== '' || getJellyfinThemeVariable('--theme-name', '').toLowerCase().includes('jellyfish');
-            let toastBg, toastBlur, toastBorder;
+            let toastBg, toastBorder;
 
             if (isJellyfishThemeActive) {
-                toastBg = getJellyfinThemeVariable('--primary-background-transparent', 'rgba(0,0,0,0.6)');
-                toastBlur = getJellyfinThemeVariable('--blur', '15px');
+                toastBg = getJellyfinThemeVariable('--secondary-background-transparent', 'rgba(0,0,0,0.6)');
                 toastBorder = `1px solid ${getJellyfinThemeVariable('--primary-accent-color', 'rgba(255,255,255,0.1)')}`;
             } else {
                 toastBg = 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(40,40,40,0.9))';
-                toastBlur = '15px';
                 toastBorder = '1px solid rgba(255,255,255,0.1)';
             }
 
@@ -404,9 +402,10 @@
                 borderRadius: '8px',
                 zIndex: 99999,
                 fontSize: 'clamp(13px, 2vw, 16px)',
+                textShadow: '-1px -1px 5px black',
                 fontWeight: '500',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                backdropFilter: `blur(${toastBlur})`,
+                backdropFilter: `blur(30px)`,
                 border: toastBorder,
                 transition: 'transform 0.3s ease-out',
                 maxWidth: 'clamp(280px, 80vw, 350px)'
