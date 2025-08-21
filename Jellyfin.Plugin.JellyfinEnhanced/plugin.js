@@ -19,6 +19,7 @@
         ShowFileSizes: false,
         RemoveContinueWatchingEnabled: false,
         Shortcuts: [],
+
         // Jellyfin Elsewhere Settings (defaults)
         TMDB_API_KEY: '',
         DEFAULT_REGION: 'US', // Default region to show results for

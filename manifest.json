@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "checksum": "df7e6772672424f4452ec69ae8ebacd9",
+                "changelog": "- Move all the default settings configuration to the config page to give control to the server owner to enable options by default\n - Tabbed interface in config page separating Enhanced settings and Elsewhere settings\n - Minor: Move the startup task to 'Startup Services' instead of creating a separate category\n - Minor: Mobile UI improvements",
+                "targetAbi": "10.9.4.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/5.2.0.0/Jellyfin.Plugin.JellyfinEnhanced_5.2.0.0.zip",
+                "timestamp": "2025-08-20T06:12:00Z",
+                "version": "5.2.0.0"
+            },
+            {
                 "checksum": "deb52b57618432d7380b22f184499773",
                 "changelog": "Use [file-transformation-plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) to 'inject' javascript without modifying index.html\n -This is to help with all the permission issues for docker installs.\n - Fallback if file-transformation-plugin is not installed to the regulat index.html modification\n - Add an option to reset Jellyfin Enhanced settings to default for all users",
                 "targetAbi": "10.9.4.0",
