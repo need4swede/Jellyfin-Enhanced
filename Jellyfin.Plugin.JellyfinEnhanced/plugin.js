@@ -2213,6 +2213,8 @@
             const container = document.createElement('div');
             container.style.cssText = 'position: relative; margin-bottom: 6px;';
 
+            let debounceTimer;
+
             const input = document.createElement('input');
             input.type = 'text';
             input.placeholder = placeholder;
@@ -2348,16 +2350,18 @@
             }
 
             input.oninput = () => {
-                const value = input.value.toLowerCase();
-                if (value.length === 0) {
-                    dropdown.style.display = 'none';
-                    return;
-                }
-
-                const filtered = options.filter(option =>
-                    option.toLowerCase().includes(value) && !selectedValues.includes(option)
-                );
-                showDropdown(filtered);
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const value = input.value.toLowerCase();
+                    if (value.length === 0) {
+                        dropdown.style.display = 'none';
+                        return;
+                    }
+                    const filtered = options.filter(option =>
+                        option.toLowerCase().includes(value) && !selectedValues.includes(option)
+                    );
+                    showDropdown(filtered);
+                }, 300);
             };
 
             input.onkeydown = (e) => {
