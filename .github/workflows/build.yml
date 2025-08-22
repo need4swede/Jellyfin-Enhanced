@@ -1,11 +1,13 @@
 name: Build Userscript
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**/README.md'
+    paths:
+      - 'jf_enhanced.js'
+
 
 jobs:
   build:
