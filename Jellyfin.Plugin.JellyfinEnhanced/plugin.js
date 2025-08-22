@@ -293,6 +293,7 @@
                         const sidebar = document.querySelector('.mainDrawer-scrollContainer');
                         if (sidebar && !sidebar.querySelector('#jellyfinEnhancedMenuButton')) {
                             addMenuButton(sidebar);
+                            obs.disconnect();
                         }
                     }
                 }
@@ -1903,7 +1904,45 @@
             setupPresetHandlers('font-size-presets-container', fontSizePresets, 'font-size');
             setupPresetHandlers('font-family-presets-container', fontFamilyPresets, 'font-family');
         };
+        const onUserButtonLongPress = () => {
+            const userButton = document.querySelector('.headerUserButton');
 
+            if (!userButton || userButton.dataset.longPressEnhanced) {
+                return;
+            }
+
+            let pressTimer = null;
+
+            const startPress = (e) => {
+                if (e.button && e.button !== 0) return; // Ignore non-left clicks
+                pressTimer = setTimeout(() => {
+                    showEnhancedPanel();
+                    pressTimer = null; // Prevent click event after long press
+                }, 750);
+            };
+
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+            };
+
+            const handleClick = (e) => {
+                if (!pressTimer) { // If timer is null, it means long press was triggered
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            };
+
+            userButton.addEventListener('mousedown', startPress);
+            userButton.addEventListener('mouseup', cancelPress);
+            userButton.addEventListener('mouseleave', cancelPress);
+            userButton.addEventListener('touchstart', startPress, { passive: true });
+            userButton.addEventListener('touchend', cancelPress);
+            userButton.addEventListener('touchcancel', cancelPress);
+            userButton.addEventListener('click', handleClick, { capture: true });
+
+            userButton.dataset.longPressEnhanced = 'true';
+            console.log('🪼 Jellyfin Enhanced: Long press event added to user button.');
+        };
         /*
          * --------------------------------------------------------------------------------
         * KEYBOARD SHORTCUT SYSTEM
@@ -2052,6 +2091,7 @@
         }
         injectRandomButtonStyles();
         addPluginMenuButton();
+        onUserButtonLongPress();
 
         // Initialize remove continue watching functionality
         addContextMenuListener();
