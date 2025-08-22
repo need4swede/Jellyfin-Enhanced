@@ -775,11 +775,12 @@
         ];
 
         const fontSizePresets = [
-            { name: "Tiny", size: 0.6, previewText: "Aa" },
-            { name: "Small", size: 0.8, previewText: "Aa" },
-            { name: "Normal", size: 1.0, previewText: "Aa" },
-            { name: "Large", size: 1.3, previewText: "Aa" },
-            { name: "Extra Large", size: 1.6, previewText: "Aa" }
+            { name: "Tiny", size: 0.8, previewText: "Aa" },
+            { name: "Small", size: 1, previewText: "Aa" },
+            { name: "Normal", size: 1.2, previewText: "Aa" },
+            { name: "Large", size: 1.8, previewText: "Aa" },
+            { name: "Extra Large", size: 2, previewText: "Aa" },
+            { name: "Gigantic", size: 3, previewText: "Aa" }
         ];
 
         const fontFamilyPresets = [
@@ -792,37 +793,25 @@
 
         // Applies the selected subtitle styles by modifying or creating a style element.
         const applySubtitleStyles = (textColor, bgColor, fontSize, fontFamily) => {
-            let styleElement = document.getElementById('htmlvideoplayer-cuestyle');
-            let isFallback = false;
+            const styleElement = document.getElementById('htmlvideoplayer-cuestyle');
 
-            if (!styleElement) {
-                styleElement = document.getElementById('jellyfin-enhanced-subtitle-styles');
-                if (!styleElement) {
-                    styleElement = document.createElement('style');
-                    styleElement.id = 'jellyfin-enhanced-subtitle-styles';
-                    document.head.appendChild(styleElement);
-                }
-                isFallback = true;
-            }
+            if (!styleElement) { return; } // Exit if not found
 
             const sheet = styleElement.sheet;
-            if (!sheet) return;
-
-            const selectors = isFallback ?
-                ['.htmlvideoplayer::cue', 'video::cue', '::cue', 'video > track::cue'] :
-                ['.htmlvideoplayer::cue'];
+            if (!sheet) { return; }
 
             try {
-                // Clear existing rules to avoid conflicts
+                // Clear existing rules
                 while (sheet.cssRules.length > 0) {
                     sheet.deleteRule(0);
                 }
-                // Insert the new, consolidated rule for non-positional styles
+
+                // Create and insert the new rule with the dynamic font size
                 const newRule = `
-                    ${selectors.join(', ')} {
+                    .htmlvideoplayer::cue {
                         background-color: ${bgColor} !important;
                         color: ${textColor} !important;
-                        font-size: ${fontSize}em !important;
+                        font-size: ${fontSize}vw !important;
                         font-family: ${fontFamily} !important;
                     }
                 `;
@@ -1587,7 +1576,7 @@
                     if (type === 'style') {
                         previewStyle = `background-color: ${preset.bgColor}; color: ${preset.textColor}; border: 1px solid rgba(255,255,255,0.3); text-shadow: #000000 0px 0px 3px;`;
                     } else if (type === 'font-size') {
-                        previewStyle = `font-size: ${preset.size * 1.2}em; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,0.8);`;
+                        previewStyle = `font-size: ${preset.size}em; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,0.8);`;
                     } else if (type === 'font-family') {
                         previewStyle = `font-family: ${preset.family}; color: #fff; text-shadow: 0 0 4px rgba(0,0,0,0.8); font-size: 1.5em;`;
                     }
