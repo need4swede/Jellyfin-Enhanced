@@ -304,7 +304,6 @@
                         const sidebar = document.querySelector('.mainDrawer-scrollContainer');
                         if (sidebar && !sidebar.querySelector('#jellyfinEnhancedMenuButton')) {
                             addMenuButton(sidebar);
-                            obs.disconnect();
                         }
                     }
                 }
