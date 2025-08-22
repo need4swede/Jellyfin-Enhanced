@@ -275,6 +275,17 @@
                 .layout-mobile #jellyfin-enhanced-panel .footer-buttons > * {
                     justify-content: center;
                 }
+                @keyframes longPressGlow {
+                    from {
+                        box-shadow: 0 0 5px 2px var(--primary-accent-color, #fff);
+                    }
+                    to {
+                        box-shadow: 0 0 8px 15px transparent;
+                    }
+                }
+                .headerUserButton.long-press-active {
+                    animation: longPressGlow 750ms ease-out;
+                }
             `;
             document.head.appendChild(style);
         };
@@ -1915,13 +1926,16 @@
 
             const startPress = (e) => {
                 if (e.button && e.button !== 0) return; // Ignore non-left clicks
+                userButton.classList.add('long-press-active');
                 pressTimer = setTimeout(() => {
+                    userButton.classList.remove('long-press-active');
                     showEnhancedPanel();
                     pressTimer = null; // Prevent click event after long press
                 }, 750);
             };
 
             const cancelPress = () => {
+                userButton.classList.remove('long-press-active');
                 clearTimeout(pressTimer);
             };
 
