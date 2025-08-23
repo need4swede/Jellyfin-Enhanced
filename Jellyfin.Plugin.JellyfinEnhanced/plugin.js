@@ -93,6 +93,39 @@
         let shiftBTimer = null;
         let shiftBTriggered = false; // Flag to prevent multiple triggers of the clear bookmarks action
         let autoSkipInterval = null; // To hold the interval for auto-skipping
+        let activeShortcuts = {}; // Holds final merged shortcuts
+
+        const userShortcutManager = {
+            key: 'jellyfinEnhancedUserShortcuts',
+            load: function() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.key)) || {};
+                } catch (e) {
+                    console.error('🪼 Jellyfin Enhanced: Error loading user shortcuts.', e);
+                    return {};
+                }
+            },
+            save: function(shortcuts) {
+                try {
+                    localStorage.setItem(this.key, JSON.stringify(shortcuts));
+                } catch (e) {
+                    console.error('🪼 Jellyfin Enhanced: Error saving user shortcuts.', e);
+                }
+            }
+        };
+
+        // To merge all shortcut sources
+        function initializeShortcuts() {
+            const defaultShortcuts = pluginConfig.Shortcuts.reduce((acc, s) => {
+                acc[s.Name] = s.Key;
+                return acc;
+            }, {});
+            const userShortcuts = userShortcutManager.load();
+            // User shortcuts override the defaults/admin settings
+            activeShortcuts = { ...defaultShortcuts, ...userShortcuts };
+        }
+
+        initializeShortcuts();
 
         // --- Script metadata ---
         const GITHUB_REPO = 'n00bcodr/Jellyfin-Enhanced';
@@ -1597,7 +1630,7 @@
                         </div>`;
                 }).join('');
             };
-
+            const userShortcuts = userShortcutManager.load();
             help.innerHTML = `
                 <style>
                     #jellyfin-enhanced-panel .tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
@@ -1606,6 +1639,15 @@
                     #jellyfin-enhanced-panel .tab-button.active { color: #fff; border-bottom-color: ${primaryAccentColor}; background: ${headerFooterBg}; }
                     #jellyfin-enhanced-panel .tab-content { display: none; }
                     #jellyfin-enhanced-panel .tab-content.active { display: block; }
+                    @keyframes shake {
+                        10%, 90% { transform: translateX(-1px); }
+                        20%, 80% { transform: translateX(2px); }
+                        30%, 50%, 70% { transform: translateX(-4px); }
+                        40%, 60% { transform: translateX(4px); }
+                    }
+                    .shake-error {
+                        animation: shake 0.5s ease-in-out;
+                    }
                 </style>
                 <div style="padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: ${headerFooterBg};">
                     <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; background: ${primaryAccentColor}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪼 Jellyfin Enhanced</div>
@@ -1623,7 +1665,20 @@
                                 <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Global</h3>
                                 <div style="display: grid; gap: 8px; font-size: 14px;">
                                     ${pluginConfig.Shortcuts.filter(s => s.Category === 'Global').map(s => `
-                                        <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">${s.Key}</kbd></span><span>${s.Label}</span></div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span
+                                            class="shortcut-key"
+                                            tabindex="0"
+                                            data-action="${s.Name}"
+                                            style="background:${kbdBackground}; padding:2px 8px; border-radius:3px; cursor:pointer; transition: all 0.2s;"
+                                            >${activeShortcuts[s.Name]}</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                ${userShortcuts.hasOwnProperty(s.Name) ? `
+                                                    <span title="Modified by user" style="color:${primaryAccentColor}; font-size: 20px; line-height: 1;">•</span>
+                                                ` : ''}
+                                                <span>${s.Label}</span>
+                                            </div>
+                                        </div>
                                     `).join('')}
                                 </div>
                             </div>
@@ -1631,12 +1686,31 @@
                                 <h3 style="margin: 0 0 12px 0; font-size: 18px; color: ${primaryAccentColor}; font-family: inherit;">Player</h3>
                                 <div style="display: grid; gap: 8px; font-size: 14px;">
                                     ${pluginConfig.Shortcuts.filter(s => s.Category === 'Player').map(s => `
-                                        <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">${s.Key}</kbd></span><span>${s.Label}</span></div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span
+                                            class="shortcut-key"
+                                            tabindex="0"
+                                            data-action="${s.Name}"
+                                            style="background:${kbdBackground}; padding:2px 8px; border-radius:3px; cursor:pointer; transition: all 0.2s;"
+                                            >${activeShortcuts[s.Name]}</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                ${userShortcuts.hasOwnProperty(s.Name) ? `
+                                                    <span class="modified-indicator" title="Modified" style="color:${primaryAccentColor}; font-size: 20px; line-height: 1;">•</span>
+                                                ` : ''}
+                                                <span>${s.Label}</span>
+                                            </div>
+                                        </div>
                                     `).join('')}
-                                    <div style="display: flex; justify-content: space-between;"><span><kbd style="background:${kbdBackground}; padding:2px 6px; border-radius:3px;">0-9</kbd></span><span>Jump to % of video</span></div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="background:${kbdBackground}; padding:2px 8px; border-radius:3px;">0-9</span>
+                                        <span>Jump to % of video</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+                            <div style="text-align: center; font-size: 11px; color: rgba(255,255,255,0.6);">
+                                ⓘ Click a key to change it. Press <kbd style="background:${kbdBackground}; padding:1px 4px; border-radius:3px;">Backspace</kbd> while listening to reset to default.
+                            </div>
                     </div>
                     <div id="settings-content" class="tab-content" style="padding-top: 20px; padding-bottom: 20px; width: 50vw;">
                         <details open style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
@@ -1735,6 +1809,97 @@
             `;
 
             document.body.appendChild(help);
+            const shortcutKeys = help.querySelectorAll('.shortcut-key');
+            shortcutKeys.forEach(keyElement => {
+                 const getOriginalKey = () => activeShortcuts[keyElement.dataset.action];
+
+                keyElement.addEventListener('click', () => keyElement.focus());
+
+                keyElement.addEventListener('focus', () => {
+                    keyElement.textContent = 'Listening...';
+                    keyElement.style.borderColor = primaryAccentColor;
+                    keyElement.style.width = '100px';
+                });
+
+                keyElement.addEventListener('blur', () => {
+                    keyElement.textContent = getOriginalKey();
+                    keyElement.style.borderColor = 'transparent';
+                    keyElement.style.width = 'auto';
+                });
+
+                keyElement.addEventListener('keydown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const labelWrapper = keyElement.nextElementSibling;
+
+                    if (e.key === 'Backspace') {
+                        const action = keyElement.dataset.action;
+
+                        // Load, modify, and save the user's custom shortcuts
+                        const userShortcuts = userShortcutManager.load();
+                        delete userShortcuts[action];
+                        userShortcutManager.save(userShortcuts);
+
+                        // Find the original server default key from the plugin's configuration
+                        const defaultConfig = pluginConfig.Shortcuts.find(s => s.Name === action);
+                        const defaultKey = defaultConfig ? defaultConfig.Key : '';
+
+                        // Update the active shortcuts in memory and what's shown on screen
+                        activeShortcuts[action] = defaultKey;
+                        keyElement.textContent = defaultKey;
+                        const indicator = labelWrapper.querySelector('.modified-indicator');
+                        if (indicator) {
+                            indicator.remove();
+                        }
+                        keyElement.blur(); // Exit the "Listening..." mode
+                        return;
+                    }
+
+                    if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+                        return; // Don't allow setting only a modifier key
+                    }
+
+                    const combo = (e.ctrlKey ? 'Ctrl+' : '') +
+                                (e.altKey ? 'Alt+' : '') +
+                                (e.shiftKey ? 'Shift+' : '') +
+                                (e.key.match(/^[a-zA-Z]$/) ? e.key.toUpperCase() : e.key);
+
+                    const action = keyElement.dataset.action;
+                    const existingAction = Object.keys(activeShortcuts).find(name => activeShortcuts[name] === combo);
+                    if (existingAction && existingAction !== action) {
+                        keyElement.style.background = 'rgb(255 0 0 / 60%)';
+                        keyElement.classList.add('shake-error');
+                        setTimeout(() => {
+                            keyElement.classList.remove('shake-error');
+                            if (document.activeElement === keyElement) {
+                                keyElement.style.background = kbdBackground;
+                            }
+                        }, 500);
+                        // Reject the new keybinding and stop the function
+                        return;
+                    }
+                    // Save the new shortcut
+                    const userShortcuts = userShortcutManager.load();
+                    userShortcuts[action] = combo;
+                    userShortcutManager.save(userShortcuts);
+
+                    // Update active shortcuts
+                    activeShortcuts[action] = combo;
+
+                    // Update the UI and exit edit mode
+                    keyElement.textContent = combo;
+                    if (labelWrapper && !labelWrapper.querySelector('.modified-indicator')) {
+                        const indicator = document.createElement('span');
+                        indicator.className = 'modified-indicator';
+                        indicator.title = 'Modified by user';
+                        indicator.style.cssText = `color:${primaryAccentColor}; font-size: 20px; line-height: 1;`;
+                        indicator.textContent = '•';
+                        labelWrapper.prepend(indicator);
+                    }
+                    keyElement.blur(); // Triggers the blur event to clean up styles
+                });
+            });
             resetAutoCloseTimer();
 
             // --- Remember last opened tab ---
@@ -1997,29 +2162,23 @@
                         (e.altKey ? 'Alt+' : '') +
                         (key.match(/^[a-zA-Z]$/) ? key.toUpperCase() : key);
 
-            // Create a simple object mapping shortcut names to their keys for easy lookup
-            const shortcuts = pluginConfig.Shortcuts.reduce((acc, s) => {
-                acc[s.Name] = s.Key;
-                return acc;
-            }, {});
-
             const video = getVideo();
 
             // --- Global Shortcuts ---
-            if (combo === shortcuts.OpenSearch) {
+            if (combo === activeShortcuts.OpenSearch) {
                 e.preventDefault();
                 document.querySelector('button.headerSearchButton')?.click();
                 setTimeout(() => document.querySelector('input[type="search"]')?.focus(), 100);
                 toast('🔍 Search');
-            } else if (combo === shortcuts.GoToHome) {
+            } else if (combo === activeShortcuts.GoToHome) {
                 e.preventDefault();
                 location.href = '/web/#/home.html';
                 toast('🏠 Home');
-            } else if (combo === shortcuts.GoToDashboard) {
+            } else if (combo === activeShortcuts.GoToDashboard) {
                 e.preventDefault();
                 location.href = '/web/#/dashboard';
                 toast('📊 Dashboard');
-            } else if (combo === shortcuts.QuickConnect) {
+            } else if (combo === activeShortcuts.QuickConnect) {
                 e.preventDefault();
                 location.href = '/web/#/quickconnect';
                 toast('🔗 Quick Connect');
@@ -2027,7 +2186,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 showEnhancedPanel();
-            } else if (combo === shortcuts.PlayRandomItem && !isVideoPage()) {
+            } else if (combo === activeShortcuts.PlayRandomItem && !isVideoPage()) {
                 e.preventDefault();
                 document.getElementById('randomItemButton')?.click();
             }
@@ -2035,16 +2194,10 @@
             // --- Player-Only Shortcuts ---
             if (!isVideoPage()) return;
 
-            // A simple way to check if the pressed key is a configured player shortcut
-            const isPlayerShortcut = pluginConfig.Shortcuts.some(s => s.Category === 'Player' && s.Key === combo);
-
-            if (isPlayerShortcut) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
             switch (combo) {
-                case shortcuts.BookmarkCurrentTime: {
+                case activeShortcuts.BookmarkCurrentTime: {
+                    e.preventDefault();
+                    e.stopPropagation();
                     if (!video) return;
                     const videoId = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
                     const bookmarks = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
@@ -2056,7 +2209,9 @@
                     toast(`📍 Bookmarked at ${h_set > 0 ? `${h_set}:` : ''}${m_set.toString().padStart(h_set > 0 ? 2 : 1, '0')}:${s_set.toString().padStart(2, '0')}`);
                     break;
                 }
-                case shortcuts.GoToSavedBookmark: {
+                case activeShortcuts.GoToSavedBookmark: {
+                    e.preventDefault();
+                    e.stopPropagation();
                     if (!video) return;
                     const videoId_get = document.title?.replace(/^Playing:\s*/, '').trim() || 'unknown';
                     const bookmarks_get = JSON.parse(localStorage.getItem('jellyfinEnhancedBookmarks') || '{}');
@@ -2072,14 +2227,14 @@
                     }
                     break;
                 }
-                case shortcuts.CycleAspectRatio: openSettings(cycleAspect); break;
-                case shortcuts.ShowPlaybackInfo: openSettings(() => document.querySelector('.actionSheetContent button[data-id="stats"]')?.click()); break;
-                case shortcuts.SubtitleMenu: document.querySelector('button.btnSubtitles')?.click(); break;
-                case shortcuts.CycleSubtitleTracks: cycleSubtitleTrack(); break;
-                case shortcuts.CycleAudioTracks: cycleAudioTrack(); break;
-                case shortcuts.ResetPlaybackSpeed: resetPlaybackSpeed(); break;
-                case shortcuts.IncreasePlaybackSpeed: adjustPlaybackSpeed('increase'); break;
-                case shortcuts.DecreasePlaybackSpeed: adjustPlaybackSpeed('decrease'); break;
+                case activeShortcuts.CycleAspectRatio: e.preventDefault(); e.stopPropagation(); openSettings(cycleAspect); break;
+                case activeShortcuts.ShowPlaybackInfo: e.preventDefault(); e.stopPropagation(); openSettings(() => document.querySelector('.actionSheetContent button[data-id="stats"]')?.click()); break;
+                case activeShortcuts.SubtitleMenu: e.preventDefault(); e.stopPropagation(); document.querySelector('button.btnSubtitles')?.click(); break;
+                case activeShortcuts.CycleSubtitleTracks: e.preventDefault(); e.stopPropagation(); cycleSubtitleTrack(); break;
+                case activeShortcuts.CycleAudioTracks: e.preventDefault(); e.stopPropagation(); cycleAudioTrack(); break;
+                case activeShortcuts.ResetPlaybackSpeed: e.preventDefault(); e.stopPropagation(); resetPlaybackSpeed(); break;
+                case activeShortcuts.IncreasePlaybackSpeed: e.preventDefault(); e.stopPropagation(); adjustPlaybackSpeed('increase'); break;
+                case activeShortcuts.DecreasePlaybackSpeed: e.preventDefault(); e.stopPropagation(); adjustPlaybackSpeed('decrease'); break;
             }
 
             // Handle number keys for jumping
