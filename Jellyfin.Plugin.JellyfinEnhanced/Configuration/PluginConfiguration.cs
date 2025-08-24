@@ -29,6 +29,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             // Default User Settings
             AutoPauseEnabled = true;
             AutoResumeEnabled = false;
+            AutoPipEnabled = false;
             AutoSkipIntro = false;
             AutoSkipOutro = false;
             RandomButtonEnabled = true;
@@ -74,6 +75,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         // Default User Settings
         public bool AutoPauseEnabled { get; set; }
         public bool AutoResumeEnabled { get; set; }
+        public bool AutoPipEnabled { get; set; }
         public bool AutoSkipIntro { get; set; }
         public bool AutoSkipOutro { get; set; }
         public bool RandomButtonEnabled { get; set; }

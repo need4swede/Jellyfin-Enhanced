@@ -31,7 +31,8 @@
                                 <summary style="cursor: pointer; font-weight: bold;">⏯️ Playback Settings</summary>
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoPauseEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-pause on tab switch</span></label></div>
-                                    <div class="checkboxContainer"><label><input id="autoResumeEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-resume on tab switch</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoResumeEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-resume on tab switch</span></label></div>
+                                    <div class="checkboxContainer"><label><input id="autoPipEnabled" is="emby-checkbox" type="checkbox"/><span>Auto Picture-in-Picture on tab switch</span></label></div>
                                 </div>
                             </details>
                             <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
@@ -89,7 +90,6 @@
                         </div>
                         <h4 class="sectionTitle" style="margin-top: 0;">Configured Overrides</h4>
                         <div id="shortcut-list-container" style="display: flex; flex-direction: column; margin-top: 1em;">
-                            <!-- Automatically generated list of overrides will appear here. -->
                             </div>
                     </fieldset>
                     <fieldset class="verticalSection-extrabottompadding">
@@ -379,6 +379,7 @@
                 document.querySelector('#IGNORE_PROVIDERS').value = config.IGNORE_PROVIDERS;
                 document.querySelector('#autoPauseEnabled').checked = config.AutoPauseEnabled;
                 document.querySelector('#autoResumeEnabled').checked = config.AutoResumeEnabled;
+                document.querySelector('#autoPipEnabled').checked = config.AutoPipEnabled;
                 document.querySelector('#autoSkipIntro').checked = config.AutoSkipIntro;
                 document.querySelector('#autoSkipOutro').checked = config.AutoSkipOutro;
                 document.querySelector('#randomButtonEnabled').checked = config.RandomButtonEnabled;
@@ -417,6 +418,7 @@
                 config.IGNORE_PROVIDERS = document.querySelector('#IGNORE_PROVIDERS').value;
                 config.AutoPauseEnabled = document.querySelector('#autoPauseEnabled').checked;
                 config.AutoResumeEnabled = document.querySelector('#autoResumeEnabled').checked;
+                config.AutoPipEnabled = document.querySelector('#autoPipEnabled').checked;
                 config.AutoSkipIntro = document.querySelector('#autoSkipIntro').checked;
                 config.AutoSkipOutro = document.querySelector('#autoSkipOutro').checked;
                 config.RandomButtonEnabled = document.querySelector('#randomButtonEnabled').checked;

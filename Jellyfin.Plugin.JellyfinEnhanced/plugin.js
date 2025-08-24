@@ -10,6 +10,7 @@
         AutoskipInterval: 500,
         AutoPauseEnabled: true,
         AutoResumeEnabled: false,
+        AutoPipEnabled: false,
         AutoSkipIntro: false,
         AutoSkipOutro: false,
         RandomButtonEnabled: true,
@@ -499,6 +500,7 @@
                 return settings || {
                     autoPauseEnabled: pluginConfig.AutoPauseEnabled,
                     autoResumeEnabled: pluginConfig.AutoResumeEnabled,
+                    autoPipEnabled: pluginConfig.AutoPipEnabled,
                     autoSkipIntro: pluginConfig.AutoSkipIntro,
                     autoSkipOutro: pluginConfig.AutoSkipOutro,
                     selectedStylePresetIndex: 0,
@@ -519,6 +521,7 @@
                 return {
                     autoPauseEnabled: true,
                     autoResumeEnabled: false,
+                    autoPipEnabled: false,
                     autoSkipIntro: false,
                     autoSkipOutro: false,
                     selectedStylePresetIndex: 0,
@@ -1728,6 +1731,12 @@
                                         <div><div style="font-weight:500;">Auto-resume</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Resume when returning to tab</div></div>
                                     </label>
                                 </div>
+                                <div style="margin-top: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                        <input type="checkbox" id="autoPipToggle" ${currentSettings.autoPipEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                        <div><div style="font-weight:500;">Auto Picture-in-Picture</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Automatically enter PiP when switching tabs</div></div>
+                                    </label>
+                                </div>
                             </div>
                         </details>
                         <details style="margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: ${detailsBackground};">
@@ -1964,6 +1973,7 @@
             // --- Variable declarations and event listeners ---
             const autoPauseToggle = document.getElementById('autoPauseToggle');
             const autoResumeToggle = document.getElementById('autoResumeToggle');
+            const autoPipToggle = document.getElementById('autoPipToggle');
             const autoSkipIntroToggle = document.getElementById('autoSkipIntroToggle');
             const autoSkipOutroToggle = document.getElementById('autoSkipOutroToggle');
             const randomButtonToggle = document.getElementById('randomButtonToggle');
@@ -1976,6 +1986,7 @@
 
             autoPauseToggle.addEventListener('change', (e) => { currentSettings.autoPauseEnabled = e.target.checked; saveSettings(currentSettings); toast(`⏸️ Auto-Pause ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
             autoResumeToggle.addEventListener('change', (e) => { currentSettings.autoResumeEnabled = e.target.checked; saveSettings(currentSettings); toast(`▶️ Auto-Resume ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
+            autoPipToggle.addEventListener('change', (e) => { currentSettings.autoPipEnabled = e.target.checked; saveSettings(currentSettings); toast(`🖼️ Auto PiP ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
             autoSkipIntroToggle.addEventListener('change', (e) => { currentSettings.autoSkipIntro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Intro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
             autoSkipOutroToggle.addEventListener('change', (e) => { currentSettings.autoSkipOutro = e.target.checked; saveSettings(currentSettings); toast(`↪️ Auto-Skip Outro ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
             randomButtonToggle.addEventListener('change', (e) => { currentSettings.randomButtonEnabled = e.target.checked; saveSettings(currentSettings); toast(`🎲 Random Button ${e.target.checked ? 'Enabled' : 'Disabled'}`); addRandomButton(); resetAutoCloseTimer(); });
@@ -2286,6 +2297,23 @@
             } else if (!document.hidden && video.paused && video.dataset.wasPlayingBeforeHidden === 'true' && currentSettings.autoResumeEnabled) {
                 video.play();
                 delete video.dataset.wasPlayingBeforeHidden;
+            }
+        });
+        /* --- Auto-PiP on Tab Visibility Change --- */
+        document.addEventListener('visibilitychange', async () => {
+            if (!currentSettings.autoPipEnabled) return;
+
+            const video = getVideo();
+            if (!video) return;
+
+            try {
+                if (document.hidden && !document.pictureInPictureElement) {
+                    await video.requestPictureInPicture();
+                } else if (!document.hidden && document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                }
+            } catch (error) {
+                console.error('🪼 Jellyfin Enhanced: Auto PiP Error:', error);
             }
         });
     }
