@@ -301,6 +301,51 @@ Sample styling
 
 </details>
 
+<details>
+<summary style="font-size: 1.25em; font-weight: 600;">💻 Development </summary>
+<br>
+
+The original monolithic `plugin.js` has been refactored into a modular, component-based structure to improve maintainability, readability, and scalability. The new architecture uses a single entry point (`plugin.js`) that dynamically loads all other feature components.
+
+### New File Structure
+
+All client-side scripts are now located in the `Jellyfin.Plugin.JellyfinEnhanced/js/` directory.
+
+```
+
+Jellyfin.Plugin.JellyfinEnhanced/
+└── js/
+    ├── enhanced/
+    │ ├── config.js
+    │ ├── events.js
+    │ ├── features.js
+    │ ├── playback.js
+    │ ├── subtitles.js
+    │ └── ui.js
+    ├── elsewhere.js
+    ├── jellyseerr.js
+    └── plugin.js
+```
+
+
+### Component Breakdown
+
+* **`plugin.js`**: This is the new main entry point for the plugin. Its sole responsibility is to load the plugin configuration from the server and then dynamically inject the other component scripts into the page in the correct order.
+
+* **`/enhanced/`**: This directory contains the core components of the "Jellyfin Enhanced" feature set.
+    * **`config.js`**: Manages all settings, both from the plugin backend and the user's local storage. It initializes and holds shared variables and configurations that other components access.
+    * **`subtitles.js`**: Isolates all logic related to subtitle styling, including presets and the function that applies styles to the video player.
+    * **`ui.js`**: Responsible for creating, injecting, and managing all visual elements like the main settings panel, toast notifications, and various buttons.
+    * **`playback.js`**: Centralizes all functions that directly control the video player, such as changing speed, seeking, cycling through tracks, and auto-skip logic.
+    * **`features.js`**: Contains the logic for non-playback enhancements like the random item button, file size display, audio language display, and "Remove from Continue Watching".
+    * **`events.js`**: The active hub of the plugin. It listens for user input (keyboard/mouse), browser events (tab switching), and DOM changes to trigger the appropriate functions from other components.
+
+* **`elsewhere.js`**: A self-contained module for the "Jellyfin Elsewhere" feature, which finds where media is available on other streaming services.
+
+* **`jellyseerr.js`**: A self-contained module for the Jellyseerr integration, including its UI, authentication, and API calls. It is loaded conditionally based on plugin settings.
+
+</details>
+
 ## 📄 License
 
 This project is licensed under the MIT License

@@ -44,19 +44,30 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             _logger = logger;
         }
 
-        [HttpGet("script")]
-        [Produces("application/javascript")]
-        public ActionResult GetScript()
+        private ActionResult GetScriptResource(string resourcePath)
         {
             var stream = Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream("Jellyfin.Plugin.JellyfinEnhanced.plugin.js");
+                .GetManifestResourceStream($"Jellyfin.Plugin.JellyfinEnhanced.{resourcePath.Replace('/', '.')}");
 
             if (stream == null)
             {
+                _logger.LogError("Could not find embedded script at path: {resourcePath}", resourcePath);
                 return NotFound();
             }
 
             return new FileStreamResult(stream, "application/javascript");
+        }
+
+        [HttpGet("script")]
+        public ActionResult GetMainScript()
+        {
+            return GetScriptResource("js/plugin.js");
+        }
+
+        [HttpGet("js/{**path}")]
+        public ActionResult GetScript(string path)
+        {
+            return GetScriptResource($"js/{path}");
         }
 
         [HttpGet("version")]

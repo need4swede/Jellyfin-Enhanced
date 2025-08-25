@@ -21,7 +21,7 @@
     <None Remove="Configuration\configPage.html"/>
     <EmbeddedResource Include="Configuration\configPage.html"/>
     <None Remove="plugin.js"/>
-    <EmbeddedResource Include="plugin.js"/>
+    <EmbeddedResource Include="js\**" />
   </ItemGroup>
 
 </Project>

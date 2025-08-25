@@ -16,6 +16,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
     {
         private readonly IApplicationPaths _applicationPaths;
         private readonly ILogger<JellyfinEnhanced> _logger;
+        private const string PluginName = "Jellyfin Enhanced";
 
         public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILoggerFactory loggerFactory) : base(applicationPaths, xmlSerializer)
         {
@@ -24,90 +25,67 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             _logger = loggerFactory.CreateLogger<JellyfinEnhanced>();
         }
 
-        public override string Name => "Jellyfin Enhanced";
+        public override string Name => PluginName;
         public override Guid Id => Guid.Parse("f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b");
         public static JellyfinEnhanced? Instance { get; private set; }
-        public string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
+
+        private string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
 
         public void InjectScript()
         {
+            UpdateIndexHtml(true);
+        }
+
+        public override void OnUninstalling()
+        {
+            UpdateIndexHtml(false);
+            base.OnUninstalling();
+        }
+
+        private void UpdateIndexHtml(bool inject)
+        {
             try
             {
                 var indexPath = IndexHtmlPath;
-                if (string.IsNullOrEmpty(indexPath) || !File.Exists(indexPath))
+                if (!File.Exists(indexPath))
                 {
                     _logger.LogError("Could not find index.html at path: {Path}", indexPath);
                     return;
                 }
 
-                var pluginVersion = Version.ToString();
-                var scriptUrl = "/JellyfinEnhanced/script";
-                var scriptTag = $"<script plugin=\"JellyfinEnhanced\" version=\"{pluginVersion}\" src=\"{scriptUrl}\" defer></script>";
-
                 var content = File.ReadAllText(indexPath);
+                var scriptUrl = "/JellyfinEnhanced/script";
+                var scriptTag = $"<script plugin=\"{Name}\" version=\"{Version}\" src=\"{scriptUrl}\" defer></script>";
+                var regex = new Regex($"<script[^>]*plugin=[\"']{Name}[\"'][^>]*>\\s*</script>\\n?");
 
-                if (content.Contains(scriptTag))
+                // Remove any old versions of the script tag first
+                content = regex.Replace(content, string.Empty);
+
+                if (inject)
                 {
-                    _logger.LogInformation("JellyfinEnhanced script is already correctly injected. No changes needed.");
-                    return;
-                }
-
-                var regex = new Regex($"<script[^>]*src=[\"']{scriptUrl}[\"'][^>]*>\\s*</script>\\n?");
-
-                if (regex.IsMatch(content))
-                {
-                    _logger.LogInformation("Removing old JellyfinEnhanced script tag.");
-                    content = regex.Replace(content, string.Empty);
-                }
-
-                var closingBodyTag = "</body>";
-                if (content.Contains(closingBodyTag))
-                {
-                    content = content.Replace(closingBodyTag, $"{scriptTag}\n{closingBodyTag}");
-                    File.WriteAllText(indexPath, content);
-                    _logger.LogInformation("Successfully injected/updated the JellyfinEnhanced script in index.html.");
+                    var closingBodyTag = "</body>";
+                    if (content.Contains(closingBodyTag))
+                    {
+                        content = content.Replace(closingBodyTag, $"{scriptTag}\n{closingBodyTag}");
+                        _logger.LogInformation("Successfully injected/updated the {PluginName} script.", PluginName);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not find </body> tag in index.html. Script not injected.");
+                        return; // Return early if injection point not found
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Could not find </body> tag in index.html. Script not injected.");
+                    _logger.LogInformation("Successfully removed the {PluginName} script from index.html during uninstall.", PluginName);
                 }
+
+                File.WriteAllText(indexPath, content);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while trying to inject script into index.html.");
+                _logger.LogError(ex, "Error while trying to update index.html.");
             }
-        }
-
-        /// <summary>
-        /// Called when the plugin is being uninstalled.
-        /// </summary>
-        public override void OnUninstalling()
-        {
-            // Final cleanup on uninstall to be safe
-            try
-            {
-                var indexPath = IndexHtmlPath;
-                if (string.IsNullOrEmpty(indexPath) || !File.Exists(indexPath))
-                {
-                    _logger.LogError("Could not find index.html at path: {Path}", indexPath);
-                    return;
-                }
-
-                var content = File.ReadAllText(indexPath);
-                var regex = new Regex($"<script plugin=\"{Name}\".*?></script>\\n?");
-                if (regex.IsMatch(content))
-                {
-                    content = regex.Replace(content, string.Empty);
-                    File.WriteAllText(indexPath, content);
-                    _logger.LogInformation("Successfully removed the {Name} script from index.html during uninstall.", Name);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while trying to remove script from index.html during uninstall.");
-            }
-
-            base.OnUninstalling();
         }
 
         public IEnumerable<PluginPageInfo> GetPages()
