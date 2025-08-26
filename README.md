@@ -111,9 +111,9 @@ When on the search page, a Jellyseerr icon will appear to indicate the connectio
 
 | Icon | State | Description |
 | :---: | :--- | :--- |
-| <img width="90" height="113" alt="Active" src="https://github.com/user-attachments/assets/c3152809-bffb-4a3c-8e1f-a2343e019c5f" /> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br> Results from Jellyseerr will load along with Jellyfin and requests can be made. |
-| <img width="60" height="113" alt="User Not Found" src="https://github.com/user-attachments/assets/38a049df-98e0-4dcf-9bcb-4ebfc33df84d" /> | **User Not Found** | Jellyseerr is connected, but the current Jellyfin user is not linked to a Jellyseerr account. <br>Ensure the user has been imported into Jellyseerr from Jellyfin. Results will not load. |
-| <img width="60" height="113" alt="Offline" src="https://github.com/user-attachments/assets/3c04d085-67d3-42f8-96e6-eeca1bfd88e3" /> | **Offline** | The plugin could not connect to any of the configured Jellyseerr URLs. <br> Check your plugin settings and ensure Jellyseerr is running and accessible. Results will not load. |
+|<img width="32" alt="active" src="https://github.com/user-attachments/assets/09124764-5132-4474-83e7-c09399630b13" /> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br> Results from Jellyseerr will load along with Jellyfin and requests can be made. |
+| <img width="32" alt="noaccess" src="https://github.com/user-attachments/assets/0db72189-04fc-4ec1-bdf1-50dd5e36d2ef" /> | **User Not Found** | Jellyseerr is successfully connected, but the current Jellyfin user is not linked to a Jellyseerr account. <br>Ensure the user has been imported into Jellyseerr from Jellyfin. Results will not load. |
+| <img width="32" alt="offline" src="https://github.com/user-attachments/assets/0e109ec3-038c-4471-97c1-9cc38bcd26c5" /> | **Offline** | The plugin could not connect to any of the configured Jellyseerr URLs. <br> Check your plugin settings and ensure Jellyseerr is running and accessible. Results will not load. |
 
 
 ---
@@ -203,10 +203,10 @@ curl -X POST\
 ## 🔧 Installation
 
 1.  In Jellyfin, go to **Dashboard** > **Plugins** > **Catalog** > ⚙️
-2.  Click **➕** and give the repository a name (e.g., "JavaScript Injector Repo").
+2.  Click **➕** and give the repository a name (e.g., "Jellyfin Enhanced").
 3.  Set the **Repository URL** to: `https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/manifest.json`
 4.  Click **Save**.
-5.  Go to the **Catalog** tab, find **JavaScript Injector** in the list, and click **Install**.
+5.  Go to the **Catalog** tab, find **Jellyfin Enhanced** in the list, and click **Install**.
 6.  **Restart** your Jellyfin server to complete the installation.
 
 
