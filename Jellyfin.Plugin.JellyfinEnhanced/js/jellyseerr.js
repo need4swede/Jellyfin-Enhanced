@@ -38,7 +38,6 @@
                 #jellyseerr-search-icon.is-no-user{filter:grayscale(1);opacity:.8;}
 
                 .jellyseerr-section{margin-bottom:2em;}
-                .jellyseerr-card{border-radius:.25em;overflow:hidden;display:flex;flex-direction:column;box-shadow:none!important;}
 
                 .jellyseerr-request-button{
                 margin-top:.5em!important;width:100%;display:flex;justify-content:center;align-items:center;white-space:nowrap;
@@ -399,26 +398,27 @@
             const tmdbUrl = `https://www.themoviedb.org/${item.mediaType}/${item.id}`;
 
             const card = document.createElement('div');
-            card.className = 'card overflowPortraitCard card-hoverable jellyseerr-card';
+            card.className = 'card overflowPortraitCard card-hoverable card-withuserdata jellyseerr-card';
 
             card.innerHTML = `
                 <div class="cardBox cardBox-bottompadded">
                     <div class="cardScalable">
                         <div class="cardPadder cardPadder-overflowPortrait"></div>
-                        <div class="cardImageContainer coveredImage cardContent" style="background-image: url('${posterUrl}');">
+                        <div class="cardImageContainer coveredImage cardContent itemAction" style="background-image: url('${posterUrl}');">
                             <div class="cardIndicators">
                                 <div class="indicator">
                                     <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" class="jellyseerr-icon" alt="Jellyseerr"/>
                                 </div>
                             </div>
                         </div>
+                        <div class="cardOverlayContainer" data-action="link"></div>
                     </div>
                     <div class="cardText cardTextCentered cardText-first">
                         <a is="emby-linkbutton" href="${tmdbUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" title="View on TMDB">
                             <bdi>${titleText}</bdi>
                         </a>
                     </div>
-                    <div class="cardText cardText-secondary jellyseerr-meta">
+                    <div class="cardText cardTextCentered cardText-secondary jellyseerr-meta">
                         <bdi>${year}</bdi>
                         <div class="jellyseerr-rating">
                             <span class="material-icons">star</span>
