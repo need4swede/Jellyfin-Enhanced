@@ -64,6 +64,7 @@
                 .jellyseerr-meta{display:flex;justify-content:center;align-items:center;gap:1.5em;padding:0 .75em;}
                 .jellyseerr-rating{display:flex;align-items:center;gap:.3em;color:#bdbdbd;}
                 .jellyseerr-rating .material-icons{font-size:1.2em;color:#ffc107;}
+                .cardText-first > a[is="emby-linkbutton"] { padding: 0 !important; margin: 0 !important; }
             `;
             document.head.appendChild(style);
         }
@@ -413,7 +414,7 @@
                         </div>
                     </div>
                     <div class="cardText cardTextCentered cardText-first">
-                        <a href="${tmdbUrl}" target="_blank" style="color: inherit; text-decoration: none;" title="View on TMDB">
+                        <a is="emby-linkbutton" href="${tmdbUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" title="View on TMDB">
                             <bdi>${titleText}</bdi>
                         </a>
                     </div>

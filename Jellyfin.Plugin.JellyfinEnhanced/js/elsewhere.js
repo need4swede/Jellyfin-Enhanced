@@ -566,9 +566,14 @@
 
             // Add JustWatch link if available
             if (regionData && regionData.link) {
+                title.setAttribute('is', 'emby-linkbutton');
+                title.classList.add('elsewhere-link-reset');
                 title.href = regionData.link;
                 title.target = '_blank';
+                title.rel = 'noopener noreferrer';
                 title.title = 'View on JustWatch';
+                title.style.padding = '0';
+                title.style.margin = '0';
             }
 
              // Create controls container
@@ -917,9 +922,14 @@
 
             // Add JustWatch link if available and enabled
             if (regionData.link) {
+                title.setAttribute('is', 'emby-linkbutton');
+                title.classList.add('elsewhere-link-reset');
                 title.href = regionData.link;
                 title.target = '_blank';
+                title.rel = 'noopener noreferrer';
                 title.title = 'View on JustWatch';
+                title.style.padding = '0';
+                title.style.margin = '0';
             }
 
             // Create close button
