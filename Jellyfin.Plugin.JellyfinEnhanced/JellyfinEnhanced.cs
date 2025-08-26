@@ -95,7 +95,10 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 new PluginPageInfo
                 {
                     Name = this.Name,
+                    DisplayName = "Jellyfin Enhanced",
+                    EnableInMainMenu = true,
                     EmbeddedResourcePath = "Jellyfin.Plugin.JellyfinEnhanced.Configuration.configPage.html"
+                    //Custom Icons are not supported - https://github.com/jellyfin/jellyfin-web/blob/38ac3355447a91bf280df419d745f5d49d05aa9b/src/apps/dashboard/components/drawer/sections/PluginDrawerSection.tsx#L61
                 }
             };
         }
