@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "checksum": "a8db0b7c56e6849f3e5ffff8345cd1cb",
+                "changelog": "- *One-Time Setup*: Admins configure the connection once with an API key. No more per-user or per-device logins.\n - *Zero User Configuration*: The integration works automatically for all users across all devices without requiring them to enter any credentials.\n - The API key is managed securely on the server, making the connection more robust and reliable.",
+                "targetAbi": "10.9.4.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/6.1.0.0/Jellyfin.Plugin.JellyfinEnhanced_6.1.0.0.zip",
+                "timestamp": "2025-08-26T13:01:38Z",
+                "version": "6.1.0.0"
+            },
+            {
                 "checksum": "cb91d071f57958e81239277ec87708d5",
                 "changelog": "- Jellyseerr results and requests through Jellyfin Search!\n - Users can now directly login to Jellyseerr from Jellyfin and search and request items\n - Complete refactor for easy future maintainence",
                 "targetAbi": "10.9.4.0",
