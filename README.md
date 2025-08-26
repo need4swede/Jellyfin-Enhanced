@@ -81,60 +81,40 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 --------------------------------------------------
 </p>
 
-## Jellyseerr Search Integration <img class="jellyseerr-icon jellyseerr-search-icon.is-active is-active" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" >
+## Jellyseerr Search Integration <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" width="40" height="50" align="center">
 
-The Jellyfin Enhanced plugin can integrate with your Jellyseerr instance, allowing users to search for and request media directly from the Jellyfin search interface.****
+The Jellyfin Enhanced plugin can integrate with your Jellyseerr instance, allowing users to search for and request media directly from the Jellyfin search interface.
 
 #### Setup
 
 To enable the Jellyseerr integration, you must first configure it in the plugin settings:
 
-1.  Navigate to **Dashboard > Plugins > Jellyfin Enhanced**.
-2.  Go to the **Jellyseerr Settings** tab.
-3.  Check the **Show Jellyseerr Results in Search** box to enable the feature.
-4.  Enter your **Jellyseerr URL(s)**, one per line. The plugin will use the first one that connects successfully. Should be the same Jellyseerr Instance. Intended for providing internal and external urls, ideally just internal URL should work.
-5.  Enter your **Jellyseerr API Key**. You can find this in Jellyseerr under **Settings > General > API Key**.
-6.  You can use the test button to see if your Jellyseerr instance is reachable.
-7.  Click **Save**.
+1. Navigate to **Dashboard > Plugins > Jellyfin Enhanced**.
+2. Go to the **Jellyseerr Settings** tab.
+3. Check the **Show Jellyseerr Results in Search** box to enable the feature.
+4. Enter your **Jellyseerr URL(s)**, one per line. The plugin will use the first one that connects successfully. Should be the same Jellyseerr Instance. Intended for providing internal and external urls, ideally just internal URL should work.
+5. Enter your **Jellyseerr API Key**. You can find this in Jellyseerr under **Settings > General > API Key**.
+6. You can use the test button to see if your Jellyseerr instance is reachable.
+7. Click **Save**.
 
-<div style="text-align: center;">
-  <img src="images/jellyseerr.png" style="width:600px; border-radius:25px;" />
-</div>
+<p align="center">
+  <img src="images/jellyseerr.png" width="600" style="border-radius:25px;" />
+</p>
 
 > [!IMPORTANT]
-> For the integration to work, you must also enable **"Enable Jellyfin Sign-In"** in your Jellyseerr User Settings (`/settings/users`). <br> All users who need access to request content must be imported into Jellyseerr as Jellyfin users.
-
+> For the integration to work, you must also enable **"Enable Jellyfin Sign-In"** in your Jellyseerr User Settings (`/settings/users`).
+> All users who need access to request content must be imported into Jellyseerr as Jellyfin users.
 
 #### Icon States
 
 When on the search page, a Jellyseerr icon will appear to indicate the connection status. This is the first thing to check when troubleshooting issues.
 
-<style>
-    .jellyseerr-icon {
-        width: 35px;
-        height: 50px;
-        vertical-align: middle;
-        transition: filter .2s, opacity .2s;
-        filter: drop-shadow(0 0 5px rgba(0,0,0,.7));
-    }
-    .jellyseerr-search-icon.is-active {
-        filter: drop-shadow(2px 2px 6px black);;
-        opacity: 1;
-    }
-    .jellyseerr-search-icon.is-no-user {
-        filter: grayscale(1);
-        opacity: .8;
-    }
-    .jellyseerr-search-icon.is-disabled {
-        filter: hue-rotate(125deg) brightness(100%);
-    }
-</style>
-
-| Icon | State | Description|
+| Icon | State | Description |
 | :---: | :--- | :--- |
-| <img class="jellyseerr-icon jellyseerr-search-icon is-active" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br>Results from Jellyseerr will load along with Jellyfin and requests can be made. |
-| <img class="jellyseerr-icon jellyseerr-search-icon is-disabled" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **Offline**| The plugin could not connect to any of the configured Jellyseerr URLs. Check your plugin settings and ensure Jellyseerr is running and accessible. <br>Results will not load.|
-| <img class="jellyseerr-icon jellyseerr-search-icon is-no-user" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **User Not Found** | Jellyseerr is connected, but the current Jellyfin user is not linked to a Jellyseerr account. Ensure the user has been imported into Jellyseerr from Jellyfin. <br>Results will not load. |
+| <img width="90" height="113" alt="Active" src="https://github.com/user-attachments/assets/c3152809-bffb-4a3c-8e1f-a2343e019c5f" /> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br> Results from Jellyseerr will load along with Jellyfin and requests can be made. |
+| <img width="60" height="113" alt="User Not Found" src="https://github.com/user-attachments/assets/38a049df-98e0-4dcf-9bcb-4ebfc33df84d" /> | **User Not Found** | Jellyseerr is connected, but the current Jellyfin user is not linked to a Jellyseerr account. <br>Ensure the user has been imported into Jellyseerr from Jellyfin. Results will not load. |
+| <img width="60" height="113" alt="Offline" src="https://github.com/user-attachments/assets/3c04d085-67d3-42f8-96e6-eeca1bfd88e3" /> | **Offline** | The plugin could not connect to any of the configured Jellyseerr URLs. <br> Check your plugin settings and ensure Jellyseerr is running and accessible. Results will not load. |
+
 
 ---
 
