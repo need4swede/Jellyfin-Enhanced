@@ -6,12 +6,13 @@
          * Initializes the Jellyseerr search integration feature.
          */
         JE.initializeJellyseerrScript = function() {
+        const logPrefix = '🪼 Jellyfin Enhanced: Jellyseerr Search:';
         if (!JE.pluginConfig.JellyseerrEnabled) {
-            console.log('🪼 Jellyfin Enhanced: Jellyseerr Search: Integration is disabled in plugin settings.');
+            console.log(`${logPrefix} Integration is disabled in plugin settings.`);
             return;
         }
 
-        console.log('🪼 Jellyfin Enhanced: Jellyseerr Search: Initializing....');
+        console.log(`${logPrefix} Initializing....`);
 
         let lastProcessedQuery = null;
         let debounceTimeout = null;
@@ -69,20 +70,6 @@
         }
 
         //helper for container
-        function getOrCreateResultsContainer() {
-            const searchPage = document.querySelector('#searchPage');
-            if (!searchPage) return null;
-
-            let host = searchPage.querySelector('#je-search-results');
-            if (!host) {
-                host = document.createElement('div');
-                host.id = 'je-search-results';
-                host.className = 'padded-top padded-bottom-page';
-                searchPage.appendChild(host);
-            }
-            return host;
-            }
-
         async function checkJellyseerrStatus() {
             try {
                 const res = await ApiClient.ajax({
@@ -94,11 +81,11 @@
                 isJellyseerrActive = !!res.active;
                 jellyseerrUserFound = !!res.userFound;
                 if (isJellyseerrActive && !jellyseerrUserFound) {
-                    console.warn('🪼 Jellyfin Enhanced: Jellyseerr Search: Connection successful, but the current Jellyfin user is not linked to a Jellyseerr account.');
+                    console.warn(`${logPrefix} Connection successful, but the current Jellyfin user is not linked to a Jellyseerr account.`);
                 }
             } catch (e) {
                 const userId = ApiClient.getCurrentUserId();
-                console.warn(`🪼 Jellyfin Enhanced: Jellyseerr Search: Status check failed for user ${userId}:`, e);
+                console.warn(`${logPrefix} Status check failed for user ${userId}:`, e);
                 isJellyseerrActive = false;
                 jellyseerrUserFound = false;
             }
@@ -142,7 +129,7 @@
                 const isSearchPage = window.location.hash.includes('/search.html');
                 const currentQuery = isSearchPage ? new URLSearchParams(window.location.hash.split('?')[1]).get('query') : null;
 
-                if (isSearchPage && currentQuery) {
+                if (isSearchPage && currentQuery && currentQuery.trim() !== '') {
                     clearTimeout(debounceTimeout);
                     debounceTimeout = setTimeout(() => {
                         if (!isJellyseerrActive) {
@@ -154,10 +141,12 @@
                         lastProcessedQuery = latestQuery;
                         document.querySelectorAll('.jellyseerr-section').forEach(e => e.remove());
                         runJellyseerrSearch(latestQuery);
-                    }, 1000); // wait 1 seconds after typing stops for API call
-                } else if (!isSearchPage) {
-                    lastProcessedQuery = null;
+                    }, 1000);
+                } else {
+                    // If not on search page, or query is empty, clear results and reset state
                     clearTimeout(debounceTimeout);
+                    lastProcessedQuery = null;
+                    document.querySelectorAll('.jellyseerr-section').forEach(e => e.remove());
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
@@ -166,10 +155,6 @@
         // API - Fetch search results
         async function fetchFromJellyseerr(query) {
             const requestUrl = ApiClient.getUrl(`/JellyfinEnhanced/jellyseerr/search?query=${encodeURIComponent(query)}`);
-
-            // Create a placeholder section to show loading, but it will be added later.
-            const placeholder = createJellyseerrSection(true);
-            let searchResultsContainer; // Will be defined only if needed
 
             try {
                 const data = await ApiClient.ajax({
@@ -180,18 +165,14 @@
                 });
 
                 if (data.results && data.results.length > 0) {
-                    searchResultsContainer = getOrCreateResultsContainer();
-                    if (!searchResultsContainer) return;
                     const jellyseerrSection = createJellyseerrSection(false, data.results);
-                    const noResultsMessage = document.querySelector('#searchPage .noItemsMessage');
-                    if (noResultsMessage) noResultsMessage.style.display = 'none';
-                    renderJellyseerrResults(jellyseerrSection, searchResultsContainer);
+                    renderJellyseerrResults(jellyseerrSection, query);
                 } else {
-                    console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: No results found, container will not be added.');
+                    console.debug(`${logPrefix} No results found.`);
                 }
             } catch (error) {
                 const userId = ApiClient.getCurrentUserId();
-                console.error(`🪼 Jellyfin Enhanced: Jellyseerr Search: Error fetching search results for user ${userId}:`, error);
+                console.error(`${logPrefix} Error fetching search results for user ${userId}:`, error);
             }
         }
 
@@ -215,7 +196,7 @@
             } catch (error) {
                 button.disabled = false;
                 const userId = ApiClient.getCurrentUserId();
-                console.error(`🪼 Jellyfin Enhanced: Jellyseerr Search: Request Failed via proxy for user ${userId}:`, error);
+                console.error(`${logPrefix} Request Failed via proxy for user ${userId}:`, error);
 
                 let errorMessage = 'Error';
                 if (error.status === 404) {
@@ -233,124 +214,102 @@
             fetchFromJellyseerr(query);
         }
 
-        function renderJellyseerrResults(sectionToInject, container) {
-            console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Waiting for Jellyfin results to load...');
-            let lastMutationTime = Date.now();
-            let stabilityCheckInterval = null;
-            let maxWaitTime = 10000;
-            let startTime = Date.now();
+        function renderJellyseerrResults(sectionToInject, query) {
+            console.log(`${logPrefix} Called with query:`, query);
 
-            const observer = new MutationObserver(() => {
-                lastMutationTime = Date.now();
-            });
+            const searchPage = document.querySelector('#searchPage');
+            if (!searchPage) {
+                console.warn(`${logPrefix} #searchPage not found. Exiting.`);
+                return;
+            }
+            console.log(`${logPrefix} Found #searchPage`);
 
-            const observeTarget = container || document.querySelector('#searchPage');
-            if (observeTarget) {
-                observer.observe(observeTarget, {
-                    childList: true,
-                    subtree: true
-                });
+            // Remove any previous injection
+            const oldSection = searchPage.querySelector('.jellyseerr-section');
+            if (oldSection) {
+                console.log(`${logPrefix} Removing old .jellyseerr-section`);
+                oldSection.remove();
             }
 
-            stabilityCheckInterval = setInterval(() => {
-                const spinners = document.querySelectorAll('.mdlSpinnerActive, .loading, .spinner, [class*="loading"], [class*="spinner"]');
-                const activeSpinner = Array.from(spinners).find(el => el.offsetParent !== null);
-                const noResultsMessage = document.querySelector('#searchPage .noItemsMessage');
-                const timeSinceLastMutation = Date.now() - lastMutationTime;
-                const totalWaitTime = Date.now() - startTime;
+            // Ensure our injected block is identifiable
+            if (!sectionToInject.classList.contains('jellyseerr-section')) {
+                sectionToInject.classList.add('jellyseerr-section');
+            }
 
-                if ((!activeSpinner && timeSinceLastMutation > 1000) || noResultsMessage || totalWaitTime > maxWaitTime) {
-                    clearInterval(stabilityCheckInterval);
-                    observer.disconnect();
+            const primaryTypes = ['movies', 'shows', 'series', 'episodes'];
+            const secondaryTypes = ['people', 'artists', 'albums', 'songs', 'videos', 'collections', 'playlists'];
+            const allTypes = primaryTypes.concat(secondaryTypes);
 
-                    if (noResultsMessage) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Jellyfin returned no results. Injecting Jellyseerr section.');
-                        const searchPage = document.querySelector('#searchPage');
-                        if (searchPage) {
-                            searchPage.insertBefore(sectionToInject, noResultsMessage);
-                        }
-                        return;
+            let attempts = 0;
+            const maxAttempts = 75; // ~15s @ 200ms
+
+            console.log(`${logPrefix} Waiting for Jellyfin content to load...`);
+
+            const injectionInterval = setInterval(() => {
+                attempts++;
+
+                const noResultsMessage = searchPage.querySelector('.noItemsMessage');
+                const sections = Array.from(searchPage.querySelectorAll('.verticalSection'));
+                const hasTypedSection = sections.some(s => {
+                    const title = s.querySelector('.sectionTitle')?.textContent.trim().toLowerCase() || '';
+                    return allTypes.some(t => title.includes(t));
+                });
+
+                // Keep waiting until we see either a typed section or an explicit "no results" message, or timeout
+                if (!(hasTypedSection || noResultsMessage) && attempts < maxAttempts) {
+                    return; // Keep waiting
+                }
+
+                clearInterval(injectionInterval);
+                console.log(`${logPrefix} Proceeding with injection (Reason: ${noResultsMessage ? 'No Items Message' : hasTypedSection ? 'Typed Section Found' : 'Timeout'})`);
+
+                if (noResultsMessage) {
+                    console.log(`${logPrefix} Found .noItemsMessage, injecting after it.`);
+                    noResultsMessage.textContent = `Sorry! No results found for "${query}" on Jellyfin`;
+                    noResultsMessage.parentElement.insertBefore(sectionToInject, noResultsMessage.nextSibling);
+                    return;
+                }
+
+                // We have at least one typed section → follow the primary/secondary placement rules
+                const allSections = Array.from(searchPage.querySelectorAll('.verticalSection:not(.jellyseerr-section)'));
+                let lastPrimarySection = null;
+                for (let i = allSections.length - 1; i >= 0; i--) {
+                    const title = allSections[i].querySelector('.sectionTitle')?.textContent.trim().toLowerCase() || '';
+                    if (primaryTypes.some(type => title.includes(type))) {
+                        lastPrimarySection = allSections[i];
+                        break;
                     }
+                }
 
-                    if (totalWaitTime > maxWaitTime) {console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Timeout reached, proceeding with injection at the top.');}
+                if (lastPrimarySection) {
+                    console.log(`${logPrefix} Injecting after last primary section.`);
+                    lastPrimarySection.parentElement.insertBefore(sectionToInject, lastPrimarySection.nextSibling);
+                    return;
+                }
 
-                    console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Jellyfin results are available. Analyzing results layout...');
+                const firstSecondarySection = allSections.find(s => {
+                    const title = s.querySelector('.sectionTitle')?.textContent.trim().toLowerCase() || '';
+                    return secondaryTypes.some(type => title.includes(type));
+                });
 
-                    const searchPage = document.querySelector('#searchPage');
-                    if (!searchPage) {
-                        console.error('🪼 Jellyfin Enhanced: Jellyseerr Search: Could not find search page for injection.');
-                        return;
-                    }
+                if (firstSecondarySection) {
+                    console.log(`${logPrefix} No primary found. Injecting before first secondary section.`);
+                    firstSecondarySection.parentElement.insertBefore(sectionToInject, firstSecondarySection);
+                    return;
+                }
 
-                    const allSections = Array.from(searchPage.querySelectorAll('.verticalSection:not(.jellyseerr-section)'));
-                    console.debug(`🪼 Jellyfin Enhanced: Jellyseerr Search: Found ${allSections.length} existing sections`);
-
-                    const finalSections = allSections.map(el => ({
-                        element: el,
-                        title: el.querySelector('.sectionTitle, h2')?.textContent.trim() || ''
-                    }));
-
-                    finalSections.forEach(section => {
-                        console.debug(`🪼 Jellyfin Enhanced: Jellyseerr Search: Found section: "${section.title}"`);
-                    });
-
-                    if (finalSections.length === 0) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: No Jellyfin sections found. Adding to top as fallback.');
-                        let injectionPoint = searchPage.querySelector('.searchResults, [class*="searchResults"], .padded-top.padded-bottom-page');
-                        if (!injectionPoint) {
-                            injectionPoint = document.createElement('div');
-                            injectionPoint.className = 'searchResults padded-top padded-bottom-page';
-                            searchPage.appendChild(injectionPoint);
-                        }
-                        injectionPoint.appendChild(sectionToInject);
-                        return;
-                    }
-
-                    const peopleSection = finalSections.find(s => s.title.toLowerCase().includes('people'));
-                    const episodesSection = finalSections.find(s => s.title.toLowerCase().includes('episodes'));
-                    const showsSection = finalSections.find(s => s.title.toLowerCase().includes('shows') || s.title.toLowerCase().includes('series'));
-                    const moviesSection = finalSections.find(s => s.title.toLowerCase().includes('movies') || s.title.toLowerCase().includes('films'));
-
-                    if (peopleSection) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Results added before People section.');
-                        peopleSection.element.parentElement.insertBefore(sectionToInject, peopleSection.element);
-                    } else if (episodesSection) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Results added after Episodes section.');
-                        const nextSibling = episodesSection.element.nextElementSibling;
-                        if (nextSibling) {
-                            episodesSection.element.parentElement.insertBefore(sectionToInject, nextSibling);
-                        } else {
-                            episodesSection.element.parentElement.appendChild(sectionToInject);
-                        }
-                    } else if (showsSection) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Results added  after Shows section.');
-                        const nextSibling = showsSection.element.nextElementSibling;
-                        if (nextSibling) {
-                            showsSection.element.parentElement.insertBefore(sectionToInject, nextSibling);
-                        } else {
-                            showsSection.element.parentElement.appendChild(sectionToInject);
-                        }
-                    } else if (moviesSection) {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Results added  after Movies section.');
-                        const nextSibling = moviesSection.element.nextElementSibling;
-                        if (nextSibling) {
-                            moviesSection.element.parentElement.insertBefore(sectionToInject, nextSibling);
-                        } else {
-                            moviesSection.element.parentElement.appendChild(sectionToInject);
-                        }
-                    } else {
-                        console.debug('🪼 Jellyfin Enhanced: Jellyseerr Search: Results added [Fallback].');
-                        let fallbackContainer = searchPage.querySelector('.searchResults, [class*="searchResults"], .padded-top.padded-bottom-page');
-                        if (!fallbackContainer) {
-                            fallbackContainer = document.createElement('div');
-                            fallbackContainer.className = 'searchResults padded-top padded-bottom-page';
-                            searchPage.appendChild(fallbackContainer);
-                        }
-                        fallbackContainer.appendChild(sectionToInject);
-                    }
+                // Timeout or unexpected DOM: last resort fallbacks
+                console.warn(`${logPrefix} No typed sections resolved. Using fallback injection method.`);
+                const resultsContainer = searchPage.querySelector('.searchResults, [class*="searchResults"], .padded-top.padded-bottom-page');
+                if (resultsContainer) {
+                    resultsContainer.appendChild(sectionToInject);
+                } else {
+                    searchPage.appendChild(sectionToInject);
                 }
             }, 200);
         }
+
+
 
         function createJellyseerrSection(isLoading, results = []) {
             const section = document.createElement('div');
@@ -493,14 +452,14 @@
             const check = () => {
                 // Check if the API client has a user ID
                 if (ApiClient.getCurrentUserId()) {
-                    console.log('🪼 Jellyfin Enhanced: Jellyseerr Search: User session found. Proceeding...');
+                    console.log(`${logPrefix} User session found. Proceeding...`);
                     // User is available, run the status check and then set up the observer
                     checkJellyseerrStatus().then(() => {
                         initializeObserver();
                     });
                 } else if (Date.now() - startTime > timeout) {
                     // If we've waited too long, give up and initialize in a degraded state
-                    console.warn('🪼 Jellyfin Enhanced: Jellyseerr Search: Timed out waiting for user ID. Features may be limited.');
+                    console.warn(`${logPrefix} Timed out waiting for user ID. Features may be limited.`);
                     checkJellyseerrStatus().then(() => {
                         initializeObserver();
                     });
