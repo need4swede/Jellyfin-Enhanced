@@ -164,13 +164,24 @@
                                 <textarea style="display:block; height: 8vh !important;" class="emby-textarea emby-input" id="jellyseerrUrls" name="jellyseerrUrls" placeholder="http://192.168.1.10:5055&#10;https://jellyseerr.example.com"></textarea>
                                 <div class="fieldDescription">Enter your Jellyseerr instance URLs, one per line. The script will use the first one that connects successfully.</div>
                             </div>
-                        </div>
-                        <div
-                            style="background-color: rgba(255, 255, 255, 0.05); border-left: 4px solid #00a4dc; border-radius: 4px; padding: 1em 1.5em; margin: 1.5em 0; display: flex; align-items: center; gap: 1em;">
-                            <i class="material-icons" style="color: #00a4dc; font-size: 24px;">info</i>
-                            <div>
-                                Users should enter their password by clicking on <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" style="height:2em; width:2em; vertical-align:middle;" alt="Jellyseerr Icon"/> in the Search Bar to see results from Jellyseerr<br/>
-                                "<b>Enable Jellyfin Sign-In</b>" must be enabled in Jellyseerr User Settings (/settings/users)
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="JellyseerrApiKey">Jellyseerr API Key</label>
+                                <div style="display: flex; align-items: center; gap: 1em; margin-left: -1em;">
+                                    <input id="JellyseerrApiKey" is="emby-input" name="JellyseerrApiKey" type="text" style="flex-grow: 1;"/>
+                                    <span id="jellyseerrStatusIndicator" class="material-icons" style="transition: color 0.3s ease;"></span>
+                                    <button is="emby-button" type="button" id="testJellyseerrBtn" class="raised button-submit">
+                                        <span>Test</span>
+                                    </button>
+                                </div>
+                                <div class="fieldDescription">API key from Jellyseerr. (Settings > General Settings >  API Key)</div>
+                            </div>
+                            <div
+                                style="background-color: rgba(255, 255, 255, 0.05); border-left: 4px solid #00a4dc; border-radius: 4px; padding: 1em 1.5em; margin: 1.5em 0; display: flex; align-items: center; gap: 1em;">
+                                <i class="material-icons" style="color: #00a4dc; font-size: 18px;">info</i>
+                                <div>
+                                    "<b>Enable Jellyfin Sign-In</b>" must be enabled in Jellyseerr User Settings (/settings/users)<br><br>
+                                    All users much be imported to Jellyseer as Jellyfin users for them to be able to request conetnt.
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -205,8 +216,13 @@
             const addShortcutBtn = document.getElementById('add-shortcut-btn');
             const shortcutErrorComment = document.getElementById('shortcut-error-comment');
 
+            const testJellyseerrBtn = document.getElementById('testJellyseerrBtn');
+            const jellyseerrStatusIndicator = document.getElementById('jellyseerrStatusIndicator');
+
             const style = document.createElement('style');
             style.textContent = `
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .status-check { animation: spin 1s linear infinite; }
                 @keyframes shake {
                     10%, 90% { transform: translate3d(-1px, 0, 0); }
                     20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -265,7 +281,7 @@
         function renderOverrides() {
             shortcutListContainer.innerHTML = '';
             if (shortcutOverrides.length === 0) {
-                 shortcutListContainer.innerHTML = '<p class="fieldDescription" style="text-align: center;">No overrides configured. All shortcuts are using default values.</p>';
+                shortcutListContainer.innerHTML = '<p class="fieldDescription" style="text-align: center;">No overrides configured. All shortcuts are using default values.</p>';
             }
             shortcutOverrides.forEach((shortcut, index) => {
                 const row = document.createElement('div');
@@ -385,6 +401,55 @@
             }
         });
 
+        async function testJellyseerrConnection() {
+            const urls = (document.querySelector('#jellyseerrUrls').value || '').split('\n').map(u => u.trim()).filter(Boolean);
+            const apiKey = (document.querySelector('#JellyseerrApiKey').value || '').trim();
+
+            if (!urls.length || !apiKey) {
+                Dashboard.alert({ title: 'Missing Information', message: 'Please provide at least one Jellyseerr URL and an API key to test the connection.' });
+                return;
+            }
+
+            testJellyseerrBtn.disabled = true;
+            jellyseerrStatusIndicator.textContent = 'sync';
+            jellyseerrStatusIndicator.className = 'material-icons status-check';
+            jellyseerrStatusIndicator.style.color = '#00a4dc';
+
+            let validated = false;
+            for (const url of urls) {
+                try {
+                    const validationUrl = ApiClient.getUrl(`/JellyfinEnhanced/jellyseerr/validate`, {
+                        url: url,
+                        apiKey: apiKey
+                    });
+                    console.debug("Attempting to validate with URL:", validationUrl);
+
+                    const res = await ApiClient.ajax({ type: 'GET', url: validationUrl, dataType: 'json' });
+
+                    if (res && res.ok) {
+                        validated = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.error(`Jellyseerr validation failed for ${url}:`, e);
+                }
+            }
+
+            testJellyseerrBtn.disabled = false;
+            jellyseerrStatusIndicator.classList.remove('status-check');
+
+            if (validated) {
+                jellyseerrStatusIndicator.textContent = 'check_circle';
+                jellyseerrStatusIndicator.style.color = '#52b54b';
+                Dashboard.alert({ title: 'Success', message: 'Successfully connected to Jellyseerr!' });
+            } else {
+                jellyseerrStatusIndicator.textContent = 'error';
+                jellyseerrStatusIndicator.style.color = '#dc3545';
+                Dashboard.alert({ title: 'Connection Failed', message: 'Could not validate the API key against any provided URL. Please check the details.' });
+            }
+        }
+
+
         function loadConfig() {
             Dashboard.showLoadingMsg();
             ApiClient.getPluginConfiguration(pluginId).then((config) => {
@@ -419,58 +484,54 @@
                 document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
                 document.querySelector('#jellyseerrEnabled').checked = config.JellyseerrEnabled;
                 document.querySelector('#jellyseerrUrls').value = config.JellyseerrUrls;
-
+                document.querySelector('#JellyseerrApiKey').value = config.JellyseerrApiKey;
 
                 Dashboard.hideLoadingMsg();
             });
         }
 
-        function saveConfig(e) {
+        async function saveConfig(e) {
             e.preventDefault();
             Dashboard.showLoadingMsg();
-            ApiClient.getPluginConfiguration(pluginId).then(config => {
 
-                const finalShortcuts = [...defaultShortcuts];
-                shortcutOverrides.forEach(override => {
-                    const index = finalShortcuts.findIndex(s => s.Name === override.Name);
-                    if (index !== -1) {
-                        finalShortcuts[index] = override;
-                    }
-                });
-                config.Shortcuts = finalShortcuts;
-
-                // Save all other settings
-                config.ClearBookmarksDelay = parseInt(document.querySelector('#ClearBookmarksDelay').value, 10);
-                config.ToastDuration = parseInt(document.querySelector('#ToastDuration').value, 10);
-                config.HelpPanelAutocloseDelay = parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10);
-                config.TMDB_API_KEY = document.querySelector('#TMDB_API_KEY').value;
-                config.DEFAULT_REGION = document.querySelector('#DEFAULT_REGION').value;
-                config.DEFAULT_PROVIDERS = document.querySelector('#DEFAULT_PROVIDERS').value;
-                config.IGNORE_PROVIDERS = document.querySelector('#IGNORE_PROVIDERS').value;
-                config.AutoPauseEnabled = document.querySelector('#autoPauseEnabled').checked;
-                config.AutoResumeEnabled = document.querySelector('#autoResumeEnabled').checked;
-                config.AutoPipEnabled = document.querySelector('#autoPipEnabled').checked;
-                config.AutoSkipIntro = document.querySelector('#autoSkipIntro').checked;
-                config.AutoSkipOutro = document.querySelector('#autoSkipOutro').checked;
-                config.RandomButtonEnabled = document.querySelector('#randomButtonEnabled').checked;
-                config.RandomIncludeMovies = document.querySelector('#randomIncludeMovies').checked;
-                config.RandomIncludeShows = document.querySelector('#randomIncludeShows').checked;
-                config.RandomUnwatchedOnly = document.querySelector('#randomUnwatchedOnly').checked;
-                config.ShowFileSizes = document.querySelector('#showFileSizes').checked;
-                config.ShowAudioLanguages = document.querySelector('#showAudioLanguages').checked;
-                config.RemoveContinueWatchingEnabled = document.querySelector('#removeContinueWatchingEnabled').checked;
-                config.JellyseerrEnabled = document.querySelector('#jellyseerrEnabled').checked;
-                config.JellyseerrUrls = document.querySelector('#jellyseerrUrls').value;
-
-
-                ApiClient.updatePluginConfiguration(pluginId, config)
-                    .then((result) => {
-                        Dashboard.processPluginConfigurationUpdateResult(result);
-                    })
-                    .catch(() => {
-                        Dashboard.hideLoadingMsg();
-                    });
+            const config = await ApiClient.getPluginConfiguration(pluginId);
+            const finalShortcuts = [...defaultShortcuts];
+            shortcutOverrides.forEach(override => {
+                const index = finalShortcuts.findIndex(s => s.Name === override.Name);
+                if (index !== -1) finalShortcuts[index] = override;
             });
+            config.Shortcuts = finalShortcuts;
+
+            config.ClearBookmarksDelay = parseInt(document.querySelector('#ClearBookmarksDelay').value, 10);
+            config.ToastDuration = parseInt(document.querySelector('#ToastDuration').value, 10);
+            config.HelpPanelAutocloseDelay = parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10);
+            config.TMDB_API_KEY = document.querySelector('#TMDB_API_KEY').value;
+            config.DEFAULT_REGION = document.querySelector('#DEFAULT_REGION').value;
+            config.DEFAULT_PROVIDERS = document.querySelector('#DEFAULT_PROVIDERS').value;
+            config.IGNORE_PROVIDERS = document.querySelector('#IGNORE_PROVIDERS').value;
+            config.AutoPauseEnabled = document.querySelector('#autoPauseEnabled').checked;
+            config.AutoResumeEnabled = document.querySelector('#autoResumeEnabled').checked;
+            config.AutoPipEnabled = document.querySelector('#autoPipEnabled').checked;
+            config.AutoSkipIntro = document.querySelector('#autoSkipIntro').checked;
+            config.AutoSkipOutro = document.querySelector('#autoSkipOutro').checked;
+            config.RandomButtonEnabled = document.querySelector('#randomButtonEnabled').checked;
+            config.RandomIncludeMovies = document.querySelector('#randomIncludeMovies').checked;
+            config.RandomIncludeShows = document.querySelector('#randomIncludeShows').checked;
+            config.RandomUnwatchedOnly = document.querySelector('#randomUnwatchedOnly').checked;
+            config.ShowFileSizes = document.querySelector('#showFileSizes').checked;
+            config.ShowAudioLanguages = document.querySelector('#showAudioLanguages').checked;
+            config.RemoveContinueWatchingEnabled = document.querySelector('#removeContinueWatchingEnabled').checked;
+
+            config.JellyseerrEnabled = document.querySelector('#jellyseerrEnabled').checked;
+            config.JellyseerrUrls = (document.querySelector('#jellyseerrUrls').value || '').split('\n').map(u => u.trim()).filter(Boolean).join('\n');
+            config.JellyseerrApiKey = (document.querySelector('#JellyseerrApiKey').value || '').trim();
+
+            try {
+                const result = await ApiClient.updatePluginConfiguration(pluginId, config);
+                Dashboard.processPluginConfigurationUpdateResult(result);
+            } catch {
+                Dashboard.hideLoadingMsg();
+            }
             return false;
         }
 
@@ -489,6 +550,7 @@
         page.addEventListener('pageshow', loadConfig);
         form.addEventListener('submit', saveConfig);
         clearLocalStorageBtn.addEventListener('click', clearLocalStorage);
+        testJellyseerrBtn.addEventListener('click', testJellyseerrConnection);
     })();
 </script>
 </div>

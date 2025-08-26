@@ -75,6 +75,150 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 - File sizes - Display filesizes for each movie or episode in the item details page \
     ... and many more to come!
 
+<br>
+
+<p align="center">
+--------------------------------------------------
+</p>
+
+## Jellyseerr Search Integration <img class="jellyseerr-icon jellyseerr-search-icon.is-active is-active" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" >
+
+The Jellyfin Enhanced plugin can integrate with your Jellyseerr instance, allowing users to search for and request media directly from the Jellyfin search interface.****
+
+#### Setup
+
+To enable the Jellyseerr integration, you must first configure it in the plugin settings:
+
+1.  Navigate to **Dashboard > Plugins > Jellyfin Enhanced**.
+2.  Go to the **Jellyseerr Settings** tab.
+3.  Check the **Show Jellyseerr Results in Search** box to enable the feature.
+4.  Enter your **Jellyseerr URL(s)**, one per line. The plugin will use the first one that connects successfully. Should be the same Jellyseerr Instance. Intended for providing internal and external urls, ideally just internal URL should work.
+5.  Enter your **Jellyseerr API Key**. You can find this in Jellyseerr under **Settings > General > API Key**.
+6.  You can use the test button to see if your Jellyseerr instance is reachable.
+7.  Click **Save**.
+
+<div style="text-align: center;">
+  <img src="images/jellyseerr.png" style="width:600px; border-radius:25px;" />
+</div>
+
+> [!IMPORTANT]
+> For the integration to work, you must also enable **"Enable Jellyfin Sign-In"** in your Jellyseerr User Settings (`/settings/users`). <br> All users who need access to request content must be imported into Jellyseerr as Jellyfin users.
+
+
+#### Icon States
+
+When on the search page, a Jellyseerr icon will appear to indicate the connection status. This is the first thing to check when troubleshooting issues.
+
+<style>
+    .jellyseerr-icon {
+        width: 35px;
+        height: 50px;
+        vertical-align: middle;
+        transition: filter .2s, opacity .2s;
+        filter: drop-shadow(0 0 5px rgba(0,0,0,.7));
+    }
+    .jellyseerr-search-icon.is-active {
+        filter: drop-shadow(2px 2px 6px black);;
+        opacity: 1;
+    }
+    .jellyseerr-search-icon.is-no-user {
+        filter: grayscale(1);
+        opacity: .8;
+    }
+    .jellyseerr-search-icon.is-disabled {
+        filter: hue-rotate(125deg) brightness(100%);
+    }
+</style>
+
+| Icon | State | Description|
+| :---: | :--- | :--- |
+| <img class="jellyseerr-icon jellyseerr-search-icon is-active" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br>Results from Jellyseerr will load along with Jellyfin and requests can be made. |
+| <img class="jellyseerr-icon jellyseerr-search-icon is-disabled" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **Offline**| The plugin could not connect to any of the configured Jellyseerr URLs. Check your plugin settings and ensure Jellyseerr is running and accessible. <br>Results will not load.|
+| <img class="jellyseerr-icon jellyseerr-search-icon is-no-user" src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg"> | **User Not Found** | Jellyseerr is connected, but the current Jellyfin user is not linked to a Jellyseerr account. Ensure the user has been imported into Jellyseerr from Jellyfin. <br>Results will not load. |
+
+---
+
+
+<br>
+
+### How It Works?
+
+To ensure security and prevent browser-related Cross-Origin Resource Sharing (CORS) errors, the Jellyfin Enhanced plugin does not communicate directly with the Jellyseerr API from your browser. Instead, it uses the Jellyfin server as a proxy. This method keeps your Jellyseerr API key safe on the server and avoids security issues.
+
+In doing so, the plugin exposes a few proxy endpoints for its own use and for troubleshooting.
+
+
+<details>
+<summary style="font-size: 1.25em; font-weight: 600;">Jellyseerr Search Troubleshooting</summary>
+<br>
+
+You can use these `curl` commands to directly interact with the plugin's API for troubleshooting. You will need to replace the placeholder values with your own.
+
+#### Get Plugin Version
+
+This endpoint checks the installed version of the Jellyfin Enhanced plugin.
+
+```bash
+curl -X GET\
+  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/version"
+```
+
+<br/>
+
+#### Get Jellyseerr Connection Status
+
+Checks if the plugin can connect to any of the configured Jellyseerr URLs using the provided API key.
+
+```bash
+curl -X GET\
+  -H "X-Emby-Token: <JELLYFIN_API_KEY>"\
+  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/jellyseerr/status"
+```
+
+<br/>
+
+#### Get Jellyseerr User Status
+
+Verifies that the currently logged-in Jellyfin user is successfully linked to a Jellyseerr user account.
+
+```bash
+curl -X GET\
+  -H "X-Emby-Token: <JELLYFIN_API_KEY>"\
+  -H "X-Jellyfin-User-Id: <JELLYFIN_USER_ID>"\
+  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/jellyseerr/user-status"
+```
+
+<br/>
+
+#### Perform a Jellyseerr Search
+
+Executes a search query through the Jellyseerr instance for the specified user.
+
+```bash
+curl -X GET\
+  -H "X-Emby-Token: <JELLYFIN_API_KEY>"\
+  -H "X-Jellyfin-User-Id: <JELLYFIN_USER_ID>"\
+  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/jellyseerr/search?query=Inception"
+```
+
+<br/>
+
+#### Make a Request on Jellyseerr
+
+Submits a media request to Jellyseerr on behalf of the specified user. \
+mediaType can be `tv` or `movie` \
+mediaId is the TMDB ID of the item
+
+```bash
+curl -X POST\
+  -H "X-Emby-Token: <JELLYFIN_API_KEY>"\
+  -H "X-Jellyfin-User-Id: <JELLYFIN_USER_ID>"\
+  -H "Content-Type: application/json"\
+  -d '{"mediaType": "movie", "mediaId": 27205}'\
+  "<JELLYFIN_ADDRESS>/JellyfinEnhanced/jellyseerr/request"
+```
+
+</details>
 
 ## 🔧 Installation
 
@@ -120,93 +264,7 @@ If you're running Jellyfin through Docker, the plugin may not have permission to
 This gives the plugin the necessary permissions to inject JavaScript into the web interface.
 
 
-<br>
-<details>
-<summary style="font-size: 1.25em; font-weight: 600;">Script Installation (OLD)</summary>
-<br>
 
-You can install the script using one of the methods below.
-
-<p align="center">
-----
-</p>
-
-### **Method 1: Browser Extension (for Personal Use)**
-
-*This method works only in your browser and is perfect for personal use.*
-
-1.  **Install a userscript manager:**
-    * [Tampermonkey](https://www.tampermonkey.net/) (Recommended)
-    * [Violentmonkey](https://violentmonkey.github.io/)
-    * [Greasemonkey](https://addons.mozilla.org/en-GB/firefox/addon/greasemonkey/) (Firefox)
-
-2.  **Install the script:**
-
-    [![Install Script](https://img.shields.io/badge/Install%20Script-blue?style=for-the-badge)](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/main/jf_enhanced.user.js)
-
-> [!WARNING]
-> If you previously used `hotkeys.js`, please remove it from your userscripts to avoid conflicts.
-
-<p align="center">
-----
-</p>
-
-### **Method 2 (Recommended): Plugin (Server-Wide)**
-
-1.  Install the [Jellyfin JavaScript Injector Plugin](https://github.com/n00bcodr/Jellyfin-JavaScript-Injector) and reboot your Jellyfin server.
-2.  Navigate to **Dashboard -> Plugins -> JavaScript Injector**.
-3.  Click on "Add Script"
-4. Paste the contents of [jf_enhanced.js](jf_enhanced.js) into the script area.
-   <br>
-   **OR** <br>
-   Paste the below code snippet to always pull the latest
-
-   ```js
-   (function() {
-   'use strict';
-   const scriptUrl = 'https://cdn.jsdelivr.net/gh/n00bcodr/Jellyfin-Enhanced@main/jf_enhanced.js';
-   const script = document.createElement('script');
-   script.src = scriptUrl;
-   script.type = 'text/javascript';
-   document.head.appendChild(script);
-   })();
-
-5.  Save and Refresh.
-
-> [!NOTE]
-> **Clear your cache** if you do not see changes reflect.
-
-<p align="center">
-----
-</p>
-
-### **Method 3: Direct Integration (Advanced, Server-Wide)**
-
-*This method makes the enhancements available to all users on your server but requires direct file system access.*
-
-1.  **Locate your Jellyfin web root directory:**
-    * **Ubuntu/Debian**: `/usr/share/jellyfin/web/`
-    * **Docker**: `/jellyfin/jellyfin-web/`
-    * **Windows**: `C:\Program Files\Jellyfin\Server\jellyfin-web\`
-
-2.  **Edit the `index.html` file:**
-    ```bash
-    sudo nano /usr/share/jellyfin/web/index.html
-    ```
-
-3.  **Add the script reference** before the closing `</head>` tag:
-    ```html
-    <script defer src="jf_enhanced.js"></script>
-    ```
-
-4.  **Download the script** into the web root directory:
-    ```bash
-    curl -o /usr/share/jellyfin/web/jf_enhanced.js [https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js](https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/jf_enhanced.js)
-    ```
-
-5.  **Clear your browser cache** and reload Jellyfin.
-
-</details>
 ---
 
 ## 🧪 Compatibility
