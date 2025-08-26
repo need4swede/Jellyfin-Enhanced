@@ -44,14 +44,14 @@
                 margin-top:.5em!important;width:100%;display:flex;justify-content:center;align-items:center;white-space:nowrap;
                 transition:background .2s,border-color .2s,color .2s;
                 }
-                .jellyseerr-button-offline,.jellyseerr-button-no-user{opacity:.6;cursor:not-allowed;}
-                .jellyseerr-button-requested{background:#e8f0ff;border-color:#8ab4f8;color:#174ea6;}
-                .jellyseerr-button-pending{background:#fff7e6;border-color:#f6c26b;color:#8a5a00;}
-                .jellyseerr-button-processing{background:#f0f7ff;border-color:#6fb1ff;color:#0b5394;}
-                .jellyseerr-button-rejected{background:#fdecea;border-color:#f28b82;color:#8a1c1c;}
-                .jellyseerr-button-partially-available{background:#eef7ee;border-color:#a8d5a2;color:#1e5e2e;}
-                .jellyseerr-button-available{background:#e6f4ea;border-color:#34a853;color:#0d652d;}
-                .jellyseerr-button-error{background:#dc3545;color:#fff;}
+                .jellyseerr-request-button.jellyseerr-button-offline,.jellyseerr-request-button.jellyseerr-button-no-user{opacity:.6;cursor:not-allowed;}
+                .jellyseerr-request-button.jellyseerr-button-requested{background-color:#5a6268!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-pending{background-color:#b45309!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-processing{background-color:#581c87!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-rejected{background-color:#8a1c1c!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-partially-available{background-color:#4ca46c!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-available{background-color:#16a34a!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-error{background:#dc3545!important;color:#fff!important;}
 
                 .jellyseerr-spinner,.jellyseerr-loading-spinner,.jellyseerr-button-spinner{
                 display:inline-block;border-radius:50%;animation:jellyseerr-spin 1s linear infinite;
@@ -432,18 +432,18 @@
 
             const button = card.querySelector('.jellyseerr-request-button');
             if (!isJellyseerrActive) {
-                button.textContent = 'Jellyseerr offline';
+                button.innerHTML = `<span>Jellyseerr offline</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">cloud_off</span>`;
                 button.disabled = true;
                 button.classList.add('jellyseerr-button-offline');
                 } else if (!jellyseerrUserFound) {
-                button.textContent = 'Jellyseerr ID not found';
+                button.innerHTML = `<span>User not found</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">person_off</span>`;
                 button.disabled = true;
                 button.classList.add('jellyseerr-button-no-user');
                 } else {
             const status = item.mediaInfo ? item.mediaInfo.status : 1;
             switch (status) {
                 case 2: // Pending Approval
-                    button.innerHTML = `<span>Pending Approval</span><span class="jellyseerr-button-spinner"></span>`;
+                    button.innerHTML = `<span>Pending</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">pending</span>`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-pending');
                     break;
@@ -453,22 +453,22 @@
                     button.classList.add('button-submit', 'jellyseerr-button-processing');
                     break;
                 case 4: // Partially Available
-                    button.textContent = 'Partially Available';
+                    button.innerHTML = `<span>Partially Available</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">check_circle_outline</span>`;
                     button.disabled = true;
-                    button.classList.add('jellyseerr-button-partially-available', 'button-submit');
+                    button.classList.add('button-submit', 'jellyseerr-button-partially-available');
                     break;
                 case 5: // Available
-                    button.textContent = 'Available';
+                    button.innerHTML = `<span>Available</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">check_circle</span>`;
                     button.disabled = true;
-                    button.classList.add('jellyseerr-button-available', 'button-submit');
+                    button.classList.add('button-submit', 'jellyseerr-button-available');
                     break;
                 case 6: // Rejected
-                    button.textContent = 'Rejected';
+                    button.innerHTML = `<span>Rejected</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">cancel</span>`;
                     button.disabled = true;
-                    button.classList.add('jellyseerr-button-rejected', 'button-submit');
+                    button.classList.add('button-submit', 'jellyseerr-button-rejected');
                     break;
                 default:
-                    button.textContent = 'Request'; // Requested after POST
+                    button.innerHTML = `<span>Request</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">add_circle</span>`;
                     button.disabled = false;
                     button.classList.add('button-submit', 'jellyseerr-button-requested');
                 }
