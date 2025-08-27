@@ -355,7 +355,7 @@
                         'X-Jellyfin-User-Id': ApiClient.getCurrentUserId()
                     }
                 });
-                button.innerHTML = `<span>Requested ${icons.check_circle}</span>`;
+                button.innerHTML = `<span>Requested ${icons.requested}</span>`;
                 button.classList.add('jellyseerr-button-available');
             } catch (error) {
                 button.disabled = false;
