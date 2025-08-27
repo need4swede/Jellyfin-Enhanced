@@ -58,7 +58,7 @@
      * The result is stored in JE.state.activeShortcuts.
      */
     JE.initializeShortcuts = function() {
-        const defaultShortcuts = pluginConfig.Shortcuts.reduce((acc, s) => {
+        const defaultShortcuts = (pluginConfig.Shortcuts || []).reduce((acc, s) => {
             acc[s.Name] = s.Key;
             return acc;
         }, {});
