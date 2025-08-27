@@ -17,6 +17,8 @@ The ultimate enhancement for your Jellyfin experience. This plugin (previously s
 <img src="images/panel.gif" width="800"/>
 </details><br>
 
+
+
 ## ✨ Features
 
 The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web interface:
@@ -103,7 +105,12 @@ To enable the Jellyseerr integration, you must first configure it in the plugin 
 
 > [!IMPORTANT]
 > For the integration to work, you must also enable **"Enable Jellyfin Sign-In"** in your Jellyseerr User Settings (`/settings/users`).
+> \
+> <img src="images/jellyfin-signin.png" width="500" style="border-radius:25px;" /> \
+> \
 > All users who need access to request content must be imported into Jellyseerr as Jellyfin users.
+> <table align="center">
+> <tr><th style="text-align:center">Users that have access</th><th style="text-align:center">Users that don't have access (import them)</th>  </tr>  <tr>    <td><img src="images/users-with-access.png" width="300"/></td>    <td><img src="images/users-no-access.png" width="300"/></td>  </tr>  </table>
 
 #### Icon States
 
@@ -127,9 +134,9 @@ To ensure security and prevent browser-related Cross-Origin Resource Sharing (CO
 
 In doing so, the plugin exposes a few proxy endpoints for its own use and for troubleshooting.
 
-
+<Br>
 <details>
-<summary style="font-size: 1.25em; font-weight: 600;">Jellyseerr Search Troubleshooting</summary>
+<summary style="font-size: 1.25em; font-weight: 600;">🔌 Jellyseerr API Endpoints</summary>
 <br>
 
 You can use these `curl` commands to directly interact with the plugin's API for troubleshooting. You will need to replace the placeholder values with your own.
@@ -212,22 +219,22 @@ curl -X POST\
 
 #### 🐳 Docker Installation Notes
 
-> [!NOTE]
-> If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
+  > [!NOTE]
+  > If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
 
 
-If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/usr/share/jellyfin/web/index.html' is denied.` in your logs, you will need to map the `index.html` file manually:
+If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` in your logs, you will need to map the `index.html` file manually:
 
 1. Copy the index.html file from your container:
 
    ```bash
-   docker cp jellyfin:/usr/share/jellyfin/web/index.html /path/to/your/jellyfin/config/index.html
+   docker cp jellyfin:/jellyfin/jellyfin-web/index.html /path/to/your/jellyfin/config/index.html
    ```
 
 2. Add a volume mapping to your Docker run command:
 
    ```yaml
-   -v /path/to/your/jellyfin/config/index.html:/usr/share/jellyfin/web/index.html
+   -v /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
    ```
 
 3. Or for Docker Compose, add this to your volumes section:
@@ -237,14 +244,49 @@ If you're running Jellyfin through Docker, the plugin may not have permission to
        # ... other config
        volumes:
          - /path/to/your/jellyfin/config:/config
-         - /path/to/your/jellyfin/config/index.html:/usr/share/jellyfin/web/index.html
+         - /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
          # ... other volumes
    ```
 
 This gives the plugin the necessary permissions to inject JavaScript into the web interface.
 
+---
+💡 FAQ & Troubleshooting
+------------------------
 
+Here are some common questions and solutions for issues you might encounter with the Jellyfin Enhanced plugin.
 
+### Frequently Asked Questions
+
+**Q: Can I customize the keyboard shortcuts?** \
+ **A:** Yes, you can! Open the Jellyfin Enhanced panel by clicking the menu item in the sidebar or pressing `?`. In the "Shortcuts" tab, you can click on any key to set a new custom shortcut.
+
+**Q: Does this plugin work on the Jellyfin mobile app?** \
+**A:** Yes, the plugin is compatible with the official Jellyfin Android and iOS apps, as well as the desktop and web UIs.
+
+**Q: Does this plugin work on the Android TV or any other TV?** \
+**A:** No, this plugin does not work on the native Jellyfin app for Android TV, or other similar TV platforms. The plugin taps into the Jellyfin web interface, so it only functions on clients that use the embedded web UI, such as the official Web, Desktop, and mobile apps.
+
+**Q: Why is the "Remove from Continue Watching" feature a destructive action?** \
+**A:** This feature works by resetting the playback progress of an item to zero. While this removes it from the "Continue Watching" list, it also means the user's watch history for that item is lost.
+
+**Q: Where is the userscript?** \
+**A:** With the plugin functionality growing and diverging from the userscript, I had to remove it and installation method to avoid confusion. But if you just want the keyboard shortcuts and other functionality, the last updated version is [**here**](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/05dd5b54802f149e45c76102dabf6235aaf7a5fb/jf_enhanced.user.js)
+
+### Troubleshooting Guide
+
+Here is a list of common errors you might see in your Jellyfin server logs or your browser's developer console, and what they mean.
+
+#### Server Logs (`Jellyfin Server Dashboard > Logs`)
+
+| Error Message | Meaning & Solution |
+| --- | --- |
+| `Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` | **Meaning:** The plugin was unable to edit the `index.html` file to inject its script. <br> **Solution:** This is common in Docker installs. Follow the **Docker Installation Notes** in the README to correctly map the `index.html` file or use file-transformation plugin. |
+
+.
+.
+.
+.
 ---
 
 ## 🧪 Compatibility
@@ -253,7 +295,8 @@ This gives the plugin the necessary permissions to inject JavaScript into the we
 - Official Jellyfin Android and iOS Apps
 - Official Jellyfin Desktop Apps
 
-This does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
+> [!NOTE]
+> This does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
 
 ## 📸 Screenshots
 
@@ -282,65 +325,108 @@ Sample styling
 
     /*
     * ===================================================================
-    * Universal Style Override for the Jellyfin Enhanced Panel if you are using
+    * Universal Style Override for the Jellyfin Enhanced Panel
     * ===================================================================
     */
 
-    /* Main Panel Container */
+    /* --- Main Panel & Backdrop --- */
     #jellyfin-enhanced-panel {
-    background: linear-gradient(135deg, #2c3e50, #1a2531) !important;
-    border: 1px solid #567 !important;
-    backdrop-filter: blur(5px) !important;
-    color: #ecf0f1 !important;
+        background: rgba(25, 35, 45, 0.85) !important;
+        border: 1px solid rgba(125, 150, 175, 0.3) !important;
+        backdrop-filter: blur(20px) !important;
+        color: #e6e6e6 !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
     }
 
-    /* Panel Header & Footer */
-    #jellyfin-enhanced-panel > div:first-child,
-    #jellyfin-enhanced-panel > div:last-child {
-    background: rgba(0, 0, 0, 0.2) !important;
-    border-color: rgba(136, 153, 170, 0.4) !important; /* Corresponds to #567 with opacity */
+    /* --- Panel Header --- */
+    #jellyfin-enhanced-panel > div:first-child {
+        background: rgba(0, 0, 0, 0.25) !important;
+        border-bottom: 1px solid rgba(125, 150, 175, 0.3) !important;
     }
 
-    /* Main Title ("Jellyfin Enhanced") */
+    /* --- Main Title ("Jellyfin Enhanced") --- */
     #jellyfin-enhanced-panel div[style*="-webkit-background-clip: text"] {
-    /* For gradient titles, otherwise use 'color' */
-    background: linear-gradient(135deg, #1abc9c, #3498db) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
+        background: linear-gradient(135deg, #00a4dc, #aa5cc3) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
     }
 
-    /* Section Headers (e.g., "Global", "Player") and Accent Color for Details */
+    /* --- Tab Buttons --- */
+    #jellyfin-enhanced-panel .tab-button {
+        background: rgba(0, 0, 0, 0.2) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom: 3px solid transparent !important;
+    }
+
+    #jellyfin-enhanced-panel .tab-button:hover {
+        background: rgba(0, 0, 0, 0.4) !important;
+        color: #ffffff !important;
+    }
+
+    #jellyfin-enhanced-panel .tab-button.active {
+        color: #ffffff !important;
+        border-bottom-color: #00a4dc !important;
+        background: rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* --- Section Headers & <details> Summary --- */
     #jellyfin-enhanced-panel h3,
     #jellyfin-enhanced-panel details summary {
-    color: #1abc9c !important;
+        color: #00a4dc !important;
     }
 
-    /* Collapsible <details> sections background */
+    /* --- Collapsible <details> Sections --- */
     #jellyfin-enhanced-panel details {
-        background-color: rgba(0, 0, 0, 0.15) !important;
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(125, 150, 175, 0.2) !important;
     }
 
-    /* Keyboard Key Styling (<kbd>) */
-    #jellyfin-enhanced-panel kbd {
-    background: #34495e !important;
-    color: #ecf0f1 !important;
-    border-radius: 4px !important;
-    border: 1px solid #2c3e50 !important;
+    /* --- Keyboard Key Styling (<kbd>) --- */
+    #jellyfin-enhanced-panel kbd,
+    .shortcut-key {
+        background: #34495e !important;
+        color: #ecf0f1 !important;
+        border: 1px solid #2c3e50 !important;
+        box-shadow: 0 2px 0 #2c3e50;
     }
 
-    /* Style for Toast Notifications (after script edit) */
+    /* --- Toggles & Checkboxes --- */
+    #jellyfin-enhanced-panel input[type="checkbox"] {
+        accent-color: #aa5cc3 !important;
+    }
+
+    /* --- Panel Footer --- */
+    #jellyfin-enhanced-panel .panel-footer {
+        background: rgba(0, 0, 0, 0.25) !important;
+        border-top: 1px solid rgba(125, 150, 175, 0.3) !important;
+    }
+
+    /* --- Buttons in Footer --- */
+    #jellyfin-enhanced-panel .footer-buttons a,
+    #jellyfin-enhanced-panel .footer-buttons button {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        transition: background-color 0.2s ease;
+    }
+
+    #jellyfin-enhanced-panel .footer-buttons a:hover,
+    #jellyfin-enhanced-panel .footer-buttons button:hover {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    /* --- Style for Toast Notifications --- */
     .jellyfin-enhanced-toast {
-        background: linear-gradient(135deg, #1abc9c, #16a085) !important;
+        background: linear-gradient(135deg, #00a4dc, #aa5cc3) !important;
         color: white !important;
-        border: 1px solid #1abc9c !important;
+        border: none !important;
+        backdrop-filter: blur(10px) !important;
     }
 
 ```
 
 </details>
-
+<br><br>
 <details>
-<summary style="font-size: 1.25em; font-weight: 600;">💻 Development </summary>
+<summary style="font-size: 1.25em; font-weight: 600;">🫚Project Structure </summary>
 <br>
 
 The original monolithic `plugin.js` has been refactored into a modular, component-based structure to improve maintainability, readability, and scalability. The new architecture uses a single entry point (`plugin.js`) that dynamically loads all other feature components.
