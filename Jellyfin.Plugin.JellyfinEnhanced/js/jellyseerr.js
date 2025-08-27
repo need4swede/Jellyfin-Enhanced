@@ -33,7 +33,10 @@
                 }
                 .inputContainer{position:relative!important;}
                 .jellyseerr-icon{width:30px;height:50px;filter:drop-shadow(2px 2px 6px #000);}
-                .cardIndicators .jellyseerr-icon{margin:1em 1em 0 0;}
+                .jellyseerr-icon-on-card { position: absolute; top: 8px; right: 8px; width: 18%; height: auto; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+                .jellyseerr-media-badge { position: absolute; top: 8px; left: 8px; z-index: 100; color: #fff; padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 0, 0, 0.2); font-size: 0.9em; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); box-shadow: 0 4px 4px -1px rgba(0,0,0,0.1), 0 2px 2px -2px rgba(0,0,0,0.1); }
+                .jellyseerr-media-badge-movie { background-color: rgba(59, 130, 246, .9); }
+                .jellyseerr-media-badge-series { background-color: rgba(243, 51, 214, .9); }
                 #jellyseerr-search-icon.is-active{filter:drop-shadow(2px 2px 6px #000);opacity:1;}
                 #jellyseerr-search-icon.is-disabled{filter:hue-rotate(125deg) brightness(100%);}
                 #jellyseerr-search-icon.is-no-user{filter:grayscale(1);opacity:.8;}
@@ -364,11 +367,8 @@
                     <div class="cardScalable">
                         <div class="cardPadder cardPadder-overflowPortrait"></div>
                         <div class="cardImageContainer coveredImage cardContent itemAction" style="background-image: url('${posterUrl}');">
-                            <div class="cardIndicators">
-                                <div class="indicator">
-                                    <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" class="jellyseerr-icon" alt="Jellyseerr"/>
-                                </div>
-                            </div>
+                            <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" class="jellyseerr-icon-on-card" alt="Jellyseerr"/>
+                            <div class="cardIndicators"></div>
                         </div>
                         <div class="cardOverlayContainer" data-action="link"></div>
                     </div>
@@ -437,8 +437,14 @@
                 const imageContainer = card.querySelector('.cardImageContainer');
                 if (imageContainer) {
                     const badge = document.createElement('div');
-                    badge.style.cssText = `position: absolute; top: 8px; left: 8px; z-index: 100; background-color: ${item.mediaType === 'movie' ? 'rgba(59, 130, 246, .9)' : 'rgba(243, 51, 214, .9)'}; text-transform: uppercase; color: #fff; padding: 2px 8px; border-radius: 100px; border: ${item.mediaType === 'movie' ? '1px solid rgba(42, 95, 180)' : '1px solid rgba(167, 33, 147)'}; font-size: 0.9em; font-weight: 500; text-shadow: -2px 2px 5px black;`;
-                    badge.textContent = item.mediaType === 'movie' ? 'Movie' : 'Series';
+                    badge.classList.add('jellyseerr-media-badge');
+                    if (item.mediaType === 'movie') {
+                        badge.classList.add('jellyseerr-media-badge-movie');
+                        badge.textContent = 'Movie';
+                    } else {
+                        badge.classList.add('jellyseerr-media-badge-series');
+                        badge.textContent = 'Series';
+                    }
                     imageContainer.appendChild(badge);
                 }
             }
