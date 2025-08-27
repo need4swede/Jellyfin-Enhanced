@@ -48,7 +48,7 @@
                 transition:background .2s,border-color .2s,color .2s;
                 }
                 .jellyseerr-request-button.jellyseerr-button-offline,.jellyseerr-request-button.jellyseerr-button-no-user{opacity:.6;cursor:not-allowed;}
-                .jellyseerr-request-button.jellyseerr-button-requested{background-color:#5a6268!important;color:#fff!important;}
+                .jellyseerr-request-button.jellyseerr-button-requested{background-color:#4f46e5!important;color:#fff!important;}
                 .jellyseerr-request-button.jellyseerr-button-pending{background-color:#b45309!important;color:#fff!important;}
                 .jellyseerr-request-button.jellyseerr-button-processing{background-color:#581c87!important;color:#fff!important;}
                 .jellyseerr-request-button.jellyseerr-button-rejected{background-color:#8a1c1c!important;color:#fff!important;}
@@ -428,7 +428,7 @@
                     button.classList.add('button-submit', 'jellyseerr-button-rejected');
                     break;
                 default:
-                    button.innerHTML = `<span>Request</span><span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-left: 0.5em;">add_circle</span>`;
+                    button.innerHTML = `<span class="material-icons" style="font-size: 1em; vertical-align: middle; margin-right: 0.5em;">download</span><span>Request</span>`;
                     button.disabled = false;
                     button.classList.add('button-submit', 'jellyseerr-button-requested');
                 }
