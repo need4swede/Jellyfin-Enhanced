@@ -38,8 +38,8 @@
                 .jellyseerr-media-badge-movie { background-color: rgba(59, 130, 246, .9); }
                 .jellyseerr-media-badge-series { background-color: rgba(243, 51, 214, .9); }
                 #jellyseerr-search-icon.is-active{filter:drop-shadow(2px 2px 6px #000);opacity:1;}
-                #jellyseerr-search-icon.is-disabled{filter:hue-rotate(125deg) brightness(100%);}
-                #jellyseerr-search-icon.is-no-user{filter:grayscale(1);opacity:.8;}
+                #jellyseerr-search-icon.is-disabled{filter:grayscale(1);opacity:.8;}
+                #jellyseerr-search-icon.is-no-user{filter:hue-rotate(125deg) brightness(100%);}
 
                 .jellyseerr-section{margin-bottom:2em;}
 
@@ -118,7 +118,7 @@
                 icon.title = 'Jellyseerr is active';
                 icon.classList.add('is-active');
             } else if (isJellyseerrActive && !jellyseerrUserFound) {
-                icon.title = 'Jellyseerr ID not found';
+                icon.title = 'User not found on Jellyseerr';
                 icon.classList.add('is-no-user');
             } else {
                 icon.title = 'Jellyseerr is not connected.';
