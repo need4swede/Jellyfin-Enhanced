@@ -266,11 +266,49 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
         public ActionResult GetScript(string path) => GetScriptResource($"js/{path}");
         [HttpGet("version")]
         public ActionResult GetVersion() => Content(JellyfinEnhanced.Instance?.Version.ToString() ?? "unknown");
+
         [HttpGet("public-config")]
         public ActionResult GetPublicConfig()
         {
             var config = JellyfinEnhanced.Instance?.Configuration;
-            return config == null ? StatusCode(503) : new JsonResult(new { JellyseerrEnabled = config.JellyseerrEnabled });
+            if (config == null)
+            {
+                return StatusCode(503);
+            }
+
+            return new JsonResult(new
+            {
+                // Jellyfin Enhanced Settings
+                config.ClearBookmarksDelay,
+                config.ToastDuration,
+                config.HelpPanelAutocloseDelay,
+                config.AutoskipInterval,
+
+                // Jellyfin Elsewhere Settings
+                config.TMDB_API_KEY,
+                config.DEFAULT_REGION,
+                config.DEFAULT_PROVIDERS,
+                config.IGNORE_PROVIDERS,
+                config.ClearLocalStorageTimestamp,
+
+                // Default User Settings
+                config.AutoPauseEnabled,
+                config.AutoResumeEnabled,
+                config.AutoPipEnabled,
+                config.AutoSkipIntro,
+                config.AutoSkipOutro,
+                config.RandomButtonEnabled,
+                config.RandomIncludeMovies,
+                config.RandomIncludeShows,
+                config.RandomUnwatchedOnly,
+                config.ShowFileSizes,
+                config.RemoveContinueWatchingEnabled,
+                config.ShowAudioLanguages,
+                config.Shortcuts,
+
+                // Jellyseerr Search Settings
+                config.JellyseerrEnabled
+            });
         }
         private ActionResult GetScriptResource(string resourcePath)
         {

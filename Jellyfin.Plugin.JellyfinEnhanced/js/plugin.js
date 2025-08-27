@@ -43,59 +43,50 @@
      * @returns {Promise<[object, string, object]>} A promise that resolves when all data is fetched.
      */
     function loadPluginData() {
-        const configPromise = ApiClient.getPluginConfiguration('f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b')
-            .then(config => {
-                console.log('🪼 Jellyfin Enhanced: Plugin configuration loaded.');
-                if (config && config.Shortcuts && Array.isArray(config.Shortcuts)) {
+            const configPromise = ApiClient.ajax({
+                type: 'GET',
+                url: ApiClient.getUrl('/JellyfinEnhanced/public-config'),
+                dataType: 'json'
+            }).then(publicConfig => {
+                console.log('🪼 Jellyfin Enhanced: Public configuration loaded.');
+                if (publicConfig && publicConfig.Shortcuts && Array.isArray(publicConfig.Shortcuts)) {
                     const shortcutMap = new Map();
-                    for (const shortcut of config.Shortcuts) {
+                    for (const shortcut of publicConfig.Shortcuts) {
                         if (shortcut.Name) {
                             shortcutMap.set(shortcut.Name, shortcut);
                         }
                     }
-                    config.Shortcuts = Array.from(shortcutMap.values());
+                    publicConfig.Shortcuts = Array.from(shortcutMap.values());
                 }
-                return config || {};
+                return publicConfig || {};
             }).catch(err => {
-                console.warn('🪼 Jellyfin Enhanced: Could not load plugin configuration, using defaults.', err);
+                console.error('🪼 Jellyfin Enhanced: Could not load public plugin configuration. Features will be degraded.', err);
                 return {};
             });
 
-        const versionPromise = ApiClient.ajax({
-            type: 'GET',
-            url: ApiClient.getUrl('/JellyfinEnhanced/version'),
-            dataType: 'text'
-        }).then(version => {
-            console.log('🪼 Jellyfin Enhanced: Plugin version loaded:', version);
-            return version;
-        }).catch(err => {
-            console.warn('🪼 Jellyfin Enhanced: Could not load plugin version.', err);
-            return '...';
-        });
+            const versionPromise = ApiClient.ajax({
+                type: 'GET',
+                url: ApiClient.getUrl('/JellyfinEnhanced/version'),
+                dataType: 'text'
+            }).then(version => {
+                console.log('🪼 Jellyfin Enhanced: Plugin version loaded:', version);
+                return version;
+            }).catch(err => {
+                console.warn('🪼 Jellyfin Enhanced: Could not load plugin version.', err);
+                return '...';
+            });
 
-        const publicConfigPromise = ApiClient.ajax({
-            type: 'GET',
-            url: ApiClient.getUrl('/JellyfinEnhanced/public-config'),
-            dataType: 'json'
-        }).then(publicConfig => {
-            console.log('🪼 Jellyfin Enhanced: Public configuration loaded.');
-            return publicConfig || {};
-        }).catch(err => {
-            console.warn('🪼 Jellyfin Enhanced: Could not load public configuration.', err);
-            return {};
-        });
-
-        return Promise.all([configPromise, versionPromise, publicConfigPromise]);
-    }
+            return Promise.all([configPromise, versionPromise]);
+        }
 
     /**
      * Waits for the Jellyfin API client to be ready, then loads all plugin scripts and initializes them.
      */
     function waitForApiClientAndInitialize() {
         if (typeof ApiClient !== 'undefined' && ApiClient.getPluginConfiguration) {
-            loadPluginData().then(([config, version, publicConfig]) => {
+            loadPluginData().then(([config, version]) => {
                 // Assign fetched data to the global namespace
-                window.JellyfinEnhanced.pluginConfig = { ...config, ...publicConfig };
+                window.JellyfinEnhanced.pluginConfig = config;
                 window.JellyfinEnhanced.pluginVersion = version;
 
                 const basePath = '/JellyfinEnhanced/js';
