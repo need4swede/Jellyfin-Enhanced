@@ -34,9 +34,9 @@
                 .inputContainer{position:relative!important;}
                 .jellyseerr-icon{width:30px;height:50px;filter:drop-shadow(2px 2px 6px #000);}
                 .jellyseerr-icon-on-card { position: absolute; top: 8px; right: 8px; width: 18%; height: auto; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
-                .jellyseerr-media-badge { position: absolute; top: 8px; left: 8px; z-index: 100; color: #fff; padding: 2px 8px; border-radius: 100px; border: 1px solid rgba(0, 0, 0, 0.2); font-size: 0.9em; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); box-shadow: 0 4px 4px -1px rgba(0,0,0,0.1), 0 2px 2px -2px rgba(0,0,0,0.1); }
-                .jellyseerr-media-badge-movie { background-color: rgba(59, 130, 246, .9); }
-                .jellyseerr-media-badge-series { background-color: rgba(243, 51, 214, .9); }
+                .jellyseerr-media-badge { position: absolute; top: 8px; left: 8px; z-index: 100; color: #fff; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.2); font-size: 0.9em; font-weight: 500; text-transform: uppercase; letter-spacing: 1.5px; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); box-shadow: 0 4px 4px -1px rgba(0,0,0,0.1), 0 2px 2px -2px rgba(0,0,0,0.1); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+                .jellyseerr-media-badge-movie { background-color: rgba(59, 130, 246, .9); box-shadow:0 0 0 1px rgba(59,130,246,.35), 0 8px 24px rgba(59,130,246,.25); }
+                .jellyseerr-media-badge-series { background-color: rgba(243, 51, 214, .9); box-shadow:0 0 0 1px rgba(236,72,153,.35), 0 8px 24px rgba(236,72,153,.25);  }
                 #jellyseerr-search-icon.is-active{filter:drop-shadow(2px 2px 6px #000);opacity:1;}
                 #jellyseerr-search-icon.is-disabled{filter:grayscale(1);opacity:.8;}
                 #jellyseerr-search-icon.is-no-user{filter:hue-rotate(125deg) brightness(100%);}
@@ -68,6 +68,14 @@
                 .jellyseerr-rating{display:flex;align-items:center;gap:.3em;color:#bdbdbd;}
                 .jellyseerr-rating .material-icons{font-size:1.2em;color:#ffc107;}
                 .cardText-first > a[is="emby-linkbutton"] { padding: 0 !important; margin: 0 !important; }
+                .jellyseerr-card{position:relative;}
+                .jellyseerr-overview{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.78) 75%, rgba(0,0,0,.92) 100%); color:#e5e7eb; padding:12px 12px 14px; line-height:1.5; opacity:0; transform:translateY(6px); transition:opacity .18s ease, transform .18s ease; overflow:hidden; display:flex; align-items:flex-end; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
+                .jellyseerr-overview .content{width:100%; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; white-space:normal;}
+                .jellyseerr-card:focus-within .jellyseerr-overview{opacity:1;}
+                .jellyseerr-card:hover .jellyseerr-overview{opacity:1;}      /* desktop hover */
+                .jellyseerr-card.is-touch .jellyseerr-overview{opacity:1;}   /* mobile tap */
+                .jellyseerr-overview .title{font-weight:600; display:block; margin-bottom:.35em;}
+
             `;
             document.head.appendChild(style);
         }
@@ -371,6 +379,9 @@
                             <div class="cardIndicators"></div>
                         </div>
                         <div class="cardOverlayContainer" data-action="link"></div>
+                        <div class="jellyseerr-overview">
+                            <div class="content">${((item.overview || 'No info available.').slice(0, 500))}…</div>
+                        </div>
                     </div>
                     <div class="cardText cardTextCentered cardText-first">
                         <a is="emby-linkbutton" href="${tmdbUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;" title="View on TMDB">
@@ -389,6 +400,18 @@
                     </div>
                 </div>
                 `;
+
+            const img = card.querySelector('.cardImageContainer');
+            if (img) {
+            img.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                card.classList.toggle('is-touch');
+            }, { passive: false });
+            img.setAttribute('tabindex', '0'); // focusable
+            img.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('is-touch'); }
+            });
+            }
 
             const button = card.querySelector('.jellyseerr-request-button');
             if (!isJellyseerrActive) {
@@ -483,7 +506,11 @@
         addStyles();
 
         waitForUserAndInitialize();
-
+        document.body.addEventListener('touchstart', (e) => {
+        if (!e.target.closest('.jellyseerr-card')) {
+            document.querySelectorAll('.jellyseerr-card.is-touch').forEach(c => c.classList.remove('is-touch'));
+        }
+        }, { passive: true });
         document.body.addEventListener('click', function(event) {
             const button = event.target.closest('.jellyseerr-request-button');
             if (button && !button.disabled) {
