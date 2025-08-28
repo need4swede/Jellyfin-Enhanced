@@ -338,7 +338,8 @@
                 }
             } catch (error) {
                 const userId = ApiClient.getCurrentUserId();
-                console.error(`${logPrefix} Error fetching search results for user ${userId}:`, error.responseJSON || error);
+                const errorDetails = error.responseJSON || error;
+                console.error(`${logPrefix} Error fetching search results for user ${userId}. Query: "${query}". Error:`, errorDetails);
             }
         }
 
@@ -367,7 +368,8 @@
             } catch (error) {
                 button.disabled = false;
                 const userId = ApiClient.getCurrentUserId();
-                console.error(`${logPrefix} Request Failed via proxy for user ${userId}:`, error.responseJSON || error);
+                const errorDetails = error.responseJSON || error;
+                console.error(`${logPrefix} Request Failed via proxy for user ${userId}. Request Body:`, JSON.stringify(requestBody), 'Error:', errorDetails);
 
                 let errorMessage = 'Error';
                 if (error.status === 404) {

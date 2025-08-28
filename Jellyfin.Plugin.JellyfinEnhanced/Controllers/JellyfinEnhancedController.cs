@@ -54,6 +54,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 try
                 {
                     var requestUri = $"{url.Trim()}/api/v1/user?take=1000"; // Fetch all users to find a match
+                    _logger.LogDebug("Requesting users from Jellyseerr URL: {Url}", requestUri);
                     var response = await httpClient.GetAsync(requestUri);
 
                     if (response.IsSuccessStatusCode)
@@ -63,21 +64,23 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                         if (usersResponse.TryGetProperty("results", out var usersArray))
                         {
                             var users = JsonSerializer.Deserialize<List<JellyseerrUser>>(usersArray.ToString());
+                            _logger.LogDebug("Found {UserCount} users at {Url}", users?.Count ?? 0, url.Trim());
                             var user = users?.FirstOrDefault(u => string.Equals(u.JellyfinUserId, jellyfinUserId, StringComparison.OrdinalIgnoreCase));
                             if (user != null)
                             {
-                                _logger.LogInformation("Found Jellyseerr user ID {JellyseerrId} for Jellyfin user ID {JellyfinId}", user.Id, jellyfinUserId);
+                                _logger.LogInformation("Found Jellyseerr user ID {JellyseerrId} for Jellyfin user ID {JellyfinId} at {Url}", user.Id, jellyfinUserId, url.Trim());
                                 return user.Id.ToString();
                             }
                             else
                             {
-                                _logger.LogWarning("Jellyseerr user list fetched, but no user found with Jellyfin User ID: {JellyfinUserId}", jellyfinUserId);
+                                _logger.LogDebug("No matching Jellyfin User ID found in the {UserCount} users from {Url}", users?.Count ?? 0, url.Trim());
                             }
                         }
                     }
                     else
                     {
-                        _logger.LogWarning("Failed to fetch users from Jellyseerr at {Url}. Status: {StatusCode}", url, response.StatusCode);
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        _logger.LogWarning("Failed to fetch users from Jellyseerr at {Url}. Status: {StatusCode}. Response: {Response}", url, response.StatusCode, errorContent);
                     }
                 }
                 catch (Exception ex)
@@ -91,10 +94,11 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
         }
 
         private async Task<IActionResult> ProxyJellyseerrRequest(string apiPath, HttpMethod method, string? content = null)
-        {
+{
             var config = JellyfinEnhanced.Instance?.Configuration;
             if (config == null || !config.JellyseerrEnabled || string.IsNullOrEmpty(config.JellyseerrUrls) || string.IsNullOrEmpty(config.JellyseerrApiKey))
             {
+                _logger.LogWarning("Jellyseerr integration is not configured or enabled.");
                 return StatusCode(503, "Jellyseerr integration is not configured or enabled.");
             }
 
@@ -102,9 +106,10 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             var httpClient = _httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Add("X-Api-Key", config.JellyseerrApiKey);
 
+            string? jellyfinUserId = null;
             if (Request.Headers.TryGetValue("X-Jellyfin-User-Id", out var jellyfinUserIdValues))
             {
-                var jellyfinUserId = jellyfinUserIdValues.FirstOrDefault();
+                jellyfinUserId = jellyfinUserIdValues.FirstOrDefault();
                 if (string.IsNullOrEmpty(jellyfinUserId))
                 {
                     _logger.LogWarning("Could not find Jellyfin User ID in request headers.");
@@ -132,11 +137,12 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 try
                 {
                     var requestUri = $"{trimmedUrl}{apiPath}";
-                    _logger.LogDebug("Proxying Jellyseerr request to: {RequestUri}", requestUri);
+                    _logger.LogDebug("Proxying Jellyseerr request for user {JellyfinUserId} to: {RequestUri}", jellyfinUserId, requestUri);
 
                     var request = new HttpRequestMessage(method, requestUri);
                     if (content != null)
                     {
+                        _logger.LogDebug("Request body: {Content}", content);
                         request.Content = new StringContent(content, Encoding.UTF8, "application/json");
                     }
 
@@ -145,14 +151,17 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
 
                     if (response.IsSuccessStatusCode)
                     {
+                        _logger.LogDebug("Successfully received response from Jellyseerr for user {JellyfinUserId}. Status: {StatusCode}", jellyfinUserId, response.StatusCode);
                         return Content(responseContent, "application/json");
                     }
 
-                    _logger.LogWarning("Request to Jellyseerr URL {Url} failed with status {StatusCode}.", trimmedUrl, response.StatusCode);
+                    _logger.LogWarning("Request to Jellyseerr for user {JellyfinUserId} failed. URL: {Url}, Status: {StatusCode}, Response: {ResponseContent}", jellyfinUserId, trimmedUrl, response.StatusCode, responseContent);
+                    // Return the actual status code and content from Jellyseerr
+                    return StatusCode((int)response.StatusCode, responseContent);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to connect to Jellyseerr URL: {Url}", trimmedUrl);
+                    _logger.LogError(ex, "Failed to connect to Jellyseerr URL for user {JellyfinUserId}: {Url}", jellyfinUserId, trimmedUrl);
                 }
             }
 
