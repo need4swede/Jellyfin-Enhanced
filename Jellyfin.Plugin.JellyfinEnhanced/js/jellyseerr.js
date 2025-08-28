@@ -20,6 +20,9 @@
         let jellyseerrUserFound = false;
         let jellyseerrHoverPopover = null,
             jellyseerrHoverLock = false; // lock = mobile toggle
+        let isJellyseerrOnlyMode = false; // New state for filter mode
+        let hiddenSections = []; // Store hidden sections for restoration
+        let jellyseerrOriginalPosition = null; // Store original position marker
 
         // SVG Icons definition
         const icons = {
@@ -95,13 +98,21 @@
                 .jellyseerr-section .itemsContainer { white-space: nowrap; }
                 #jellyseerr-search-icon {
                     position: absolute; right: 10px; top: 68%; transform: translateY(-50%);
-                    user-select: none; z-index: 10; transition: filter .2s, opacity .2s;
+                    user-select: none; z-index: 10; transition: filter .2s, opacity .2s, transform .2s;
                 }
                 .inputContainer { position: relative !important; }
                 .jellyseerr-icon { width: 30px; height: 50px; filter: drop-shadow(2px 2px 6px #000); }
                 #jellyseerr-search-icon.is-active { filter: drop-shadow(2px 2px 6px #000); opacity: 1; }
                 #jellyseerr-search-icon.is-disabled { filter: grayscale(1); opacity: .8; }
                 #jellyseerr-search-icon.is-no-user { filter: hue-rotate(125deg) brightness(100%); }
+                #jellyseerr-search-icon.is-filter-active {
+                    filter: drop-shadow(2px 2px 6px #3b82f6) brightness(1.2);
+                    transform: translateY(-50%) scale(1.1);
+                }
+                #jellyseerr-search-icon:hover {
+                    transform: translateY(-50%) scale(1.05);
+                    transition: transform 0.2s ease;
+                }
 
                 /* --- Cards & Badges --- */
                 .jellyseerr-card { position: relative; }
@@ -224,6 +235,10 @@
 
                 /* --- Keyframes --- */
                 @keyframes jellyseerr-spin { to { transform: rotate(360deg) } }
+
+                .section-hidden {
+                    display: none !important;
+                }
             `;
             document.head.appendChild(style);
         }
@@ -253,6 +268,78 @@
             updateJellyseerrIcon();
         }
 
+        function toggleJellyseerrOnlyMode() {
+            isJellyseerrOnlyMode = !isJellyseerrOnlyMode;
+
+            const searchPage = document.querySelector('#searchPage');
+            if (!searchPage) return;
+
+            if (isJellyseerrOnlyMode) {
+                // Hide all non-Jellyseerr sections
+                const allSections = searchPage.querySelectorAll('.verticalSection:not(.jellyseerr-section)');
+                hiddenSections = Array.from(allSections);
+
+                allSections.forEach(section => {
+                    section.classList.add('section-hidden');
+                });
+
+                // Move Jellyseerr section to top
+                const jellyseerrSection = searchPage.querySelector('.jellyseerr-section');
+                if (jellyseerrSection) {
+                    // Create and insert a placeholder to mark the original spot
+                    jellyseerrOriginalPosition = document.createElement('div');
+                    jellyseerrOriginalPosition.id = 'jellyseerr-placeholder';
+                    jellyseerrSection.parentNode.insertBefore(jellyseerrOriginalPosition, jellyseerrSection);
+
+                    const searchResults = searchPage.querySelector('.searchResults, [class*="searchResults"], .padded-top.padded-bottom-page');
+                    if (searchResults) {
+                        searchResults.insertBefore(jellyseerrSection, searchResults.firstChild);
+                    }
+                }
+
+                // Hide "no results" message if present
+                const noResultsMessage = searchPage.querySelector('.noItemsMessage');
+                if (noResultsMessage) {
+                    noResultsMessage.classList.add('section-hidden');
+                }
+
+                JE.toast('🪼 Showing results only from Jellyseerr', 3000);
+                console.log(`${logPrefix} Switched to Jellyseerr-only mode`);
+
+            } else {
+                // Restore all hidden sections
+                hiddenSections.forEach(section => {
+                    section.classList.remove('section-hidden');
+                });
+
+                // Move Jellyseerr section back to its original position
+                const jellyseerrSection = searchPage.querySelector('.jellyseerr-section');
+                if (jellyseerrSection && jellyseerrOriginalPosition && jellyseerrOriginalPosition.parentNode) {
+                    jellyseerrOriginalPosition.parentNode.insertBefore(jellyseerrSection, jellyseerrOriginalPosition);
+                    jellyseerrOriginalPosition.remove();
+                    jellyseerrOriginalPosition = null;
+                }
+
+                // Restore "no results" message if it was hidden
+                const noResultsMessage = searchPage.querySelector('.noItemsMessage');
+                if (noResultsMessage) {
+                    noResultsMessage.classList.remove('section-hidden');
+                }
+
+                hiddenSections = [];
+                JE.toast('🪼 Showing all search results', 3000);
+                console.log(`${logPrefix} Switched back to all results mode`);
+            }
+            const jellyseerrSection = searchPage.querySelector('.jellyseerr-section');
+                if (jellyseerrSection) {
+                    const titleElement = jellyseerrSection.querySelector('.sectionTitle');
+                    if (titleElement) {
+                        titleElement.textContent = isJellyseerrOnlyMode ? 'Jellyseerr Results' : 'Discover on Jellyseerr';
+                    }
+                }
+            updateJellyseerrIcon();
+        }
+
         // UI Injection
         function updateJellyseerrIcon() {
             const anchor = document.querySelector('.searchFields .inputContainer') ||
@@ -267,14 +354,54 @@
                 icon.className = 'jellyseerr-icon';
                 icon.src = 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
                 icon.alt = 'Jellyseerr';
+
+                // Add double-click/tap functionality
+                let tapCount = 0;
+                let tapTimer = null;
+
+                const handleIconInteraction = () => {
+                    if (!isJellyseerrActive || !jellyseerrUserFound) return;
+                    tapCount++;
+                    if (tapCount === 1) {
+                        tapTimer = setTimeout(() => {
+                            tapCount = 0;
+                        }, 300);
+                    } else if (tapCount === 2) {
+                        clearTimeout(tapTimer);
+                        tapCount = 0;
+                        toggleJellyseerrOnlyMode();
+                    }
+                };
+
+                icon.addEventListener('click', handleIconInteraction);
+                icon.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleIconInteraction();
+                }, { passive: false });
+
+                // Add keyboard support
+                icon.setAttribute('tabindex', '0');
+                icon.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (!isJellyseerrActive || !jellyseerrUserFound) return;
+                        toggleJellyseerrOnlyMode();
+                    }
+                });
+
                 anchor.appendChild(icon);
             }
 
-            icon.classList.remove('is-active', 'is-disabled', 'is-no-user');
+            icon.classList.remove('is-active', 'is-disabled', 'is-no-user', 'is-filter-active');
 
             if (isJellyseerrActive && jellyseerrUserFound) {
-                icon.title = 'Jellyseerr is active';
+                icon.title = isJellyseerrOnlyMode ?
+                    'Jellyseerr is active\nDouble-click to show all results' :
+                    'Jellyseerr is active\nDouble-click to show only Jellyseerr results';
                 icon.classList.add('is-active');
+                if (isJellyseerrOnlyMode) {
+                    icon.classList.add('is-filter-active');
+                }
             } else if (isJellyseerrActive && !jellyseerrUserFound) {
                 icon.title = 'User not found on Jellyseerr';
                 icon.classList.add('is-no-user');
@@ -299,6 +426,15 @@
                         }
                         const latestQuery = new URLSearchParams(window.location.hash.split('?')[1]).get('query');
                         if (latestQuery === lastProcessedQuery) return;
+
+                        if (isJellyseerrOnlyMode) {
+                            console.log(`${logPrefix} New search detected, resetting filter mode.`);
+                            isJellyseerrOnlyMode = false;
+                            hiddenSections = [];
+                            jellyseerrOriginalPosition = null;
+                            updateJellyseerrIcon();
+                        }
+
                         lastProcessedQuery = latestQuery;
                         document.querySelectorAll('.jellyseerr-section').forEach(e => e.remove());
                         runJellyseerrSearch(latestQuery);
@@ -307,6 +443,7 @@
                     // If not on search page, or query is empty, clear results and reset state
                     clearTimeout(debounceTimeout);
                     lastProcessedQuery = null;
+                    isJellyseerrOnlyMode = false; // Reset filter mode when leaving search
                     document.querySelectorAll('.jellyseerr-section').forEach(e => e.remove());
                 }
             });
@@ -489,9 +626,12 @@
             const section = document.createElement('div');
             section.className = 'verticalSection emby-scroller-container jellyseerr-section';
 
+            // Add a data attribute to help with filtering
+            section.setAttribute('data-jellyseerr-section', 'true');
+
             const title = document.createElement('h2');
             title.className = 'sectionTitle sectionTitle-cards focuscontainer-x padded-left padded-right';
-            title.textContent = 'Discover on Jellyseerr';
+            title.textContent = isJellyseerrOnlyMode ? 'Jellyseerr Results' : 'Discover on Jellyseerr';
 
             if (isLoading) {
                 const spinner = document.createElement('div');
