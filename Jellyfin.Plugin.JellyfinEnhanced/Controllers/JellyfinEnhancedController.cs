@@ -53,7 +53,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             {
                 try
                 {
-                    var requestUri = $"{url.Trim()}/api/v1/user?take=1000"; // Fetch all users to find a match
+                    var requestUri = $"{url.Trim().TrimEnd('/')}/api/v1/user?take=1000"; // Fetch all users to find a match
                     _logger.LogDebug("Requesting users from Jellyseerr URL: {Url}", requestUri);
                     var response = await httpClient.GetAsync(requestUri);
 
@@ -136,7 +136,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 var trimmedUrl = url.Trim();
                 try
                 {
-                    var requestUri = $"{trimmedUrl}{apiPath}";
+                    var requestUri = $"{trimmedUrl.TrimEnd('/')}{apiPath}";
                     _logger.LogDebug("Proxying Jellyseerr request for user {JellyfinUserId} to: {RequestUri}", jellyfinUserId, requestUri);
 
                     var request = new HttpRequestMessage(method, requestUri);
@@ -185,7 +185,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             {
                 try
                 {
-                    var response = await httpClient.GetAsync($"{url.Trim()}/api/v1/status");
+                    var response = await httpClient.GetAsync($"{url.Trim().TrimEnd('/')}/api/v1/status");
                     if (response.IsSuccessStatusCode)
                     {
                         _logger.LogInformation("Successfully connected to Jellyseerr at {Url}. Status is active.", url);
