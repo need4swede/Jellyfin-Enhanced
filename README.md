@@ -73,6 +73,46 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 - See where else your movies and shows are available to stream, right on the item details page.
 - Configure your preferred default region and streaming services from the plugin settings and search more regions and services from the item details page!
 
+### 🎬 Custom Pause Screen
+
+The Custom Pause Screen is an immersive overlay that appears when you pause a video, providing detailed information about the content and a more polished look than the default player UI. This feature is a modified version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-PauseScreen).
+
+<p align="center">
+  <img src="images/pausescreen.png" width="600" />
+</p>
+
+  This feature can be toggled on or off from the Jellyfin Enhanced settings panel under **Settings > Playback Settings > Custom Pause Screen**.
+
+
+<br>
+<details>
+<summary style="font-size: 1.2em;">Pause Screen Customization Guide</summary>
+<br>
+
+If you do not want an element in the pause screen, you can customize by hiding them to your liking.
+
+| Element | CSS Selector | Example CSS to Hide |
+| --- | --- | --- |
+| **Logo** | `#pause-screen-logo` | `#pause-screen-logo { display: none; }` |
+| **Details** (Year, Rating, Runtime) | `#pause-screen-details` | `#pause-screen-details { display: none; }` |
+| **Plot/Description** | `#pause-screen-plot` | `#pause-screen-plot { display: none; }` |
+| **Entire Progress Bar** | `#pause-screen-progress-wrap` | `#pause-screen-progress-wrap { display: none; }` |
+| **Spinning Disc** | `#pause-screen-disc` | `#pause-screen-disc { display: none; }` |
+| **Blurred Backdrop** | `#pause-screen-backdrop` | `#pause-screen-backdrop { display: none; }` |
+| **Time Display** (Current / Total) | `.progress-time` | `.progress-time { display: none; }` |
+| **"Ends At" Time** | `.progress-ends-at` | `.progress-ends-at { display: none; }` |
+| **Percentage Watched** | `.progress-percentage` | `.progress-percentage { display: none; }` |
+
+</details><br>
+
+### 🏷️ Quality Tags
+
+This feature displays informative tags directly on item posters, giving you a quick overview of the media's technical specifications. This is a modified version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-Qualitytags/).
+
+> Needs some work, expect bugs and raise if you find any :)
+
+This feature can be toggled on or off from the Jellyfin Enhanced settings panel under **Settings > UI Settings > Show Quality Tags**.
+
 ### **And more...**
 - File sizes - Display filesizes for each movie or episode in the item details page \
     ... and many more to come!
@@ -134,7 +174,7 @@ To ensure security and prevent browser-related Cross-Origin Resource Sharing (CO
 
 In doing so, the plugin exposes a few proxy endpoints for its own use and for troubleshooting.
 
-<Br>
+<br>
 <details>
 <summary style="font-size: 1.25em; font-weight: 600;">🔌 Jellyseerr API Endpoints</summary>
 <br>

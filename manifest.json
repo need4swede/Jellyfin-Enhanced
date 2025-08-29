@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "checksum": "b129839ef0c48064eb03c296d0eac81c",
+                "changelog": "- New Features: Add Custom Pause Screen and Quality Tags on posters.\n- Behind the scenes: Implement a dedicated log file for easier troubleshooting and improve URL handling.",
+                "targetAbi": "10.9.4.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/6.4.0.0/Jellyfin.Plugin.JellyfinEnhanced_6.4.0.0.zip",
+                "timestamp": "2025-08-29T20:29:29Z",
+                "version": "6.4.0.0"
+            },
+            {
                 "checksum": "2d217df3c4583541369ee9a38f2fae46",
                 "changelog": "- Double click/tap on the Jellyseerr Icon to toggle filter to display only Jellyseerr results.\n - Minor: Add more Logging for both client and server. ",
                 "targetAbi": "10.9.4.0",
