@@ -15,14 +15,14 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
     public class JellyfinEnhanced : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         private readonly IApplicationPaths _applicationPaths;
-        private readonly ILogger<JellyfinEnhanced> _logger;
+        private readonly Logger _logger;
         private const string PluginName = "Jellyfin Enhanced";
 
-        public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILoggerFactory loggerFactory) : base(applicationPaths, xmlSerializer)
+        public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
             _applicationPaths = applicationPaths;
-            _logger = loggerFactory.CreateLogger<JellyfinEnhanced>();
+            _logger = logger;
         }
 
         public override string Name => PluginName;
@@ -49,7 +49,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 var indexPath = IndexHtmlPath;
                 if (!File.Exists(indexPath))
                 {
-                    _logger.LogError("Could not find index.html at path: {Path}", indexPath);
+                    _logger.Error($"Could not find index.html at path: {indexPath}");
                     return;
                 }
 
@@ -67,24 +67,24 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                     if (content.Contains(closingBodyTag))
                     {
                         content = content.Replace(closingBodyTag, $"{scriptTag}\n{closingBodyTag}");
-                        _logger.LogInformation("Successfully injected/updated the {PluginName} script.", PluginName);
+                        _logger.Info($"Successfully injected/updated the {PluginName} script.");
                     }
                     else
                     {
-                        _logger.LogWarning("Could not find </body> tag in index.html. Script not injected.");
+                        _logger.Warning("Could not find </body> tag in index.html. Script not injected.");
                         return; // Return early if injection point not found
                     }
                 }
                 else
                 {
-                    _logger.LogInformation("Successfully removed the {PluginName} script from index.html during uninstall.", PluginName);
+                    _logger.Info($"Successfully removed the {PluginName} script from index.html during uninstall.");
                 }
 
                 File.WriteAllText(indexPath, content);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while trying to update index.html.");
+                _logger.Error($"Error while trying to update index.html: {ex.Message}");
             }
         }
 

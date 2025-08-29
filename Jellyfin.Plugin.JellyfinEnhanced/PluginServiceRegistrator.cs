@@ -11,6 +11,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
         {
             serviceCollection.AddSingleton<StartupService>();
             serviceCollection.AddHttpClient();
+            serviceCollection.AddSingleton<Logger>();
         }
     }
 }
