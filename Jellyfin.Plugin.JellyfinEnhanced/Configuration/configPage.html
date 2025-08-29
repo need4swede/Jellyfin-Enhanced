@@ -33,21 +33,22 @@
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoPauseEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-pause on tab switch</span></label></div>
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoResumeEnabled" is="emby-checkbox" type="checkbox"/><span>Auto-resume on tab switch</span></label></div>
-                                    <div class="checkboxContainer"><label><input id="autoPipEnabled" is="emby-checkbox" type="checkbox"/><span>Auto Picture-in-Picture on tab switch</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoPipEnabled" is="emby-checkbox" type="checkbox"/><span>Auto Picture-in-Picture on tab switch</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label style="line-height: 1.2em; align-self: flex-start;"><input id="pauseScreenEnabled" is="emby-checkbox" type="checkbox"/><span>Enable Custom Pause Screen<div>This feature is a modified version of the original script by <a class="sectionTitle" target="_blank" href="https://github.com/BobHasNoSoul/Jellyfin-PauseScreen">BobHasNoSoul</a></div></span></label></div>
                                 </div>
                             </details>
                             <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
                                 <summary style="cursor: pointer; font-weight: bold;">↪️ Auto-Skip Settings</summary>
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoSkipIntro" is="emby-checkbox" type="checkbox"/><span>Auto-skip Intro</span></label></div>
-                                    <div class="checkboxContainer"><label><input id="autoSkipOutro" is="emby-checkbox" type="checkbox"/><span>Auto-skip Outro</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="autoSkipOutro" is="emby-checkbox" type="checkbox"/><span>Auto-skip Outro</span></label></div>
                                 </div>
                             </details>
                             <details style="margin-bottom: 1em; background-color: rgba(255,255,255,0.05); padding: 1em; border-radius: 5px;">
                                 <summary style="cursor: pointer; font-weight: bold;">🎲 Random Button Settings</summary>
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomButtonEnabled" is="emby-checkbox" type="checkbox"/><span>Enable Random Button</span></label></div>
-                                    <div class="checkboxContainer"><label><input id="randomUnwatchedOnly" is="emby-checkbox" type="checkbox"/><span>Show unwatched only in random selection</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomUnwatchedOnly" is="emby-checkbox" type="checkbox"/><span>Show unwatched only in random selection</span></label></div>
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomIncludeMovies" is="emby-checkbox" type="checkbox"/><span>Include movies in random selection</span></label></div>
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="randomIncludeShows" is="emby-checkbox" type="checkbox"/><span>Include shows in random selection</span></label></div>
                                 </div>
@@ -57,7 +58,8 @@
                                 <div style="padding-top: 1em;">
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="showFileSizes" is="emby-checkbox" type="checkbox"/><span>Show file sizes</span></label></div>
                                     <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="showAudioLanguages" is="emby-checkbox" type="checkbox"/><span>Show available audio languages on item detail page</span></label></div>
-                                    <div class="checkboxContainer"><label><input id="removeContinueWatchingEnabled" is="emby-checkbox" type="checkbox"/><span>Enable "Remove from Continue Watching"</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label><input id="removeContinueWatchingEnabled" is="emby-checkbox" type="checkbox"/><span>Enable "Remove from Continue Watching"</span></label></div>
+                                    <div class="checkboxContainer" style="margin-bottom: 0.5em;"><label style="line-height: 1.2em; align-self: flex-start;"><input id="qualityTagsEnabled" is="emby-checkbox" type="checkbox"/><span>Enable Quality Tags<div>This feature is a slightly modified version of the original script by <a class="sectionTitle" target="_blank" href="https://github.com/BobHasNoSoul/Jellyfin-Qualitytags/">BobHasNoSoul</a></div></span></label></div>
                                 </div>
                             </details>
                             <div
@@ -482,6 +484,8 @@
                 document.querySelector('#showFileSizes').checked = config.ShowFileSizes;
                 document.querySelector('#showAudioLanguages').checked = config.ShowAudioLanguages;
                 document.querySelector('#removeContinueWatchingEnabled').checked = config.RemoveContinueWatchingEnabled;
+                document.querySelector('#qualityTagsEnabled').checked = config.QualityTagsEnabled;
+                document.querySelector('#pauseScreenEnabled').checked = config.PauseScreenEnabled;
                 document.querySelector('#jellyseerrEnabled').checked = config.JellyseerrEnabled;
                 document.querySelector('#jellyseerrUrls').value = config.JellyseerrUrls;
                 document.querySelector('#JellyseerrApiKey').value = config.JellyseerrApiKey;
@@ -521,7 +525,8 @@
             config.ShowFileSizes = document.querySelector('#showFileSizes').checked;
             config.ShowAudioLanguages = document.querySelector('#showAudioLanguages').checked;
             config.RemoveContinueWatchingEnabled = document.querySelector('#removeContinueWatchingEnabled').checked;
-
+            config.QualityTagsEnabled = document.querySelector('#qualityTagsEnabled').checked;
+            config.PauseScreenEnabled = document.querySelector('#pauseScreenEnabled').checked;
             config.JellyseerrEnabled = document.querySelector('#jellyseerrEnabled').checked;
             config.JellyseerrUrls = (document.querySelector('#jellyseerrUrls').value || '').split('\n').map(u => u.trim()).filter(Boolean).join('\n');
             config.JellyseerrApiKey = (document.querySelector('#JellyseerrApiKey').value || '').trim();

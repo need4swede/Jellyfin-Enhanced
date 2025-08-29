@@ -52,7 +52,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             {
                 try
                 {
-                    var requestUri = $"{url.Trim().TrimEnd('/').TrimEnd('/')}/api/v1/user?take=1000"; // Fetch all users to find a match
+                    var requestUri = $"{url.Trim().TrimEnd('/')}/api/v1/user?take=1000"; // Fetch all users to find a match
                     _logger.Info($"Requesting users from Jellyseerr URL: {requestUri}");
                     var response = await httpClient.GetAsync(requestUri);
 
@@ -135,7 +135,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 var trimmedUrl = url.Trim();
                 try
                 {
-                    var requestUri = $"{trimmedUrl.TrimEnd('/').TrimEnd('/')}{apiPath}";
+                    var requestUri = $"{trimmedUrl.TrimEnd('/')}{apiPath}";
                     _logger.Info($"Proxying Jellyseerr request for user {jellyfinUserId} to: {requestUri}");
 
                     var request = new HttpRequestMessage(method, requestUri);
@@ -322,6 +322,8 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 config.RemoveContinueWatchingEnabled,
                 config.ShowAudioLanguages,
                 config.Shortcuts,
+                config.PauseScreenEnabled,
+                config.QualityTagsEnabled,
 
                 // Jellyseerr Search Settings
                 config.JellyseerrEnabled

@@ -40,6 +40,8 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             ShowFileSizes = false;
             RemoveContinueWatchingEnabled = false;
             ShowAudioLanguages = true;
+            PauseScreenEnabled = true;
+            QualityTagsEnabled = false;
             Shortcuts = new List<Shortcut>
             {
                 new Shortcut { Name = "OpenSearch", Key = "/", Label = "Open Search", Category = "Global" },
@@ -93,6 +95,8 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public bool RemoveContinueWatchingEnabled { get; set; }
         public bool ShowAudioLanguages { get; set; }
         public List<Shortcut> Shortcuts { get; set; }
+        public bool PauseScreenEnabled { get; set; }
+        public bool QualityTagsEnabled { get; set; }
 
         // Jellyseerr Search Settings
         public bool JellyseerrEnabled { get; set; }

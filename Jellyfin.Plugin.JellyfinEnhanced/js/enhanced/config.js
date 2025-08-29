@@ -103,6 +103,8 @@
                 showFileSizes: pluginConfig.ShowFileSizes,
                 showAudioLanguages: pluginConfig.ShowAudioLanguages,
                 removeContinueWatchingEnabled: pluginConfig.RemoveContinueWatchingEnabled,
+                pauseScreenEnabled: pluginConfig.PauseScreenEnabled,
+                qualityTagsEnabled: pluginConfig.QualityTagsEnabled,
                 lastOpenedTab: 'shortcuts'
             };
         } catch (e) {
@@ -123,6 +125,8 @@
                 randomUnwatchedOnly: false,
                 showFileSizes: false,
                 removeContinueWatchingEnabled: false,
+                pauseScreenEnabled: true,
+                qualityTagsEnabled: false,
                 lastOpenedTab: 'shortcuts'
             };
         }

@@ -98,7 +98,9 @@
                     'enhanced/features.js',
                     'enhanced/events.js',
                     'elsewhere.js',
-                    'jellyseerr.js'
+                    'jellyseerr.js',
+                    'pausescreen.js',
+                    'qualitytags.js'
                 ];
 
                 // Load all script modules
@@ -112,6 +114,12 @@
                     }
                     if (typeof window.JellyfinEnhanced.initializeJellyseerrScript === 'function') {
                         window.JellyfinEnhanced.initializeJellyseerrScript();
+                    }
+                    if (typeof window.JellyfinEnhanced.initializePauseScreen === 'function') {
+                        window.JellyfinEnhanced.initializePauseScreen();
+                    }
+                    if (typeof window.JellyfinEnhanced.initializeQualityTags === 'function') {
+                        window.JellyfinEnhanced.initializeQualityTags();
                     }
                     console.log('🪼 Jellyfin Enhanced: All components loaded and initialized.');
                 });

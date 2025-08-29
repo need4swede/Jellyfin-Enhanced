@@ -62,7 +62,7 @@
             transition: 'transform 0.3s ease-out',
             maxWidth: 'clamp(280px, 80vw, 350px)'
         });
-        t.textContent = txt;
+        t.innerHTML = txt;
         document.body.appendChild(t);
         setTimeout(() => t.style.transform = 'translateX(0)', 10);
         setTimeout(() => {
@@ -487,13 +487,19 @@
                                     <div><div style="font-weight:500;">Auto-pause</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Pause when switching tabs</div></div>
                                 </label>
                             </div>
-                            <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                            <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="pauseScreenToggle" ${JE.currentSettings.pauseScreenEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                    <div><div style="font-weight:500;">Custom Pause Screen</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Show a stylized screen when videos are paused.</div></div>
+                                </label>
+                            </div>
+                           <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                     <input type="checkbox" id="autoResumeToggle" ${JE.currentSettings.autoResumeEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
                                     <div><div style="font-weight:500;">Auto-resume</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Resume when returning to tab</div></div>
                                 </label>
                             </div>
-                            <div style="margin-top: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                            <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                     <input type="checkbox" id="autoPipToggle" ${JE.currentSettings.autoPipEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
                                     <div><div style="font-weight:500;">Auto Picture-in-Picture</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Automatically enter PiP when switching tabs</div></div>
@@ -555,6 +561,12 @@
                                 <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                     <input type="checkbox" id="showAudioLanguagesToggle" ${JE.currentSettings.showAudioLanguages ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
                                     <div><div style="font-weight:500;">Show Audio Languages</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Display available audio languages on detail pages.</div></div>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 16px; padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="qualityTagsToggle" ${JE.currentSettings.qualityTagsEnabled ? 'checked' : ''} style="width:18px; height:18px; accent-color:${toggleAccentColor}; cursor:pointer;">
+                                    <div><div style="font-weight:500;">Show Quality Tags</div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;">Display 4K, 1080p, Dolby Digital, DTS, etc., tags on posters.</div></div>
                                 </label>
                             </div>
                             <div style="padding: 12px; background: ${presetBoxBackground}; border-radius: 6px; border-left: 3px solid ${toggleAccentColor};">
@@ -740,6 +752,8 @@
         document.getElementById('showFileSizesToggle').addEventListener('change', (e) => { JE.currentSettings.showFileSizes = e.target.checked; JE.saveSettings(JE.currentSettings); JE.toast(`📄 File Size Display ${e.target.checked ? 'Enabled' : 'Disabled'}`); if (!e.target.checked) { document.querySelectorAll('.mediaInfoItem-fileSize').forEach(el => el.remove()); } resetAutoCloseTimer(); });
         document.getElementById('showAudioLanguagesToggle').addEventListener('change', (e) => { JE.currentSettings.showAudioLanguages = e.target.checked; JE.saveSettings(JE.currentSettings); JE.toast(`🗣️ Audio Language Display ${e.target.checked ? 'Enabled' : 'Disabled'}`); if (!e.target.checked) { document.querySelectorAll('.mediaInfoItem-audioLanguage').forEach(el => el.remove()); } else { JE.runLanguageCheck(); } resetAutoCloseTimer(); });
         document.getElementById('removeContinueWatchingToggle').addEventListener('change', (e) => { JE.currentSettings.removeContinueWatchingEnabled = e.target.checked; JE.saveSettings(JE.currentSettings); JE.toast(`👁️ Remove Continue Watching ${e.target.checked ? 'Enabled' : 'Disabled'}`); resetAutoCloseTimer(); });
+        document.getElementById('qualityTagsToggle').addEventListener('change', (e) => { JE.currentSettings.qualityTagsEnabled = e.target.checked; JE.saveSettings(JE.currentSettings); JE.toast(`🏷️ Quality Tags ${e.target.checked ? 'Enabled' : 'Disabled'}.<br> Refresh page to apply.`); resetAutoCloseTimer(); });
+        document.getElementById('pauseScreenToggle').addEventListener('change', (e) => { JE.currentSettings.pauseScreenEnabled = e.target.checked; JE.saveSettings(JE.currentSettings); JE.toast(`🖼️ Custom Pause Screen ${e.target.checked ? 'Enabled' : 'Disabled'}.<br> Refresh page to apply.`); resetAutoCloseTimer(); });
 
         const setupPresetHandlers = (containerId, presets, type) => {
             const container = document.getElementById(containerId);
