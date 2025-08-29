@@ -52,7 +52,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             {
                 try
                 {
-                    var requestUri = $"{url.Trim()}/api/v1/user?take=1000"; // Fetch all users to find a match
+                    var requestUri = $"{url.Trim().TrimEnd('/')}/api/v1/user?take=1000"; // Fetch all users to find a match
                     _logger.Info($"Requesting users from Jellyseerr URL: {requestUri}");
                     var response = await httpClient.GetAsync(requestUri);
 
@@ -135,7 +135,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 var trimmedUrl = url.Trim();
                 try
                 {
-                    var requestUri = $"{trimmedUrl}{apiPath}";
+                    var requestUri = $"{trimmedUrl.TrimEnd('/')}{apiPath}";
                     _logger.Info($"Proxying Jellyseerr request for user {jellyfinUserId} to: {requestUri}");
 
                     var request = new HttpRequestMessage(method, requestUri);
@@ -155,7 +155,18 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                     }
 
                     _logger.Warning($"Request to Jellyseerr for user {jellyfinUserId} failed. URL: {trimmedUrl}, Status: {response.StatusCode}, Response: {responseContent}");
-                    return StatusCode((int)response.StatusCode, responseContent);
+                    // Try to parse the error as JSON, if it fails, create a new JSON error object.
+                    try
+                    {
+                        JsonDocument.Parse(responseContent);
+                        return StatusCode((int)response.StatusCode, responseContent);
+                    }
+                    catch (JsonException)
+                    {
+                        // The response was not valid JSON (e.g., HTML error page), so we create a standard error object.
+                        var errorResponse = new { message = $"Upstream error from Jellyseerr: {response.ReasonPhrase}" };
+                        return StatusCode((int)response.StatusCode, errorResponse);
+                    }
                 }
                 catch (Exception ex)
                 {
