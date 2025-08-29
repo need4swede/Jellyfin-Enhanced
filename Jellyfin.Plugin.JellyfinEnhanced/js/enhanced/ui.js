@@ -93,6 +93,36 @@
         const notification = document.createElement('div');
         notification.id = notificationId;
 
+        // --- Release notes autoclose ---
+        let autoCloseTimer = null;
+        let isMouseInside = false;
+        const AUTOCLOSE_DELAY = 20000; // 20 seconds
+
+        const closePanel = () => {
+            if (document.getElementById(notificationId)) {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }
+        };
+
+        const resetAutoCloseTimer = () => {
+            if (autoCloseTimer) clearTimeout(autoCloseTimer);
+            autoCloseTimer = setTimeout(() => {
+                if (!isMouseInside) {
+                    closePanel();
+                }
+            }, AUTOCLOSE_DELAY);
+        };
+
+        notification.addEventListener('mouseenter', () => {
+            isMouseInside = true;
+            if (autoCloseTimer) clearTimeout(autoCloseTimer);
+        });
+        notification.addEventListener('mouseleave', () => {
+            isMouseInside = false;
+            resetAutoCloseTimer();
+        });
+
         const getJellyfinThemeVariable = (variableName, defaultValue) => {
             const rootStyle = getComputedStyle(document.documentElement);
             const value = rootStyle.getPropertyValue(variableName).trim();
@@ -126,7 +156,7 @@
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
             backdropFilter: `blur(50px)`,
             border: panelBorder,
-            maxWidth: '400px',
+            maxWidth: '450px',
             transform: 'translateX(100%)',
             transition: 'transform 0.3s ease-out',
             fontFamily: 'inherit'
@@ -135,7 +165,23 @@
         const markdownToHtml = (text) => {
             if (!text) return '';
             return text
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--primary-accent-color, #00a4dc); text-decoration: none;">$1</a>')
+                // Blockquotes
+                .replace(/^> \[!NOTE\]\n> /gm, '<div style="padding: 10px; border-left: 4px solid #f0ad4e; background-color: rgba(240, 173, 78, 0.1); margin: 10px 0;"><strong>NOTE:</strong><br>')
+                .replace(/^> (.*$)/gm, '<div style="padding: 10px; border-left: 4px solid #5bc0de; background-color: rgba(91, 192, 222, 0.1); margin: 10px 0;">$1</div>')
+                // Headings
+                .replace(/^## (.*$)/gm, '<h3 style="font-size: 1.2em; margin-top: 1em; margin-bottom: 0.5em;">$1</h3>')
+                .replace(/^# (.*$)/gm, '<h2 style="font-size: 1.4em; margin-top: 1em; margin-bottom: 0.5em;">$1</h2>')
+                // Links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--primary-accent-color, #00a4dc); text-decoration: none;">$1</a>')
+                // Bold and Italic
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // Lists (simple)
+                .replace(/^\* (.*$)/gm, '<li style="margin-left: 20px;">$1</li>')
+                // Cleanup for list wrapper
+                .replace(/<\/li>\n<li/g, '</li><li')
+                .replace(/(<li.*<\/li>)/g, '<ul>$1</ul>')
+                // Paragraphs/Newlines
                 .replace(/\n/g, '<br>');
         };
 
@@ -151,7 +197,7 @@
                     <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${release.tag_name}</div>
                 </div>
             </div>
-            <div style="margin-bottom: 17px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; max-height: 200px; overflow-y: auto;">
+            <div style="margin-bottom: 17px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; max-height: 350px; overflow-y: auto;">
                 ${markdownToHtml(releaseNotes)}
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -162,6 +208,8 @@
 
         document.body.appendChild(notification);
         setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 10);
+
+        resetAutoCloseTimer();
     }
 
     /**
