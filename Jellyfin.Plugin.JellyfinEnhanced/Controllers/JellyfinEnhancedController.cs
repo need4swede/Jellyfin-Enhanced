@@ -156,8 +156,18 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                     }
 
                     _logger.LogWarning("Request to Jellyseerr for user {JellyfinUserId} failed. URL: {Url}, Status: {StatusCode}, Response: {ResponseContent}", jellyfinUserId, trimmedUrl, response.StatusCode, responseContent);
-                    // Return the actual status code and content from Jellyseerr
-                    return StatusCode((int)response.StatusCode, responseContent);
+                    // Try to parse the error as JSON, if it fails, create a new JSON error object.
+                    try
+                    {
+                        JsonDocument.Parse(responseContent);
+                        return StatusCode((int)response.StatusCode, responseContent);
+                    }
+                    catch (JsonException)
+                    {
+                        // The response was not valid JSON (e.g., HTML error page), so we create a standard error object.
+                        var errorResponse = new { message = $"Upstream error from Jellyseerr: {response.ReasonPhrase}" };
+                        return StatusCode((int)response.StatusCode, errorResponse);
+                    }
                 }
                 catch (Exception ex)
                 {
