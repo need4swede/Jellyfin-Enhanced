@@ -86,7 +86,7 @@ The Custom Pause Screen is an immersive overlay that appears when you pause a vi
 
 <br>
 <details>
-<summary style="font-size: 1.2em;">Pause Screen Customization Guide</summary>
+<summary style="font-size: 1.2em;">Pause Screen CSS Guide</summary>
 <br>
 
 If you do not want an element in the pause screen, you can customize by hiding them to your liking.
@@ -112,6 +112,103 @@ This feature displays informative tags directly on item posters, giving you a qu
 > Needs some work, expect bugs and raise if you find any :)
 
 This feature can be toggled on or off from the Jellyfin Enhanced settings panel under **Settings > UI Settings > Show Quality Tags**.
+
+<br>
+<details open>
+<summary style="font-size: 1.2em;">Quality Tags CSS Guide</summary>
+<br>
+
+The tags are injected with the following HTML structure:
+```html
+<div class="cardImageContainer" style="position: relative;">
+    <!-- Other card content -->
+    <div class="quality-overlay-container">
+        <div class="quality-overlay-label" data-quality="4K">4K</div>
+        <div class="quality-overlay-label" data-quality="HDR">HDR</div>
+        <div class="quality-overlay-label" data-quality="ATMOS">ATMOS</div>
+    </div>
+</div>
+```
+
+-   `.quality-overlay-container`: Main container that holds all the tags for a single item. Positioned at the top-left of the poster.
+
+-   `.quality-overlay-label`: The individual tag element.
+
+-   `data-quality="..."`: A data attribute specifying the quality (e.g., `4K`, `HDR`, `DTS-X`). Useful for targeting specific tags in CSS.
+
+<br>
+
+### Customization Examples
+----------------------
+
+| Element | CSS Selector | Example CSS |
+| --- | --- | --- |
+| **All Tags** | `.quality-overlay-label` | `css .quality-overlay-label { font-size: 0.8rem; padding: 3px 10px; }` |
+| **Tag Container Position** | `.quality-overlay-container` | `css .quality-overlay-container { left: auto; right: 6px; align-items: flex-end; }` |
+| **Specific Tag (e.g., 4K)** | `.quality-overlay-label[data-quality="4K"]` | `css .quality-overlay-label[data-quality="4K"] { background-color: purple !important; }` |
+| **HDR Tag** | `.quality-overlay-label[data-quality="HDR"]` | `css .quality-overlay-label[data-quality="HDR"] { border: 2px solid gold; }` |
+| **Hide a Tag (e.g., SD)** | `.quality-overlay-label[data-quality="SD"]` | `css .quality-overlay-label[data-quality="SD"] { display: none; }` |
+| **Change Shape** | `.quality-overlay-label` | `css .quality-overlay-label { border-radius: 999px; }` |
+| **Stack Tags Horizontally** | `.quality-overlay-container` | `css .quality-overlay-container { flex-direction: row; flex-wrap: wrap; }` |
+
+<br>
+
+### CSS Examples
+---------------------
+
+Copy this into your custom CSS tool and modify as you like:
+
+```css
+/*
+ * ===================================================================
+ * Example Custom Style Override for Jellyfin Enhanced Quality Tags
+ * ===================================================================
+*/
+
+/* --- Main Tag Container --- */
+.quality-overlay-container {
+    top: 8px !important;     /* Distance from the top */
+    left: 8px !important;    /* Distance from the left */
+    gap: 4px !important;     /* Space between tags */
+    align-items: flex-start !important; /* 'flex-start' for left, 'flex-end' for right */
+}
+
+/* --- General Style for All Tags --- */
+.quality-overlay-label {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important; /* Bolder text */
+    border-radius: 4px !important; /* Slightly rounded corners */
+    padding: 3px 10px !important;
+    border: none !important;
+}
+
+/* --- Styling for Specific Tags --- */
+
+/* 4K tag */
+.quality-overlay-label[data-quality="4K"] {
+    background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
+    color: white !important;
+    order: -1; /* Appear first */
+}
+
+/* Dolby Vision (DV) */
+.quality-overlay-label[data-quality="DV"] {
+    background-color: #4a362a !important;
+    color: #f5d371 !important;
+}
+
+/* ATMOS */
+.quality-overlay-label[data-quality="ATMOS"] {
+    background-color: #1d3557 !important;
+    color: #a8dadc !important;
+}
+
+/* Hide 1080p tag */
+.quality-overlay-label[data-quality="1080p"] {
+    display: none !important;
+}
+```
+</details>
 
 ### **And more...**
 - File sizes - Display filesizes for each movie or episode in the item details page \
@@ -357,8 +454,7 @@ Here is a list of common errors you might see in your Jellyfin server logs or yo
 <summary style="font-size: 1.25em; font-weight: 600;">🎨 Custom Styling (For Any Theme)</summary>
 <br>
 
-While the script automatically themes itself with Jellyfish, you can apply your own custom look on any theme. The following CSS template can be used in a browser extension like Stylus to completely override the panel's appearance.
-
+While the script automatically themes itself with Jellyfish, you can apply your own custom look on any theme.
 Sample styling
 
 ```css
