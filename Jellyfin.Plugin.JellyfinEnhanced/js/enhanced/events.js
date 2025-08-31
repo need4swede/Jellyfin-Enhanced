@@ -244,7 +244,7 @@
         if (serverClearTimestamp > localClearedTimestamp) {
             localStorage.removeItem('jellyfinEnhancedSettings');
             localStorage.setItem('jellyfinEnhancedLastCleared', serverClearTimestamp.toString());
-            setTimeout(() => JE.toast('⚙️ All settings have been reset by the server admin.', 5000), 2000);
+            //setTimeout(() => JE.toast('⚙️ All settings have been reset by the server admin.', 5000), 2000); //Stop sending a toast notification on every new session
         }
 
         // Initial UI setup

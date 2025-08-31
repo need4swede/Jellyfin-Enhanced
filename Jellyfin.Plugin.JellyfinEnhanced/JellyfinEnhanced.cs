@@ -23,6 +23,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             Instance = this;
             _applicationPaths = applicationPaths;
             _logger = logger;
+            CleanupOldScript();
         }
 
         public override string Name => PluginName;
@@ -41,7 +42,33 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             UpdateIndexHtml(false);
             base.OnUninstalling();
         }
+        private void CleanupOldScript()
+        {
+            try
+            {
+                var indexPath = IndexHtmlPath;
+                if (!File.Exists(indexPath))
+                {
+                    _logger.Error($"Could not find index.html at path: {indexPath}");
+                    return;
+                }
 
+                var content = File.ReadAllText(indexPath);
+                var regex = new Regex($"<script[^>]*plugin=[\"']{Name}[\"'][^>]*>\\s*</script>\\n?");
+
+                if (regex.IsMatch(content))
+                {
+                    _logger.Info("Found old Jellyfin Enhanced script tag in index.html. Removing it now.");
+                    content = regex.Replace(content, string.Empty);
+                    File.WriteAllText(indexPath, content);
+                    _logger.Info("Successfully removed old script tag.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error during cleanup of old script from index.html: {ex.Message}");
+            }
+        }
         private void UpdateIndexHtml(bool inject)
         {
             try

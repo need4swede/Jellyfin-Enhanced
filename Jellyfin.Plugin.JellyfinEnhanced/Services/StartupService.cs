@@ -33,37 +33,8 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Services
         {
             await Task.Run(() =>
             {
-                CleanupOldScript();
                 RegisterFileTransformation();
             }, cancellationToken);
-        }
-
-        private void CleanupOldScript()
-        {
-            try
-            {
-                var indexPath = Path.Combine(_applicationPaths.WebPath, "index.html");
-                if (!File.Exists(indexPath))
-                {
-                    _logger.LogWarning("Could not find index.html at path: {Path}. Unable to perform cleanup.", indexPath);
-                    return;
-                }
-
-                var content = File.ReadAllText(indexPath);
-                var regex = new Regex($"<script[^>]*src=[\"']/JellyfinEnhanced/script[\"'][^>]*>\\s*</script>\\n?");
-
-                if (regex.IsMatch(content))
-                {
-                    _logger.LogInformation("Found old Jellyfin Enhanced script tag in index.html. Removing it now.");
-                    content = regex.Replace(content, string.Empty);
-                    File.WriteAllText(indexPath, content);
-                    _logger.LogInformation("Successfully removed old script tag.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during cleanup of old script from index.html.");
-            }
         }
 
         private void RegisterFileTransformation()
