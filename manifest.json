@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "changelog": "- Improve Quality Tags logic and styling\n - Minor improvements and bug fixes",
+                "targetAbi": "10.9.4.0",
+                "version": "6.4.1.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/6.4.1.0/Jellyfin.Plugin.JellyfinEnhanced.zip",
+                "checksum": "8a4b07327f6f3856e609dfe5700b0e42",
+                "timestamp": "2025-08-31T10:19:27Z"
+            },
+            {
                 "checksum": "b129839ef0c48064eb03c296d0eac81c",
                 "changelog": "- New Features: Add Custom Pause Screen and Quality Tags on posters.\n- Behind the scenes: Implement a dedicated log file for easier troubleshooting and improve URL handling.",
                 "targetAbi": "10.9.4.0",
