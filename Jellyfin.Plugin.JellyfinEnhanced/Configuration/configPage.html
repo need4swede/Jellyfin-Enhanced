@@ -108,11 +108,6 @@
                                 <input id="ToastDuration" is="emby-input" name="ToastDuration" type="number"/>
                                 <div class="fieldDescription">How long toast notifications are displayed.</div>
                             </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel inputLabelUnfocused" for="ClearBookmarksDelay">Clear Bookmarks Delay (in milliseconds)</label>
-                                <input id="ClearBookmarksDelay" is="emby-input" name="ClearBookmarksDelay" type="number"/>
-                                <div class="fieldDescription">How long to hold Shift+B to clear all bookmarks.</div>
-                            </div>
                         </div>
                     </fieldset>
                     <div class="verticalSection">
@@ -267,7 +262,7 @@
             { Name: "GoToDashboard", Key: "D", Label: "Go to Dashboard", Category: "Global" },
             { Name: "QuickConnect", Key: "Q", Label: "Quick Connect", Category: "Global" },
             { Name: "PlayRandomItem", Key: "R", Label: "Play Random Item", Category: "Global" },
-            { Name: "ClearAllBookmarks", Key: "Shift+B", Label: "Clear All Bookmarks (Hold)", Category: "Global" },
+            { Name: "ClearAllBookmarks", Key: "Ctrl+Shift+B", Label: "Clear All Bookmarks", Category: "Global" },
             { Name: "CycleAspectRatio", Key: "A", Label: "Cycle Aspect Ratio", Category: "Player" },
             { Name: "ShowPlaybackInfo", Key: "I", Label: "Show Playback Info", Category: "Player" },
             { Name: "SubtitleMenu", Key: "S", Label: "Subtitle Menu", Category: "Player" },
@@ -465,7 +460,6 @@
                 populateAddShortcutDropdown();
 
                 // Load all other settings
-                document.querySelector('#ClearBookmarksDelay').value = config.ClearBookmarksDelay;
                 document.querySelector('#ToastDuration').value = config.ToastDuration;
                 document.querySelector('#HelpPanelAutocloseDelay').value = config.HelpPanelAutocloseDelay;
                 document.querySelector('#TMDB_API_KEY').value = config.TMDB_API_KEY;
@@ -506,7 +500,6 @@
             });
             config.Shortcuts = finalShortcuts;
 
-            config.ClearBookmarksDelay = parseInt(document.querySelector('#ClearBookmarksDelay').value, 10);
             config.ToastDuration = parseInt(document.querySelector('#ToastDuration').value, 10);
             config.HelpPanelAutocloseDelay = parseInt(document.querySelector('#HelpPanelAutocloseDelay').value, 10);
             config.TMDB_API_KEY = document.querySelector('#TMDB_API_KEY').value;

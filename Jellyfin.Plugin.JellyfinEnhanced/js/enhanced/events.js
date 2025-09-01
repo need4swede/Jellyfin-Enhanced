@@ -45,6 +45,10 @@
         } else if (combo === activeShortcuts.PlayRandomItem && !JE.isVideoPage()) {
             e.preventDefault();
             document.getElementById('randomItemButton')?.click();
+        } else if (combo === activeShortcuts.ClearAllBookmarks) {
+            e.preventDefault();
+            localStorage.removeItem('jellyfinEnhancedBookmarks');
+            JE.toast('🗑️ All Bookmarks Cleared');
         }
 
         // --- Player-Only Shortcuts ---
@@ -258,25 +262,6 @@
         addContextMenuListener();
         document.addEventListener('keydown', JE.keyListener);
 
-        // Special listener for Shift+B to clear bookmarks
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'B' && e.shiftKey && !JE.isVideoPage()) {
-                if (!JE.state.shiftBTimer && !JE.state.shiftBTriggered) {
-                    JE.state.shiftBTimer = setTimeout(() => {
-                        localStorage.removeItem('jellyfinEnhancedBookmarks');
-                        JE.toast('🗑️ All Bookmarks Cleared');
-                        JE.state.shiftBTriggered = true;
-                    }, JE.CONFIG.CLEAR_BOOKMARKS_DELAY);
-                }
-            }
-        });
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'B') {
-                if (JE.state.shiftBTimer) clearTimeout(JE.state.shiftBTimer);
-                JE.state.shiftBTimer = null;
-                setTimeout(() => { JE.state.shiftBTriggered = false; }, 100);
-            }
-        });
 
         // Listeners for tab visibility (auto-pause/resume/PiP)
         document.addEventListener('visibilitychange', () => {

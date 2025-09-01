@@ -312,7 +312,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
             return new JsonResult(new
             {
                 // Jellyfin Enhanced Settings
-                config.ClearBookmarksDelay,
                 config.ToastDuration,
                 config.HelpPanelAutocloseDelay,
                 config.AutoskipInterval,

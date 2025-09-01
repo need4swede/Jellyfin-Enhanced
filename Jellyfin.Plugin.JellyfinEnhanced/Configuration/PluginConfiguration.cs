@@ -14,7 +14,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public PluginConfiguration()
         {
             // Jellyfin Enhanced Settings
-            ClearBookmarksDelay = 3000;
             ToastDuration = 1500;
             HelpPanelAutocloseDelay = 15000;
             AutoskipInterval = 500;
@@ -49,7 +48,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
                 new Shortcut { Name = "GoToDashboard", Key = "D", Label = "Go to Dashboard", Category = "Global" },
                 new Shortcut { Name = "QuickConnect", Key = "Q", Label = "Quick Connect", Category = "Global" },
                 new Shortcut { Name = "PlayRandomItem", Key = "R", Label = "Play Random Item", Category = "Global" },
-                new Shortcut { Name = "ClearAllBookmarks", Key = "Shift+B", Label = "Clear All Bookmarks (Hold)", Category = "Global" },
+                new Shortcut { Name = "ClearAllBookmarks", Key = "Ctrl+Shift+B", Label = "Clear All Bookmarks", Category = "Global" },
                 new Shortcut { Name = "CycleAspectRatio", Key = "A", Label = "Cycle Aspect Ratio", Category = "Player" },
                 new Shortcut { Name = "ShowPlaybackInfo", Key = "I", Label = "Show Playback Info", Category = "Player" },
                 new Shortcut { Name = "SubtitleMenu", Key = "S", Label = "Subtitle Menu", Category = "Player" },
@@ -69,7 +68,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         }
 
         // Jellyfin Enhanced Settings
-        public int ClearBookmarksDelay { get; set; }
         public int ToastDuration { get; set; }
         public int HelpPanelAutocloseDelay { get; set; }
 

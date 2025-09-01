@@ -12,7 +12,6 @@
      * @type {object}
      */
     JE.CONFIG = {
-        CLEAR_BOOKMARKS_DELAY: pluginConfig.ClearBookmarksDelay,
         TOAST_DURATION: pluginConfig.ToastDuration,
         HELP_PANEL_AUTOCLOSE_DELAY: pluginConfig.HelpPanelAutocloseDelay,
         AUTOSKIP_INTERVAL: pluginConfig.AutoskipInterval,
@@ -23,8 +22,6 @@
      * @type {object}
      */
     JE.state = {
-        shiftBTimer: null,
-        shiftBTriggered: false,
         autoSkipInterval: null,
         activeShortcuts: {},
         currentContextItemId: null,

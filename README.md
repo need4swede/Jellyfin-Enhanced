@@ -33,7 +33,7 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 | **`D`** | Go to the Dashboard | Global |
 | **`Q`** | Go to Quick Connect | Global |
 | **`R`** | Play a random item from your library | Global |
-| **Hold `Shift`** + **`B`** | Clear all saved bookmarks (3-second hold) | Global |
+| **`Ctrl`** + **`Shift`** + **`B`** | Clear all saved bookmarks | Global |
 | :--- | :--- | :--- |
 | **`A`** | Cycle through aspect ratios (Auto → Cover → Fill) | Player |
 | **`I`** | Show playback info (stats overlay) | Player |
