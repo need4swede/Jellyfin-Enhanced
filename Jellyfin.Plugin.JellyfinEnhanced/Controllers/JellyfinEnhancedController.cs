@@ -276,7 +276,23 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
         {
             return await ProxyJellyseerrRequest("/api/v1/request", HttpMethod.Post, requestBody.ToString());
         }
+        [HttpGet("jellyseerr/tv/{tmdbId}")]
+        public Task<IActionResult> GetTvShow(int tmdbId)
+        {
+            return ProxyJellyseerrRequest($"/api/v1/tv/{tmdbId}", HttpMethod.Get);
+        }
 
+        [HttpGet("jellyseerr/tv/{tmdbId}/seasons")]
+        public Task<IActionResult> GetTvSeasons(int tmdbId)
+        {
+            return ProxyJellyseerrRequest($"/api/v1/tv/{tmdbId}/seasons", HttpMethod.Get);
+        }
+
+        [HttpPost("jellyseerr/request/tv/{tmdbId}/seasons")]
+        public async Task<IActionResult> RequestTvSeasons(int tmdbId, [FromBody] JsonElement requestBody)
+        {
+            return await ProxyJellyseerrRequest($"/api/v1/request", HttpMethod.Post, requestBody.ToString());
+        }
         [HttpGet("script")]
         public ActionResult GetMainScript() => GetScriptResource("js/plugin.js");
         [HttpGet("js/{**path}")]
