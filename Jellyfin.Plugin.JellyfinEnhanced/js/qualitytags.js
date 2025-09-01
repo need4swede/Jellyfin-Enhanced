@@ -34,13 +34,13 @@
 
         // Defines resolution tiers and their priority for display.
         const QUALITY_THRESHOLDS = {
-            '8K': { width: 7680, height: 4320, priority: 7 },
-            '4K': { width: 3840, height: 2160, priority: 6 },
-            '1440p': { width: 2560, height: 1440, priority: 5 },
-            '1080p': { width: 1920, height: 1080, priority: 4 },
-            '720p': { width: 1280, height: 720, priority: 3 },
-            '480p': { width: 720, height: 480, priority: 2 },
-            'SD': { width: 0, height: 0, priority: 1 }
+            '8K': { width: 7680, priority: 7 },
+            '4K': { width: 3840, priority: 6 },
+            '1440p': { width: 2560, priority: 5 },
+            '1080p': { width: 1920, priority: 4 },
+            '720p': { width: 1280, priority: 3 },
+            '480p': { width: 720, priority: 2 },
+            'SD': { width: 0, priority: 1 }
         };
 
         // Color definitions for each quality tag.
@@ -173,53 +173,57 @@
                 audioStreams = audioStreams.concat(sourceStreams.filter(s => s.Type === 'Audio'));
             }
 
-            // 1. Resolution Detection
-            videoStreams.forEach(stream => {
-                const width = stream.Width || 0;
-                const height = stream.Height || 0;
-
-                let detectedQuality = 'SD';
-                let highestPriority = 0;
-
-                for (const [qualityLabel, threshold] of Object.entries(QUALITY_THRESHOLDS)) {
-                    // Handle ultra-wide aspect ratios by primarily checking width
-                    const isUltraWide = (width / height) > 2.1;
-                    const qualifies = isUltraWide ? (width >= threshold.width) : (width >= threshold.width && height >= threshold.height);
-
-                    if (qualifies && threshold.priority > highestPriority) {
-                        detectedQuality = qualityLabel;
-                        highestPriority = threshold.priority;
-                    }
-                }
-
-                if (detectedQuality !== 'SD' || (width > 0 && height > 0)) {
-                    qualities.add(detectedQuality);
-                }
-
-                // 2. HDR / Dolby Vision Detection
-                const videoRange = (stream.VideoRange || '').toLowerCase();
-                if (videoRange.includes('hdr') || videoRange.includes('dolby vision')) {
-                    if (stream.VideoRangeType) {
-                        const rangeType = stream.VideoRangeType.toLowerCase();
-                        if (rangeType.includes('dv') || rangeType.includes('dolby')) qualities.add('Dolby Vision');
-                        else if (rangeType.includes('hdr10+')) qualities.add('HDR10+');
-                        else if (rangeType.includes('hdr10')) qualities.add('HDR10');
-                        else qualities.add('HDR');
-                    } else {
-                        qualities.add('HDR');
-                    }
-                }
-            });
-
-            // Fallback to get resolution from the media source name if stream info is missing.
+            // --- 1. Check Title First (regex) ---
+            let resolutionFromTitle = null;
             if (mediaSources?.[0]?.Name) {
                 const title = mediaSources[0].Name.toLowerCase();
-                for (const q of Object.keys(QUALITY_THRESHOLDS)) {
-                    if (title.includes(q.toLowerCase())) {
-                        qualities.add(q);
-                        break; // Add first one found and stop
-                    }
+                const resRegex = /\b(8k|4k|1440p|1080p|720p|480p|sd)\b/i;
+                const match = title.match(resRegex);
+                if (match) {
+                    const found = match[1].toUpperCase();
+                    // Normalize 4K / 8K casing
+                    resolutionFromTitle = found === "4K" || found === "8K" ? found : found.toLowerCase();
+                    qualities.add(resolutionFromTitle);
                 }
+                if (/dolby\s*vision|dv/i.test(title)) qualities.add('Dolby Vision');
+                else if (/hdr10\+/i.test(title)) qualities.add('HDR10+');
+                else if (/hdr10/i.test(title)) qualities.add('HDR10');
+                else if (/\bhdr\b/i.test(title)) qualities.add('HDR');
+            }
+
+            // --- 2. If no title-based resolution, fall back to width-only ---
+            if (!resolutionFromTitle) {
+                videoStreams.forEach(stream => {
+                    const width = stream.Width || 0;
+
+                    let detectedQuality = 'SD';
+                    let highestPriority = 0;
+
+                    for (const [qualityLabel, threshold] of Object.entries(QUALITY_THRESHOLDS)) {
+                        if (width >= threshold.width && threshold.priority > highestPriority) {
+                            detectedQuality = qualityLabel;
+                            highestPriority = threshold.priority;
+                        }
+                    }
+
+                    if (detectedQuality !== 'SD' || width > 0) {
+                        qualities.add(detectedQuality);
+                    }
+
+                    // HDR / Dolby Vision Detection from metadata
+                    const videoRange = (stream.VideoRange || '').toLowerCase();
+                    if (videoRange.includes('hdr') || videoRange.includes('dolby vision')) {
+                        if (stream.VideoRangeType) {
+                            const rangeType = stream.VideoRangeType.toLowerCase();
+                            if (rangeType.includes('dv') || rangeType.includes('dolby')) qualities.add('Dolby Vision');
+                            else if (rangeType.includes('hdr10+')) qualities.add('HDR10+');
+                            else if (rangeType.includes('hdr10')) qualities.add('HDR10');
+                            else qualities.add('HDR');
+                        } else {
+                            qualities.add('HDR');
+                        }
+                    }
+                });
             }
 
             // 3. Audio Codec Detection
