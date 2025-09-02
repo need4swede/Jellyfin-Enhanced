@@ -22,6 +22,7 @@
                 <button class="jellyfin-tab-button active" data-tab="enhanced" style="background: none; border: none; color: var(--primary-accent-color, #fff); cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid var(--primary-accent-color, #fff);"><h3>Enhanced Settings</h3></button>
                 <button class="jellyfin-tab-button" data-tab="elsewhere" style="background: none; border: none; color: #ccc; cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid transparent;"><h3>Elsewhere Settings</h3></button>
                 <button class="jellyfin-tab-button" data-tab="jellyseerr" style="background: none; border: none; color: #ccc; cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid transparent;"><h3>Jellyseerr Settings</h3></button>
+                <button class="jellyfin-tab-button" data-tab="arr-links" style="background: none; border: none; color: #ccc; cursor: pointer; transition: color 0.3s, border-bottom 0.3s; border-bottom: 2px solid transparent;"><h3>*arr Links</h3></button>
             </div>
             <form id="JellyfinEnhancedForm">
                 <div id="enhanced" class="jellyfin-tab-content active" style="display: block; font-family: inherit;">
@@ -179,6 +180,39 @@
                                     "<b>Enable Jellyfin Sign-In</b>" must be enabled in Jellyseerr User Settings (/settings/users)<br><br>
                                     All users much be imported to Jellyseer as Jellyfin users for them to be able to request conetnt.
                                 </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div id="arr-links" class="jellyfin-tab-content" style="display: none; font-family: inherit;">
+                    <fieldset class="verticalSection-extrabottompadding">
+                        <legend class="sectionTitle"><h3>Configuration</h3></legend>
+                        <div class="configSection">
+                            <div class="checkboxContainer" style="margin-bottom: 0.5em !important;">
+                                <label>
+                                    <input id="arrLinksEnabled" is="emby-checkbox" type="checkbox"/>
+                                    <span>Enable *arr Links</span>
+                                </label>
+                            </div>
+                            <div class="fieldDescription" style="margin-bottom: 2em;">Show Sonarr, Radarr, and Bazarr links* of the items on item detail pages for quick access. Only for admins.<br> If no URL is added link is not shown.</div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="sonarrUrl">Sonarr URL</label>
+                                <input id="sonarrUrl" is="emby-input" name="sonarrUrl" type="text" placeholder="e.g., http://192.168.100.100:8989"/>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="radarrUrl">Radarr URL</label>
+                                <input id="radarrUrl" is="emby-input" name="radarrUrl" type="text" placeholder="e.g., http://192.168.100.100:7878"/>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="bazarrUrl">Bazarr URL</label>
+                                <input id="bazarrUrl" is="emby-input" name="bazarrUrl" type="text" placeholder="e.g., http://192.168.100.100:6767"/>
+                                <div class="fieldDescription">Note: This links to the main movies/series page as Bazarr does not support direct links.</div>
+                            </div>
+                            <div class="checkboxContainer" style="margin-top: 1em;">
+                                <label>
+                                    <input id="showArrLinksAsText" is="emby-checkbox" type="checkbox"/>
+                                    <span>Show links as text instead of icons</span>
+                                </label>
                             </div>
                         </div>
                     </fieldset>
@@ -483,6 +517,11 @@
                 document.querySelector('#jellyseerrEnabled').checked = config.JellyseerrEnabled;
                 document.querySelector('#jellyseerrUrls').value = config.JellyseerrUrls;
                 document.querySelector('#JellyseerrApiKey').value = config.JellyseerrApiKey;
+                document.querySelector('#arrLinksEnabled').checked = config.ArrLinksEnabled;
+                document.querySelector('#sonarrUrl').value = config.SonarrUrl;
+                document.querySelector('#radarrUrl').value = config.RadarrUrl;
+                document.querySelector('#bazarrUrl').value = config.BazarrUrl;
+                document.querySelector('#showArrLinksAsText').checked = config.ShowArrLinksAsText;
 
                 Dashboard.hideLoadingMsg();
             });
@@ -523,6 +562,11 @@
             config.JellyseerrEnabled = document.querySelector('#jellyseerrEnabled').checked;
             config.JellyseerrUrls = (document.querySelector('#jellyseerrUrls').value || '').split('\n').map(u => u.trim()).filter(Boolean).join('\n');
             config.JellyseerrApiKey = (document.querySelector('#JellyseerrApiKey').value || '').trim();
+            config.ArrLinksEnabled = document.querySelector('#arrLinksEnabled').checked;
+            config.SonarrUrl = document.querySelector('#sonarrUrl').value;
+            config.RadarrUrl = document.querySelector('#radarrUrl').value;
+            config.BazarrUrl = document.querySelector('#bazarrUrl').value;
+            config.ShowArrLinksAsText = document.querySelector('#showArrLinksAsText').checked;
 
             try {
                 const result = await ApiClient.updatePluginConfiguration(pluginId, config);

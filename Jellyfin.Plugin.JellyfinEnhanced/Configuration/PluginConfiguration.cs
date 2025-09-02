@@ -65,6 +65,13 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             JellyseerrEnabled = false;
             JellyseerrUrls = "";
             JellyseerrApiKey = "";
+
+            // Arr Links Settings
+            ArrLinksEnabled = false;
+            SonarrUrl = "";
+            RadarrUrl = "";
+            BazarrUrl = "";
+            ShowArrLinksAsText = false;
         }
 
         // Jellyfin Enhanced Settings
@@ -100,5 +107,12 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public bool JellyseerrEnabled { get; set; }
         public string JellyseerrUrls { get; set; }
         public string JellyseerrApiKey { get; set; }
+
+        // Arr Links Settings
+        public bool ArrLinksEnabled { get; set; }
+        public string SonarrUrl { get; set; }
+        public string RadarrUrl { get; set; }
+        public string BazarrUrl { get; set; }
+        public bool ShowArrLinksAsText { get; set; }
     }
 }

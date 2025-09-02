@@ -341,7 +341,14 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 config.QualityTagsEnabled,
 
                 // Jellyseerr Search Settings
-                config.JellyseerrEnabled
+                config.JellyseerrEnabled,
+
+                // Arr Links Settings
+                config.ArrLinksEnabled,
+                config.SonarrUrl,
+                config.RadarrUrl,
+                config.BazarrUrl,
+                config.ShowArrLinksAsText
             });
         }
         private ActionResult GetScriptResource(string resourcePath)

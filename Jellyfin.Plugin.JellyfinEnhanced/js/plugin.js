@@ -100,7 +100,8 @@
                     'elsewhere.js',
                     'jellyseerr.js',
                     'pausescreen.js',
-                    'qualitytags.js'
+                    'qualitytags.js',
+                    'arr-links.js'
                 ];
 
                 // Load all script modules
@@ -120,6 +121,9 @@
                     }
                     if (typeof window.JellyfinEnhanced.initializeQualityTags === 'function') {
                         window.JellyfinEnhanced.initializeQualityTags();
+                    }
+                    if (typeof window.JellyfinEnhanced.initializeArrLinksScript === 'function') {
+                        window.JellyfinEnhanced.initializeArrLinksScript();
                     }
                     console.log('🪼 Jellyfin Enhanced: All components loaded and initialized.');
                 });
