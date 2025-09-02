@@ -35,7 +35,7 @@
         // Defines resolution tiers and their priority for display.
         const QUALITY_THRESHOLDS = {
             '8K': { width: 7680, priority: 7 },
-            '4K': { width: 3840, priority: 6 },
+            '4K': { width: 3500, priority: 6 },
             '1440p': { width: 2560, priority: 5 },
             '1080p': { width: 1920, priority: 4 },
             '720p': { width: 1280, priority: 3 },
@@ -175,8 +175,8 @@
 
             // --- 1. Check Title First (regex) ---
             let resolutionFromTitle = null;
-            if (mediaSources?.[0]?.Name) {
-                const title = mediaSources[0].Name.toLowerCase();
+            if (videoStreams[0]?.Title) {
+                const title = videoStreams[0].Title.toLowerCase();
                 const resRegex = /\b(8k|4k|1440p|1080p|720p|480p|sd)\b/i;
                 const match = title.match(resRegex);
                 if (match) {
