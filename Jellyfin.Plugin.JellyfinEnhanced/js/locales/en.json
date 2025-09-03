@@ -2,7 +2,6 @@
     "toast_search": "🔍 Search",
     "toast_home": "🏠 Home",
     "toast_dashboard": "📊 Dashboard",
-    "toast_quick_connect": "🔗 Quick Connect",
     "toast_random_item_loaded": "🎲 Random Item Loaded",
     "toast_no_video_found": "❌ No Video Found",
     "toast_speed": "⚡ Speed: {speed}x",

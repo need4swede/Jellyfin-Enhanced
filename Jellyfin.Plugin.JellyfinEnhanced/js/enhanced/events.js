@@ -37,7 +37,7 @@
         } else if (combo === activeShortcuts.QuickConnect) {
             e.preventDefault();
             window.location.hash = '#/quickconnect';
-            JE.toast(JE.t('toast_quick_connect'));
+            JE.toast('🔗 Quick Connect');
         } else if (key === '?') {
             e.preventDefault();
             e.stopPropagation();
