@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "changelog": "- Internationalization & Translations - Jellyfin Enhanced is now available in multiple* languages!\n - Improve quality tag detection and sorting logic",
+                "targetAbi": "10.10.0.0",
+                "version": "6.6.0.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/6.6.0.0/Jellyfin.Plugin.JellyfinEnhanced.zip",
+                "checksum": "5fbe854c4307d185cce211d8bf9ffabc",
+                "timestamp": "2025-09-03T16:30:12Z"
+            },
+            {
                 "changelog": "- Add *arr links integration to plugin\n - Adjust 4K threshold and fix title resolution detection",
                 "targetAbi": "10.10.7.0",
                 "version": "6.5.1.0",
