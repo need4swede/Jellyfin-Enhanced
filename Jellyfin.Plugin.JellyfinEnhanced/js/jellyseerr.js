@@ -95,7 +95,7 @@
             const popover = ensureHoverPopover();
 
             popover.innerHTML = `
-                <div class="title">${downloadStatus.title || 'Downloading'}</div>
+                <div class="title">${downloadStatus.title || JE.t('jellyseerr_popover_downloading')}</div>
                 <div class="jellyseerr-hover-progress">
                     <div class="bar" style="width:${percentage}%;"></div>
                 </div>
@@ -888,7 +888,7 @@
         async function requestMedia(tmdbId, mediaType, button) {
             // Update button to show requesting state
             button.disabled = true;
-            button.innerHTML = `<span>Requesting</span><span class="jellyseerr-button-spinner"></span>`;
+            button.innerHTML = `<span>${JE.t('jellyseerr_btn_requesting')}</span><span class="jellyseerr-button-spinner"></span>`;
 
             const requestBody = {
                 mediaType,
@@ -912,7 +912,7 @@
                 });
 
                 // Update button to show success state
-                button.innerHTML = `<span>Requested ${icons.requested}</span>`;
+                button.innerHTML = `<span>${JE.t('jellyseerr_btn_requested')} ${icons.requested}</span>`;
                 button.classList.remove('jellyseerr-button-request');
                 button.classList.add('jellyseerr-button-pending');
 
@@ -923,9 +923,9 @@
                 console.error(`${logPrefix} Request failed for user ${userId}. Request Body:`, JSON.stringify(requestBody), 'Error:', errorDetails);
 
                 // Determine appropriate error message
-                let errorMessage = 'Error';
+                let errorMessage = JE.t('jellyseerr_btn_error');
                 if (error.status === 404) {
-                    errorMessage = 'User Not Found';
+                    errorMessage = JE.t('jellyseerr_btn_user_not_found');
                 } else if (error.responseJSON && error.responseJSON.message) {
                     errorMessage = error.responseJSON.message;
                 }
@@ -1010,16 +1010,16 @@
                     overallStatus = 5; // Fully Available
                 } else {
                     overallStatus = 7; // Fully Requested/Accounted For
-                    statusSummary = `${accountedForCount}/${total} accounted for`;
+                    statusSummary = JE.t('jellyseerr_seasons_accounted_for', { count: accountedForCount, total });
                 }
             } else if (accountedForCount > 0) {
                 // Mixed state - some seasons requested/available, others not
                 if (availableCount > 0) {
                     overallStatus = 4; // Partially Available
-                    statusSummary = `${availableCount}/${total} available`;
+                    statusSummary = JE.t('jellyseerr_seasons_available_count', { count: availableCount, total });
                 } else {
                     overallStatus = 3; // Partially Requested
-                    statusSummary = `${requestedCount}/${total} requested`;
+                    statusSummary = JE.t('jellyseerr_seasons_requested_count', { count: requestedCount, total });
                 }
             } else {
                 // No seasons are requested or available
@@ -1072,7 +1072,7 @@
                     noResultsMessage.classList.add('section-hidden');
                 }
 
-                JE.toast('🪼 Showing results only from Jellyseerr', 3000);
+                JE.toast(JE.t('jellyseerr_toast_filter_on'), 3000);
                 console.log(`${logPrefix} Switched to Jellyseerr-only mode`);
 
             } else {
@@ -1096,7 +1096,7 @@
                 }
 
                 hiddenSections = [];
-                JE.toast('🪼 Showing all search results', 3000);
+                JE.toast(JE.t('jellyseerr_toast_filter_off'), 3000);
                 console.log(`${logPrefix} Switched back to all results mode`);
             }
 
@@ -1105,7 +1105,7 @@
             if (jellyseerrSection) {
                 const titleElement = jellyseerrSection.querySelector('.sectionTitle');
                 if (titleElement) {
-                    titleElement.textContent = isJellyseerrOnlyMode ? 'Jellyseerr Results' : 'Discover on Jellyseerr';
+                    titleElement.textContent = isJellyseerrOnlyMode ? JE.t('jellyseerr_results_title') : JE.t('jellyseerr_discover_title');
                 }
             }
 
@@ -1179,18 +1179,18 @@
 
             // Apply appropriate state class and tooltip
             if (isJellyseerrActive && jellyseerrUserFound) {
-                icon.title = isJellyseerrOnlyMode ?
-                    'Jellyseerr is active\nDouble-click to show all results' :
-                    'Jellyseerr is active\nDouble-click to show only Jellyseerr results';
+                icon.title = JE.t(isJellyseerrOnlyMode ?
+                    'jellyseerr_icon_active_filter_tooltip' :
+                    'jellyseerr_icon_active_tooltip');
                 icon.classList.add('is-active');
                 if (isJellyseerrOnlyMode) {
                     icon.classList.add('is-filter-active');
                 }
             } else if (isJellyseerrActive && !jellyseerrUserFound) {
-                icon.title = 'User not found on Jellyseerr';
+                icon.title = JE.t('jellyseerr_icon_no_user_tooltip');
                 icon.classList.add('is-no-user');
             } else {
-                icon.title = 'Jellyseerr is not connected.';
+                icon.title = JE.t('jellyseerr_icon_disabled_tooltip');
                 icon.classList.add('is-disabled');
             }
         }
@@ -1277,8 +1277,10 @@
             }
 
             // Define section types for intelligent placement
-            const primaryTypes = ['movies', 'shows', 'series', 'episodes'];
-            const secondaryTypes = ['people', 'artists', 'albums', 'songs', 'videos', 'collections', 'playlists'];
+            const primaryTypes = ['movies','filme','filmer','film','film','film','películas','映画','电影','filmes','фильмы','أفلام','shows','shows','program','spettacoli','émissions','shows','series','ショー','节目','programas','сериалы','عروض','episodes','episoden','avsnitt','episodi','épisodes','episoder','episodios','エピソード','集','episódios','эпизоды','الحلقات'];
+            const secondaryTypes = ['people','personen','personer','persone','personnes','folk','personas','人々','人','pessoas','люди','الناس','artists','künstler','konstnärer','artisti','artistes','kunstnere','artistas','アーティスト','艺术家','artistas','артисты','فنانون','albums','alben','album','album','albums','albums','álbumes','アルバム','专辑','álbuns','альбомы','ألبومات','songs','lieder','låtar','canzoni','chansons','sange','canciones','曲','歌曲','canções','песни','أغاني','videos','videos','videor','video','vidéos','videoer','videos','ビデオ','视频','vídeos','видео','فيديو','collections','sammlungen','samlingar','collezioni','collections','samlinger','colecciones','コレクション','收藏','coleções','коллекции','مجموعات','playlists','wiedergabelisten','spellistor','playlist','listes de lecture','playlister','listas de reproducción','プレイリスト','播放列表','listas de reprodução','плейлисты','قوائم التشغيل'];
+
+
             const allTypes = primaryTypes.concat(secondaryTypes);
 
             let attempts = 0;
@@ -1308,7 +1310,7 @@
                 // CASE 1: No results from Jellyfin
                 if (noResultsMessage) {
                     console.log(`${logPrefix} No Jellyfin results found, injecting after no-results message.`);
-                    noResultsMessage.textContent = `Sorry! No results found for "${query}" on Jellyfin`;
+                    noResultsMessage.textContent = JE.t('jellyseerr_no_results_jellyfin', { query });
                     noResultsMessage.parentElement.insertBefore(sectionToInject, noResultsMessage.nextSibling);
                     return;
                 }
@@ -1369,7 +1371,7 @@
             // Section title with optional loading spinner
             const title = document.createElement('h2');
             title.className = 'sectionTitle sectionTitle-cards focuscontainer-x padded-left padded-right';
-            title.textContent = isJellyseerrOnlyMode ? 'Jellyseerr Results' : 'Discover on Jellyseerr';
+            title.textContent = isJellyseerrOnlyMode ? JE.t('jellyseerr_results_title') : JE.t('jellyseerr_discover_title');
 
             if (isLoading) {
                 const spinner = document.createElement('div');
@@ -1489,14 +1491,13 @@
         function configureRequestButton(button, item) {
             // Check system status first
             if (!isJellyseerrActive) {
-                button.innerHTML = `<span>Jellyseerr offline</span>${icons.cloud_off}`;
+                button.innerHTML = `<span>${JE.t('jellyseerr_btn_offline')}</span>${icons.cloud_off}`;
                 button.disabled = true;
                 button.classList.add('jellyseerr-button-offline');
                 return;
             }
-
             if (!jellyseerrUserFound) {
-                button.innerHTML = `<span>User not found</span>${icons.person_off}`;
+                button.innerHTML = `<span>${JE.t('jellyseerr_btn_user_not_found')}</span>${icons.person_off}`;
                 button.disabled = true;
                 button.classList.add('jellyseerr-button-no-user');
                 return;
@@ -1539,7 +1540,7 @@
 
             switch (overallStatus) {
                 case 2: // Pending Approval
-                    button.innerHTML = `<span>Pending Approval</span>${icons.pending}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_pending')}</span>${icons.pending}`;
                     if (seasonAnalysis?.statusSummary) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">${seasonAnalysis.statusSummary}</div>`;
                     }
@@ -1548,7 +1549,7 @@
                     break;
 
                 case 3: // Partially Requested
-                    button.innerHTML = `${icons.request}<span>Request More</span>`;
+                    button.innerHTML = `${icons.request}<span>${JE.t('jellyseerr_btn_request_more')}</span>`;
                     if (seasonAnalysis?.statusSummary) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">${seasonAnalysis.statusSummary}</div>`;
                     }
@@ -1557,7 +1558,7 @@
                     break;
 
                 case 7: // Fully Requested / Accounted For
-                    button.innerHTML = `<span>View Status</span>${icons.requested}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_view_status')}</span>${icons.requested}`;
                     if (seasonAnalysis?.statusSummary) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">${seasonAnalysis.statusSummary}</div>`;
                     }
@@ -1566,7 +1567,7 @@
                     break;
 
                 case 4: // Partially Available
-                    button.innerHTML = `${icons.request}<span>Request Missing</span>`;
+                    button.innerHTML = `${icons.request}<span>${JE.t('jellyseerr_btn_request_missing')}</span>`;
                     if (seasonAnalysis?.statusSummary) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">${seasonAnalysis.statusSummary}</div>`;
                     }
@@ -1575,7 +1576,7 @@
                     break;
 
                 case 5: // Fully Available
-                    button.innerHTML = `<span>Available</span>${icons.available}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_available')}</span>${icons.available}`;
                     if (seasonAnalysis?.total > 1) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">All ${seasonAnalysis.total} seasons</div>`;
                     }
@@ -1584,13 +1585,13 @@
                     break;
 
                 case 6: // Rejected
-                    button.innerHTML = `<span>Rejected</span>${icons.cancel}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_rejected')}</span>${icons.cancel}`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-rejected');
                     break;
 
                 default: // Not Requested (status 1)
-                    button.innerHTML = `${icons.request}<span>Request</span>`;
+                    button.innerHTML = `${icons.request}<span>${JE.t('jellyseerr_btn_request')}</span>`;
                     if (seasonAnalysis?.total > 1) {
                         button.innerHTML += `<div class="jellyseerr-season-summary">${seasonAnalysis.total} seasons available</div>`;
                     }
@@ -1610,7 +1611,7 @@
 
             switch (status) {
                 case 2: // Pending Approval
-                    button.innerHTML = `<span>Pending</span>${icons.pending}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_pending')}</span>${icons.pending}`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-pending');
                     break;
@@ -1618,7 +1619,7 @@
                 case 3: // Processing/Requested
                     if (item.mediaInfo?.downloadStatus?.length > 0 || item.mediaInfo?.downloadStatus4k?.length > 0) {
                         // Show processing with download progress capability
-                        button.innerHTML = `<span>Processing</span><span class="jellyseerr-button-spinner"></span>`;
+                        button.innerHTML = `<span>${JE.t('jellyseerr_btn_processing')}</span><span class="jellyseerr-button-spinner"></span>`;
                         button.disabled = true;
                         button.classList.add('button-submit', 'jellyseerr-button-processing');
 
@@ -1626,32 +1627,32 @@
                         addDownloadProgressHover(button, item);
                     } else {
                         // Just requested, no download data yet
-                        button.innerHTML = `<span>Requested</span>${icons.requested}`;
+                        button.innerHTML = `<span>${JE.t('jellyseerr_btn_requested')}</span>${icons.requested}`;
                         button.disabled = true;
                         button.classList.add('button-submit', 'jellyseerr-button-pending');
                     }
                     break;
 
                 case 4: // Partially Available
-                    button.innerHTML = `<span>Partially Available</span>${icons.partially_available}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_partially_available')}</span>${icons.partially_available}`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-partially-available');
                     break;
 
                 case 5: // Available
-                    button.innerHTML = `<span>Available</span>${icons.available}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_available')}</span>${icons.available}`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-available');
                     break;
 
                 case 6: // Rejected
-                    button.innerHTML = `<span>Rejected</span>${icons.cancel}`;
+                    button.innerHTML = `<span>${JE.t('jellyseerr_btn_rejected')}</span>${icons.cancel}`;
                     button.disabled = true;
                     button.classList.add('button-submit', 'jellyseerr-button-rejected');
                     break;
 
                 default: // Not Requested
-                    button.innerHTML = `${icons.request}<span>Request</span>`;
+                    button.innerHTML = `${icons.request}<span>${JE.t('jellyseerr_btn_request')}</span>`;
                     button.disabled = false;
                     button.classList.add('button-submit', 'jellyseerr-button-request');
                     break;
@@ -1725,10 +1726,10 @@
                     badge.classList.add('jellyseerr-media-badge');
                     if (item.mediaType === 'movie') {
                         badge.classList.add('jellyseerr-media-badge-movie');
-                        badge.textContent = 'Movie';
+                        badge.textContent = JE.t('jellyseerr_card_badge_movie');
                     } else {
                         badge.classList.add('jellyseerr-media-badge-series');
-                        badge.textContent = 'Series';
+                        badge.textContent = JE.t('jellyseerr_card_badge_series');
                     }
                     imageContainer.appendChild(badge);
                 }
@@ -1752,7 +1753,7 @@
             // Fetch detailed TV show information
             const tvDetails = await fetchTvShowDetails(tmdbId);
             if (!tvDetails || !tvDetails.seasons) {
-                JE.toast('⚠️ Could not load season information', 4000);
+                JE.toast(JE.t('jellyseerr_toast_no_season_info'), 4000);
                 return;
             }
 
@@ -1789,15 +1790,15 @@
             modal.innerHTML = `
                 <div class="jellyseerr-season-content">
                     <div class="jellyseerr-season-header" style="background: ${backdropImage}; background-size: cover; background-position: center;">
-                        <div class="jellyseerr-season-title">Request Series</div>
+                        <div class="jellyseerr-season-title">${JE.t('jellyseerr_modal_title')}</div>
                         <div class="jellyseerr-season-subtitle">${showTitle}</div>
                     </div>
                     <div class="jellyseerr-season-body">
                           <div class="jellyseerr-season-list"></div>
                     </div>
                     <div class="jellyseerr-modal-footer">
-                        <button class="jellyseerr-modal-button jellyseerr-modal-button-secondary">Cancel</button>
-                        <button class="jellyseerr-modal-button jellyseerr-modal-button-primary">Request</button>
+                        <button class="jellyseerr-modal-button jellyseerr-modal-button-secondary">${JE.t('jellyseerr_modal_cancel')}</button>
+                        <button class="jellyseerr-modal-button jellyseerr-modal-button-primary">${JE.t('jellyseerr_modal_request')}</button>
                     </div>
                 </div>
             `;
@@ -1815,26 +1816,26 @@
                 seasonItem.className = `jellyseerr-season-item ${canRequest ? '' : 'disabled'}`;
 
                 // Determine status display
-                let statusText = 'Not Requested';
+                let statusText = JE.t('jellyseerr_season_status_not_requested');
                 let statusClass = 'not-requested';
 
                 // This switch now correctly handles statuses from the `mediaInfo.seasons` array
                 switch (apiStatus) {
                     case 1: // Not Available / Not Requested
-                        statusText = 'Not Requested';
+                        statusText = JE.t('jellyseerr_season_status_not_requested');
                         statusClass = 'not-requested';
                         break;
                     case 2: // These statuses are from the request system, showing progress
                     case 3:
-                        statusText = 'Requested';
+                        statusText = JE.t('jellyseerr_season_status_requested');
                         statusClass = 'processing';
                         break;
                     case 4:
-                        statusText = 'Partial';
+                        statusText = JE.t('jellyseerr_season_status_partial');
                         statusClass = 'partially-available';
                         break;
                     case 5:
-                        statusText = 'Available';
+                        statusText = JE.t('jellyseerr_season_status_available');
                         statusClass = 'available';
                         break;
                 }
@@ -1844,7 +1845,7 @@
                     );
 
                 if (hasActiveDownload) {
-                    statusText = 'Processing';
+                    statusText = JE.t('jellyseerr_season_status_processing');
                 }
 
                 seasonItem.innerHTML = `
@@ -1910,17 +1911,17 @@
                     .map(checkbox => parseInt(checkbox.dataset.seasonNumber));
 
                 if (selectedSeasons.length === 0) {
-                    JE.toast('⚠️ Please select at least one season', 3000);
+                    JE.toast(JE.t('jellyseerr_modal_toast_select_season'), 3000);
                     return;
                 }
 
                 // Update button to show requesting state
                 requestButton.disabled = true;
-                requestButton.innerHTML = 'Requesting...<span class="jellyseerr-button-spinner"></span>';
+                requestButton.innerHTML = `${JE.t('jellyseerr_modal_requesting')}<span class="jellyseerr-button-spinner"></span>`;
 
                 try {
                     await requestTvSeasons(tmdbId, selectedSeasons);
-                    JE.toast(`📺 Requested ${selectedSeasons.length} season(s) of "${showTitle}"`, 4000);
+                    JE.toast(JE.t('jellyseerr_modal_toast_request_success', { count: selectedSeasons.length, title: showTitle }), 4000);
                     closeModal();
 
                     // Refresh search results after successful request
@@ -1932,9 +1933,9 @@
                         }
                     }, 1000);
                 } catch (error) {
-                    JE.toast('❌ Failed to request seasons', 4000);
+                    JE.toast(JE.t('jellyseerr_modal_toast_request_fail'), 4000);
                     requestButton.disabled = false;
-                    requestButton.textContent = 'Request Selected Season(s)';
+                    requestButton.textContent = JE.t('jellyseerr_modal_request_selected');
                 }
             });
 
