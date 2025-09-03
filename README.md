@@ -256,7 +256,7 @@ Here are some common questions and solutions for issues you might encounter with
 
 Here is a list of common errors you might see in your Jellyfin server logs or your browser's developer console, and what they mean.
 
-#### Server Logs (`Jellyfin Server Dashboard > Logs`)
+**Server Logs (`Jellyfin Server Dashboard > Logs`)**
 
 | Error Message | Meaning & Solution |
 | --- | --- |
@@ -535,7 +535,7 @@ Sample styling
 
 The original monolithic `plugin.js` has been refactored into a modular, component-based structure to improve maintainability, readability, and scalability. The new architecture uses a single entry point (`plugin.js`) that dynamically loads all other feature components.
 
-### New File Structure
+### File Structure
 
 All client-side scripts are now located in the `Jellyfin.Plugin.JellyfinEnhanced/js/` directory.
 
@@ -574,9 +574,16 @@ Jellyfin.Plugin.JellyfinEnhanced/
     * **`features.js`**: Contains the logic for non-playback enhancements like the random item button, file size display, audio language display, and "Remove from Continue Watching".
     * **`events.js`**: The active hub of the plugin. It listens for user input (keyboard/mouse), browser events (tab switching), and DOM changes to trigger the appropriate functions from other components.
 
-* **`elsewhere.js`**: A self-contained module for the "Jellyfin Elsewhere" feature, which finds where media is available on other streaming services.
+* **`arr-links.js`**: This script adds convenient links to Sonarr, Radarr, and Bazarr on item detail pages, intended for administrator use.
 
-* **`jellyseerr.js`**: A self-contained module for the Jellyseerr integration, including its UI, authentication, and API calls. It is loaded conditionally based on plugin settings.
+* **`elsewhere.js`**: Powers the "Jellyfin Elsewhere" feature, which looks up where your media is available on other streaming services.
+
+* **`jellyseerr.js`**: Handles the integration with Jellyseerr, managing the UI, authentication, and API calls for requesting media, and is loaded based on your plugin settings.
+
+* **`pausescreen.js`**: Displays a custom, informative overlay when a video is paused.
+
+* **`qualitytags.js`**: Manages the display of media quality information (like 4K, HDR, and Atmos) as tags directly on the posters.
+
 
 </details>
 
