@@ -7,7 +7,7 @@
 </p>
 <br>
 
-The ultimate enhancement for your Jellyfin experience. This plugin (previously script) combines the powerful features of Jellyfin Enhanced and [Jellyfin Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere/) into one easy-to-install package.
+The ultimate enhancement for your Jellyfin experience. This plugin (previously script) combines the powerful features of Jellyfin Enhanced and [Jellyfin Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere/) and more into one easy-to-install package.
 
 <img src="images/panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
 
@@ -23,198 +23,33 @@ The ultimate enhancement for your Jellyfin experience. This plugin (previously s
 
 The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web interface:
 
-### ⌨️ Keyboard Shortcuts
-
-| Key | Action | Context |
-| :--- | :--- | :--- |
-| **`?`** | Show/hide the settings & hotkey panel | Global |
-| **`/`** | Focus the search bar | Global |
-| **`Shift`** + **`H`** | Go to the Jellyfin Home Page | Global |
-| **`D`** | Go to the Dashboard | Global |
-| **`Q`** | Go to Quick Connect | Global |
-| **`R`** | Play a random item from your library | Global |
-| **`Ctrl`** + **`Shift`** + **`B`** | Clear all saved bookmarks | Global |
-| :--- | :--- | :--- |
-| **`A`** | Cycle through aspect ratios (Auto → Cover → Fill) | Player |
-| **`I`** | Show playback info (stats overlay) | Player |
-| **`S`** | Show the subtitle selection menu | Player |
-| **`C`** | Cycle through available subtitle tracks | Player |
-| **`V`** | Cycle through available audio tracks | Player |
-| **`B`** | Bookmark the current playback time | Player |
-| **`Shift`** + **`B`** | Go to the saved bookmark for the current item | Player |
-| **`0`**-**`9`** | Jump to 0% - 90% of the video duration | Player |
-| **`=`** / **`+`** | Increase playback speed | Player |
-| **`-`** / **`_`** | Decrease playback speed | Player |
-| **`R`** | Reset playback speed to normal (1.0x) | Player |
-
-### 📝 Subtitle Settings
-- **6 Style Presets**: Clean White, Classic Black Box, Netflix Style, Cinema Yellow, Soft Gray, High Contrast.
-- **5 Font Sizes**: Tiny, Small, Normal, Large, Extra Large.
-- **5 Font Families**: Default, Noto Sans, Sans Serif, Typewriter, Roboto.
-- **Persistent Settings**: All choices are automatically saved and persist for the session.
-
-### ⏯️ Smart Auto-Pause/Resume
-- **Configurable Auto-Pause**: Automatically pause video when switching tabs.
-- **Optional Auto-Resume**: Choose whether to resume playback upon returning to the tab.
-
-### 🎲 Random Item Selection
-- **Random Button**: Adds a "Random" button to the header for one-click access to a random item.
-- **Configurable Item Types**: Choose to include Movies, Shows, or both.
-- **Hotkey Support**: Press `R` (when not in the player) to instantly go to a random item.
-- **Only show unwatched**: Option to only show unwatched items in the randomized result
-
-### ↪️ Auto Skip Intro/Outro
-- Options to automatically skip intro and outro for uninterrupted binge watching! (Dependent on Skip Intro Plugin!)
-
-### 👁️ Remove from continue watching
-- An option to remove items from the continue watching row!
-
-### 🔍 Streaming Provider Information with multiple region search
-- See where else your movies and shows are available to stream, right on the item details page.
-- Configure your preferred default region and streaming services from the plugin settings and search more regions and services from the item details page!
-
-### 🎬 Custom Pause Screen
-
-The Custom Pause Screen is an immersive overlay that appears when you pause a video, providing detailed information about the content and a more polished look than the default player UI. This feature is a modified version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-PauseScreen).
-
-<p align="center">
-  <img src="images/pausescreen.png" width="600" />
-</p>
-
-  This feature can be toggled on or off from the Jellyfin Enhanced settings panel under **Settings > Playback Settings > Custom Pause Screen**.
-
-
-<br>
-<details>
-<summary style="font-size: 1.2em;">Pause Screen CSS Guide</summary>
-<br>
-
-If you do not want an element in the pause screen, you can customize by hiding them to your liking.
-
-| Element | CSS Selector | Example CSS to Hide |
-| --- | --- | --- |
-| **Logo** | `#pause-screen-logo` | `#pause-screen-logo { display: none; }` |
-| **Details** (Year, Rating, Runtime) | `#pause-screen-details` | `#pause-screen-details { display: none; }` |
-| **Plot/Description** | `#pause-screen-plot` | `#pause-screen-plot { display: none; }` |
-| **Entire Progress Bar** | `#pause-screen-progress-wrap` | `#pause-screen-progress-wrap { display: none; }` |
-| **Spinning Disc** | `#pause-screen-disc` | `#pause-screen-disc { display: none; }` |
-| **Blurred Backdrop** | `#pause-screen-backdrop` | `#pause-screen-backdrop { display: none; }` |
-| **Time Display** (Current / Total) | `.progress-time` | `.progress-time { display: none; }` |
-| **"Ends At" Time** | `.progress-ends-at` | `.progress-ends-at { display: none; }` |
-| **Percentage Watched** | `.progress-percentage` | `.progress-percentage { display: none; }` |
-
-</details><br>
-
-### 🏷️ Quality Tags
-
-This feature displays informative tags directly on item posters, giving you a quick overview of the media's technical specifications. This is a modified version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-Qualitytags/).
-
-> Needs some work, expect bugs and raise if you find any :)
-
-This feature can be toggled on or off from the Jellyfin Enhanced settings panel under **Settings > UI Settings > Show Quality Tags**.
-
-<br>
-<details open>
-<summary style="font-size: 1.2em;">Quality Tags CSS Guide</summary>
-<br>
-
-The tags are injected with the following HTML structure:
-```html
-<div class="cardImageContainer" style="position: relative;">
-    <!-- Other card content -->
-    <div class="quality-overlay-container">
-        <div class="quality-overlay-label" data-quality="4K">4K</div>
-        <div class="quality-overlay-label" data-quality="HDR">HDR</div>
-        <div class="quality-overlay-label" data-quality="ATMOS">ATMOS</div>
-    </div>
-</div>
-```
-
--   `.quality-overlay-container`: Main container that holds all the tags for a single item. Positioned at the top-left of the poster.
-
--   `.quality-overlay-label`: The individual tag element.
-
--   `data-quality="..."`: A data attribute specifying the quality (e.g., `4K`, `HDR`, `DTS-X`). Useful for targeting specific tags in CSS.
+- **⌨️ Advanced Keyboard Shortcuts:** A comprehensive set of hotkeys for navigation, playback control, and more.
+- **📝 Customizable Subtitles:** Fine-tune the appearance of subtitles with presets for style, size, and font.
+- **⏯️ Smart Playback:** Auto-pause when you switch tabs and auto-resume when you return.
+- **↪️ Auto-Skip Intros/Outros:** Binge-watch seamlessly without interruption (requires Intro Skipper plugin).
+- **🎲 Random Item Button:** Discover something new in your library with a single click.
+- **👁️ Remove from Continue Watching:** Easily clean up your home screen.
+- **🔍 Streaming Provider Lookup:** See where else your media is available to stream across multiple regions.
+- **🎬 Custom Pause Screen:** A beautifully designed, informative overlay when you pause a video. This feature is a modified version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-PauseScreen).
+- **🏷️ Quality Tags:** See media quality (4K, HDR, Atmos) at a glance directly on the posters. This is a modified and rewritten version of the original script by [BobHasNoSoul](https://github.com/BobHasNoSoul/Jellyfin-Qualitytags/).
+- **🔗 .arr Links Integration:** For administrators, quickly jump to the Sonarr, Radarr, or Bazarr page for any item.
+- **🌍 Multi-language Support:** The interface is available in multiple languages, with more on the way.
 
 <br>
 
-### Customization Examples
-----------------------
+> 🌍 Internationalization & Translations\
+> \
+  Jellyfin Enhanced is now available in multiple languages! The plugin will automatically detect and apply the language set in your Jellyfin user profile.\
+      **Currently Supported Languages**: English (en), Danish (da), German (de), French (fr), Italian (it), Swedish (sv). To note: These are translated using AI, and can be extermely inaccurate 😅\
+      \
+      I need Your Help!\
+      Is your language missing or incorrect? You can help translate Jellyfin Enhanced for the community! It's a simple process:\
+        - Find the Translation Files: Navigate to the Jellyfin.Plugin.JellyfinEnhanced/js/locales/ directory in this repository.\
+        - Copy the English File: Make a copy of en.json and rename it to your language's two-letter ISO 639-1 code (e.g., es.json for Spanish, pl.json for Polish).\
+        - Translate: Open your new file and translate the English text on the right side of the colons (:).\
+        - Submit a Pull Request: Once you're done, submit a pull request with your new translation file.\
 
-| Element | CSS Selector | Example CSS |
-| --- | --- | --- |
-| **All Tags** | `.quality-overlay-label` | `css .quality-overlay-label { font-size: 0.8rem; padding: 3px 10px; }` |
-| **Tag Container Position** | `.quality-overlay-container` | `css .quality-overlay-container { left: auto; right: 6px; align-items: flex-end; }` |
-| **Specific Tag (e.g., 4K)** | `.quality-overlay-label[data-quality="4K"]` | `css .quality-overlay-label[data-quality="4K"] { background-color: purple !important; }` |
-| **HDR Tag** | `.quality-overlay-label[data-quality="HDR"]` | `css .quality-overlay-label[data-quality="HDR"] { border: 2px solid gold; }` |
-| **Hide a Tag (e.g., SD)** | `.quality-overlay-label[data-quality="SD"]` | `css .quality-overlay-label[data-quality="SD"] { display: none; }` |
-| **Change Shape** | `.quality-overlay-label` | `css .quality-overlay-label { border-radius: 999px; }` |
-| **Stack Tags Horizontally** | `.quality-overlay-container` | `css .quality-overlay-container { flex-direction: row; flex-wrap: wrap; }` |
 
-<br>
-
-### CSS Examples
----------------------
-
-Copy this into your custom CSS tool and modify as you like:
-
-```css
-/*
- * ===================================================================
- * Example Custom Style Override for Jellyfin Enhanced Quality Tags
- * ===================================================================
-*/
-
-/* --- Main Tag Container --- */
-.quality-overlay-container {
-    top: 8px !important;     /* Distance from the top */
-    left: 8px !important;    /* Distance from the left */
-    gap: 4px !important;     /* Space between tags */
-    align-items: flex-start !important; /* 'flex-start' for left, 'flex-end' for right */
-}
-
-/* --- General Style for All Tags --- */
-.quality-overlay-label {
-    font-size: 0.8rem !important;
-    font-weight: 700 !important; /* Bolder text */
-    border-radius: 4px !important; /* Slightly rounded corners */
-    padding: 3px 10px !important;
-    border: none !important;
-}
-
-/* --- Styling for Specific Tags --- */
-
-/* 4K tag */
-.quality-overlay-label[data-quality="4K"] {
-    background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
-    color: white !important;
-    order: -1; /* Appear first */
-}
-
-/* Dolby Vision (DV) */
-.quality-overlay-label[data-quality="DV"] {
-    background-color: #4a362a !important;
-    color: #f5d371 !important;
-}
-
-/* ATMOS */
-.quality-overlay-label[data-quality="ATMOS"] {
-    background-color: #1d3557 !important;
-    color: #a8dadc !important;
-}
-
-/* Hide 1080p tag */
-.quality-overlay-label[data-quality="1080p"] {
-    display: none !important;
-}
-```
-</details>
-
-### **And more...**
-- File sizes - Display filesizes for each movie or episode in the item details page \
-    ... and many more to come!
-
-<br>
 
 <p align="center">
 --------------------------------------------------
@@ -354,7 +189,10 @@ curl -X POST\
 6.  **Restart** your Jellyfin server to complete the installation.
 
 
-#### 🐳 Docker Installation Notes
+<br>
+<details>
+<summary style="font-size: 1em;">🐳 Docker Installation Notes</summary>
+<br>
 
   > [!NOTE]
   > If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
@@ -387,9 +225,10 @@ If you're running Jellyfin through Docker, the plugin may not have permission to
 
 This gives the plugin the necessary permissions to inject JavaScript into the web interface.
 
+</details>
+
 ---
-💡 FAQ & Troubleshooting
-------------------------
+## 💡 FAQ & Troubleshooting
 
 Here are some common questions and solutions for issues you might encounter with the Jellyfin Enhanced plugin.
 
@@ -410,6 +249,9 @@ Here are some common questions and solutions for issues you might encounter with
 **Q: Where is the userscript?** \
 **A:** With the plugin functionality growing and diverging from the userscript, I had to remove it and installation method to avoid confusion. But if you just want the keyboard shortcuts and other functionality, the last updated version is [**here**](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/05dd5b54802f149e45c76102dabf6235aaf7a5fb/jf_enhanced.user.js)
 
+**Q: How do I change the plugin's language?**\
+**A:** The plugin automatically uses the language set in your Jellyfin user profile. If your language isn't available, it will default to English. See the "Internationalization" section above to learn how you can contribute a translation!
+
 ### Troubleshooting Guide
 
 Here is a list of common errors you might see in your Jellyfin server logs or your browser's developer console, and what they mean.
@@ -420,10 +262,6 @@ Here is a list of common errors you might see in your Jellyfin server logs or yo
 | --- | --- |
 | `Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` | **Meaning:** The plugin was unable to edit the `index.html` file to inject its script. <br> **Solution:** This is common in Docker installs. Follow the **Docker Installation Notes** in the README to correctly map the `index.html` file or use file-transformation plugin. |
 
-.
-.
-.
-.
 ---
 
 ## 🧪 Compatibility
@@ -433,25 +271,134 @@ Here is a list of common errors you might see in your Jellyfin server logs or yo
 - Official Jellyfin Desktop Apps
 
 > [!NOTE]
-> This does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
+> Functionality does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
 
-## 📸 Screenshots
+## 🎨 Custom Styling
 
-<table align="center">
-  <tr>
-    <th style="text-align:center">Shortcuts</th>
-    <th style="text-align:center">Settings</th>
-  </tr>
-  <tr>
-    <td><img src="images/shortcuts.png" width="1000"/></td>
-    <td><img src="images/settings.png" width="1000"/></td>
-  </tr>
-  </table>
+<details>
+<summary style="font-size: 1.2em;">Pause Screen</summary>
+<br>
+
+If you do not want an element in the pause screen, you can customize by hiding them to your liking.
+
+| Element | CSS Selector | Example CSS to Hide |
+| --- | --- | --- |
+| **Logo** | `#pause-screen-logo` | `#pause-screen-logo { display: none; }` |
+| **Details** (Year, Rating, Runtime) | `#pause-screen-details` | `#pause-screen-details { display: none; }` |
+| **Plot/Description** | `#pause-screen-plot` | `#pause-screen-plot { display: none; }` |
+| **Entire Progress Bar** | `#pause-screen-progress-wrap` | `#pause-screen-progress-wrap { display: none; }` |
+| **Spinning Disc** | `#pause-screen-disc` | `#pause-screen-disc { display: none; }` |
+| **Blurred Backdrop** | `#pause-screen-backdrop` | `#pause-screen-backdrop { display: none; }` |
+| **Time Display** (Current / Total) | `.progress-time` | `.progress-time { display: none; }` |
+| **"Ends At" Time** | `.progress-ends-at` | `.progress-ends-at { display: none; }` |
+| **Percentage Watched** | `.progress-percentage` | `.progress-percentage { display: none; }` |
+
+</details>
+
+<br>
+<details>
+<summary style="font-size: 1.2em;">Quality Tags</summary>
+<br>
+
+Quality tags are injected into each card/poster with this structure:
+
+```html
+<div class="cardImageContainer" style="position: relative;">
+    <div class="quality-overlay-container">
+        <div class="quality-overlay-label resolution" data-quality="4K">4K</div>
+        <div class="quality-overlay-label video-codec" data-quality="HDR">HDR</div>
+        <div class="quality-overlay-label audio-codec" data-quality="ATMOS">ATMOS</div>
+    </div>
+</div>
+```
+
+## Classes & Attributes
+
+* **`.quality-overlay-container`** → Wrapper for all tags (positioned top-left by default).
+* **`.quality-overlay-label`** → Base class for each tag.
+* **Category classes**:
+  * `.resolution` – resolution tags (`8K`, `4K`, `1080p`, `LOW-RES`, etc.)
+  * `.video-codec` – video features (`HDR`, `Dolby Vision`, etc.)
+  * `.audio-codec` – audio formats/channels (`ATMOS`, `DTS`, `5.1`, etc.)
+* **`data-quality="..."`** → Exact tag text (e.g. `data-quality="HDR10+"`).
+
+<br>
+
+### Customization Examples
+----------------------
+
+
+| Element                     | CSS Selector                                     | Example CSS                                                                                                      |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **All Tags**                | `.quality-overlay-label`                         | `.quality-overlay-label { font-size: 0.8rem !important; padding: 3px 10px !important; }`                         |
+| **Tag Container Position**  | `.quality-overlay-container`                     | `.quality-overlay-container { left: auto !important; right: 6px !important; align-items: flex-end !important; }` |
+| **Specific Tag (e.g., 4K)** | `.quality-overlay-label[data-quality="4K"]`      | `.quality-overlay-label[data-quality="4K"] { background-color: purple !important; }`                             |
+| **HDR Tag**                 | `.quality-overlay-label[data-quality="HDR"]`     | `.quality-overlay-label[data-quality="HDR"] { border: 2px solid gold !important; }`                              |
+| **Low Resolution Tag**      | `.quality-overlay-label[data-quality="LOW-RES"]` | `.quality-overlay-label[data-quality="LOW-RES"] { opacity: 0.7 !important; }`                                    |
+| **Stack Tags Horizontally** | `.quality-overlay-container`                     | `.quality-overlay-container { flex-direction: row !important; flex-wrap: wrap !important; }`                     |
+
+<br>
+
+### CSS Examples
+---------------------
+
+* **Style all tags**
+
+  ```css
+  .quality-overlay-label {
+      font-size: 0.8rem !important;
+      border-radius: 4px !important;
+  }
+  ```
+
+* **Target a category**
+
+  ```css
+  .quality-overlay-label.resolution { background: blue !important; }
+  .quality-overlay-label.audio-codec { background: green !important; }
+  ```
+
+* **Target a specific tag**
+
+  ```css
+  .quality-overlay-label[data-quality="HDR"] {
+      border: 2px solid gold !important;
+  }
+  ```
+
+  ```css
+  .quality-overlay-label[data-quality="4K"] {
+      background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
+      color: white !important;
+      order: -1; /* Appear first */
+  }
+  ```
+
+
+* **Hide unwanted tags**
+
+  ```css
+  /* Hide all low-res */
+  .quality-overlay-label[data-quality="LOW-RES"] { display: none !important; }
+
+    /* Only show resolution tags */
+  .quality-overlay-label.video-codec,
+  .quality-overlay-label.audio-codec{ display: none !important; }
+  ```
+
+> [!Note]
+>* Always use `!important` to ensure your custom styles override the defaults.
+>* Only the **best resolution** tag per item is shown (e.g. you won’t see both 4K and 1080p).
+>* `LOW-RES` is the fallback for anything below 480p.
+>* Tags are sorted automatically with resolution first, then video features, then audio.
+
+
+</details>
 
 
 <br>
 <details>
-<summary style="font-size: 1.25em; font-weight: 600;">🎨 Custom Styling (For Any Theme)</summary>
+<summary style="font-size: 1.25em; font-weight: 600;">Enhanced Panel</summary>
 <br>
 
 While the script automatically themes itself with Jellyfish, you can apply your own custom look on any theme.
@@ -560,6 +507,27 @@ Sample styling
 ```
 
 </details>
+
+## 📸 Screenshots
+
+<table align="center">
+  <tr>
+    <th style="text-align:center">Shortcuts</th>
+    <th style="text-align:center">Settings</th>
+  </tr>
+  <tr>
+    <td><img src="images/shortcuts.png" width="1000"/></td>
+    <td><img src="images/settings.png" width="1000"/></td>
+  </tr>
+  <tr>
+    <th style="text-align:center">Pausescreen</th>
+  </tr>
+  <tr>
+    <td><img src="images/pausescreen.png" width="1000"/></td>
+  </tr>
+  </table>
+
+
 <br><br>
 <details>
 <summary style="font-size: 1.25em; font-weight: 600;">🫚Project Structure </summary>
@@ -575,6 +543,9 @@ All client-side scripts are now located in the `Jellyfin.Plugin.JellyfinEnhanced
 
 Jellyfin.Plugin.JellyfinEnhanced/
 └── js/
+    ├── locales/
+    │ ├── <language1>.json
+    │ ├── <language2>.json
     ├── enhanced/
     │ ├── config.js
     │ ├── events.js
@@ -582,8 +553,11 @@ Jellyfin.Plugin.JellyfinEnhanced/
     │ ├── playback.js
     │ ├── subtitles.js
     │ └── ui.js
+    ├── arr-links.js
     ├── elsewhere.js
     ├── jellyseerr.js
+    ├── pausescreen.js
+    ├── qualitytags.js
     └── plugin.js
 ```
 
