@@ -32,6 +32,12 @@
         // The types of Jellyfin items that are eligible for quality tags.
         const MEDIA_TYPES = new Set(['Movie', 'Episode', 'Series', 'Season']);
 
+        // Sort tags for consistent display order (Resolution > Features)
+        const resolutionOrder = ['8K', '4K', '1440p', '1080p', '720p', '480p', 'LOW-RES', 'SD'];
+        const videoOrder = ['Dolby Vision', 'HDR10+', 'HDR10', 'HDR'];
+        const audioOrder = ['ATMOS', 'DTS-X', 'TRUEHD', 'DTS', 'Dolby Digital+', '7.1', '5.1'];
+        const featureOrder = [...videoOrder, ...audioOrder];
+
         // Defines resolution tiers and their priority for display.
         const QUALITY_THRESHOLDS = {
             '8K': { width: 7680, priority: 7 },
@@ -60,7 +66,9 @@
             'DTS-X': { bg: 'rgba(255, 100, 0, 0.9)', text: '#ffffff' },
             'DTS': { bg: 'rgba(255, 140, 0, 0.85)', text: '#ffffff' },
             'Dolby Digital+': { bg: 'rgba(0, 150, 136, 0.9)', text: '#ffffff' },
-            'TRUEHD': { bg: 'rgba(76, 175, 80, 0.9)', text: '#ffffff' }
+            'TRUEHD': { bg: 'rgba(76, 175, 80, 0.9)', text: '#ffffff' },
+            '7.1': { bg: 'rgba(156, 39, 176, 0.9)', text: '#ffffff' },
+            '5.1': { bg: 'rgba(103, 58, 183, 0.9)', text: '#ffffff' }
         };
 
         // --- STATE VARIABLES ---
@@ -73,7 +81,7 @@
 
         // --- CONFIGURATION ---
         const config = {
-            MAX_CONCURRENT_REQUESTS: 9,      // Max number of simultaneous API requests.
+            MAX_CONCURRENT_REQUESTS: 7,      // Max number of simultaneous API requests.
             QUEUE_PROCESS_INTERVAL: 300,   // Delay between processing batches from the queue.
             MUTATION_DEBOUNCE: 800,        // Delay to wait for DOM changes to settle before processing.
             RENDER_DEBOUNCE: 500,          // Delay for re-rendering tags on navigation.
@@ -143,6 +151,16 @@
             const badge = document.createElement('div');
             badge.textContent = label;
             badge.className = overlayClass;
+
+            if (resolutionOrder.includes(label)) {
+                badge.classList.add('resolution');
+            } else if (videoOrder.includes(label)) {
+                badge.classList.add('video-codec');
+            } else if (audioOrder.includes(label)) {
+                badge.classList.add('audio-codec');
+            } else {
+                badge.classList.add('other-quality');
+            }
             badge.dataset.quality = label;
             return badge;
         }
@@ -173,76 +191,200 @@
                 audioStreams = audioStreams.concat(sourceStreams.filter(s => s.Type === 'Audio'));
             }
 
-            // --- 1. Check Title First (regex) ---
-            let resolutionFromTitle = null;
-            if (videoStreams[0]?.Title) {
-                const title = videoStreams[0].Title.toLowerCase();
-                const resRegex = /\b(8k|4k|1440p|1080p|720p|480p|sd)\b/i;
-                const match = title.match(resRegex);
-                if (match) {
-                    const found = match[1].toUpperCase();
-                    // Normalize 4K / 8K casing
-                    resolutionFromTitle = found === "4K" || found === "8K" ? found : found.toLowerCase();
-                    qualities.add(resolutionFromTitle);
+
+            // Get primary video stream for analysis
+            const primaryVideoStream = videoStreams[0];
+
+            // --- VIDEO RESOLUTION LOGIC ---
+            let resolutionTag = null;
+
+            if (primaryVideoStream) {
+                // Priority 1: DisplayTitle Scan for resolution keywords
+                const displayTitle = primaryVideoStream.DisplayTitle || '';
+                const resolutionRegex = /\b(4k|2160p|1440p|1080p|720p|480p|360p|404p|384p|520p)\b/i;
+                const resolutionMatch = displayTitle.match(resolutionRegex);
+
+                if (resolutionMatch) {
+                    const found = resolutionMatch[1].toLowerCase();
+                    if (found === '4k' || found === '2160p') {
+                        resolutionTag = '4K';
+                    } else if (found === '1440p') {
+                        resolutionTag = '1440p';
+                    } else if (found === '1080p') {
+                        resolutionTag = '1080p';
+                    } else if (found === '720p') {
+                        resolutionTag = '720p';
+                    } else if (found === '480p') {
+                        resolutionTag = '480p';
+                    } else if (['360p', '404p', '384p', '520p'].includes(found)) {
+                        // Generic low-res tag for anything below 480p
+                        resolutionTag = 'LOW-RES';
+                    }
+                    qualities.add(resolutionTag);
+                } else {
+                    // Priority 2: Dimension Fallback
+                    const height = primaryVideoStream.Height || 0;
+                    if (height >= 1000) {
+                        resolutionTag = '1080p';
+                    } else if (height >= 700) {
+                        resolutionTag = '720p';
+                    } else if (height >= 400) {
+                        resolutionTag = '480p';
+                    } else if (height > 0) {
+                        // Any height below 400px gets the generic low-res tag
+                        resolutionTag = 'LOW-RES';
+                    }
+
+                    if (resolutionTag) {
+                        qualities.add(resolutionTag);
+                    }
                 }
-                if (/dolby\s*vision|dv/i.test(title)) qualities.add('Dolby Vision');
-                else if (/hdr10\+/i.test(title)) qualities.add('HDR10+');
-                else if (/hdr10/i.test(title)) qualities.add('HDR10');
-                else if (/\bhdr\b/i.test(title)) qualities.add('HDR');
             }
 
-            // --- 2. If no title-based resolution, fall back to width-only ---
-            if (!resolutionFromTitle) {
-                videoStreams.forEach(stream => {
-                    const width = stream.Width || 0;
+            // --- VIDEO DYNAMIC RANGE LOGIC ---
+            let hdrTag = null;
 
-                    let detectedQuality = 'SD';
-                    let highestPriority = 0;
+            if (primaryVideoStream) {
+                // Priority 1: Dolby Vision Scan
+                const displayTitle = primaryVideoStream.DisplayTitle || '';
+                const videoRangeType = primaryVideoStream.VideoRangeType || '';
+                const dolbyVisionRegex = /dolby\s*vision|dv/i;
+                const dolbyVisionMatchTitle = displayTitle.match(dolbyVisionRegex);
+                const dolbyVisionMatchRange = videoRangeType.match(dolbyVisionRegex);
+                if (dolbyVisionMatchTitle || dolbyVisionMatchRange) {
+                    hdrTag = 'Dolby Vision';
+                    qualities.add(hdrTag);
+                } else {
+                    // Priority 2: HDR Fallback
+                    const hdr10PlusRegex = /hdr10\+/i;
+                    const hdr10Regex = /hdr10/i;
+                    const hdrRegex = /\bhdr\b/i;
 
-                    for (const [qualityLabel, threshold] of Object.entries(QUALITY_THRESHOLDS)) {
-                        if (width >= threshold.width && threshold.priority > highestPriority) {
-                            detectedQuality = qualityLabel;
-                            highestPriority = threshold.priority;
-                        }
-                    }
+                    const hdr10PlusMatchTitle = displayTitle.match(hdr10PlusRegex);
+                    const hdr10PlusMatchRange = videoRangeType.match(hdr10PlusRegex);
 
-                    if (detectedQuality !== 'SD' || width > 0) {
-                        qualities.add(detectedQuality);
-                    }
 
-                    // HDR / Dolby Vision Detection from metadata
-                    const videoRange = (stream.VideoRange || '').toLowerCase();
-                    if (videoRange.includes('hdr') || videoRange.includes('dolby vision')) {
-                        if (stream.VideoRangeType) {
-                            const rangeType = stream.VideoRangeType.toLowerCase();
-                            if (rangeType.includes('dv') || rangeType.includes('dolby')) qualities.add('Dolby Vision');
-                            else if (rangeType.includes('hdr10+')) qualities.add('HDR10+');
-                            else if (rangeType.includes('hdr10')) qualities.add('HDR10');
-                            else qualities.add('HDR');
+                    if (hdr10PlusMatchTitle || hdr10PlusMatchRange) {
+                        hdrTag = 'HDR10+';
+                        qualities.add(hdrTag);
+                    } else {
+                        const hdr10MatchTitle = displayTitle.match(hdr10Regex);
+                        const hdr10MatchRange = videoRangeType.match(hdr10Regex);
+
+                        if (hdr10MatchTitle || hdr10MatchRange) {
+                            hdrTag = 'HDR10';
+                            qualities.add(hdrTag);
                         } else {
-                            qualities.add('HDR');
+                            const hdrMatchTitle = displayTitle.match(hdrRegex);
+                            const hdrMatchRange = videoRangeType.match(hdrRegex);
+
+                            if (hdrMatchTitle || hdrMatchRange) {
+                                hdrTag = 'HDR';
+                                qualities.add(hdrTag);
+                            }
                         }
+                    }
+                }
+            }
+
+            // --- AUDIO LOGIC ---
+            let audioTag = null;
+
+            for (let i = 0; i < audioStreams.length; i++) {
+                const stream = audioStreams[i];
+
+                // Priority 1: DisplayTitle Scan
+                const displayTitle = stream.DisplayTitle || '';
+
+                const atmosRegex = /atmos/i;
+                const truehd = /truehd/i;
+                const dtsxRegex = /dts-x/i;
+                const dtsRegex = /\bdts\b/i;
+                const ddpRegex = /dolby\s*digital\+/i;
+
+                const atmosMatch = displayTitle.match(atmosRegex);
+                const truehdMatch = displayTitle.match(truehd);
+                const dtsxMatch = displayTitle.match(dtsxRegex);
+                const dtsMatch = displayTitle.match(dtsRegex);
+                const ddpMatch = displayTitle.match(ddpRegex);
+
+                if (atmosMatch) {
+                    audioTag = 'ATMOS';
+                    qualities.add(audioTag);
+                    break; // Stop all further audio checks
+                } else if (truehdMatch) {
+                    audioTag = 'TRUEHD';
+                    qualities.add(audioTag);
+                    break;
+                } else if (dtsxMatch) {
+                    audioTag = 'DTS-X';
+                    qualities.add(audioTag);
+                    break;
+                } else if (dtsMatch) {
+                    audioTag = 'DTS';
+                    qualities.add(audioTag);
+                    break;
+                } else if (ddpMatch) {
+                    audioTag = 'Dolby Digital+';
+                    qualities.add(audioTag);
+                    break;
+                }
+            }
+
+            if (!audioTag) {
+
+                // Priority 2: Technical Metadata Fallback
+                for (let i = 0; i < audioStreams.length; i++) {
+                    const stream = audioStreams[i];
+                    const codec = (stream.Codec || '').toLowerCase();
+                    const profile = (stream.Profile || '').toLowerCase();
+
+                    if (codec.includes('truehd') || profile.includes('truehd')) {
+                        if (codec.includes('atmos') || profile.includes('atmos')) {
+                            audioTag = 'ATMOS';
+                        } else {
+                            audioTag = 'TRUEHD';
+                        }
+                        qualities.add(audioTag);
+                        break;
+                    } else if (codec.includes('dts')) {
+                        if (codec.includes('x') || profile.includes('x')) {
+                            audioTag = 'DTS-X';
+                        } else {
+                            audioTag = 'DTS';
+                        }
+                        qualities.add(audioTag);
+                        break;
+                    } else if (codec.includes('eac3') || codec.includes('ddp')) {
+                        audioTag = 'Dolby Digital+';
+                        qualities.add(audioTag);
+                        break;
+                    }
+                }
+            }
+
+            if (!audioTag) {
+
+                // Priority 3: Channel Layout Fallback
+                let maxChannels = 0;
+                audioStreams.forEach((stream, index) => {
+                    const channels = stream.Channels || 0;
+                    if (channels > maxChannels) {
+                        maxChannels = channels;
                     }
                 });
+
+                if (maxChannels >= 8) {
+                    audioTag = '7.1';
+                    qualities.add(audioTag);
+                } else if (maxChannels === 6) {
+                    audioTag = '5.1';
+                    qualities.add(audioTag);
+                }
             }
 
-            // 3. Audio Codec Detection
-            audioStreams.forEach(stream => {
-                const codec = (stream.Codec || '').toLowerCase();
-                const profile = (stream.Profile || '').toLowerCase();
-
-                if (codec.includes('truehd') || profile.includes('truehd')) {
-                    if (codec.includes('atmos') || profile.includes('atmos')) qualities.add('ATMOS');
-                    else qualities.add('TRUEHD');
-                } else if (codec.includes('dts')) {
-                    if (codec.includes('x') || profile.includes('x')) qualities.add('DTS-X');
-                    else qualities.add('DTS');
-                } else if (codec.includes('eac3') || codec.includes('ddp')) {
-                    qualities.add('Dolby Digital+');
-                }
-            });
-
-            return Array.from(qualities);
+            const finalTags = Array.from(qualities);
+            return finalTags;
         }
 
         /**
@@ -367,10 +509,6 @@
 
             const qualityContainer = document.createElement('div');
             qualityContainer.className = containerClass;
-
-            // Sort tags for consistent display order (Resolution > Features)
-            const resolutionOrder = ['8K', '4K', '1440p', '1080p', '720p', '480p', 'SD'];
-            const featureOrder = ['Dolby Vision', 'HDR10+', 'HDR10', 'HDR', 'ATMOS', 'DTS-X', 'TRUEHD', 'DTS', 'Dolby Digital+'];
 
             // Show only the best resolution tag
             const resolutions = qualities.filter(q => resolutionOrder.includes(q));
@@ -590,6 +728,11 @@
                 }
                 @keyframes qualityTagFadeIn {
                     to { opacity: 1; transform: translateY(0); }
+                }
+                /* Generic style for low resolution content */
+                .${containerClass} .${overlayClass}[data-quality="LOW-RES"] {
+                    background: rgba(128, 128, 128, 0.8) !important;
+                    color: #ffffff !important;
                 }
                 ${rules}
             `;
