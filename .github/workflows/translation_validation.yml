@@ -1,0 +1,92 @@
+name: "Translation PR Checks"
+
+on:
+  pull_request:
+    paths:
+      - 'Jellyfin.Plugin.JellyfinEnhanced/js/locales/**.json'
+
+jobs:
+  validate-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install ajv ajv-cli
+
+      - name: Check for new language file naming
+        run: |
+          # Get a list of new files added to the locales directory in this PR
+          new_files=$(git diff --name-only --diff-filter=A ${{ github.base_ref }} ${{ github.head_ref }} -- 'Jellyfin.Plugin.JellyfinEnhanced/js/locales/')
+
+          for file in $new_files; do
+            filename=$(basename "$file")
+            # Check if filename is a two-letter code followed by .json
+            if ! [[ "$filename" =~ ^[a-z]{2}\.json$ ]]; then
+              echo "::error file=$file::Invalid filename. Filename must be a two-letter ISO 639-1 language code (e.g., es.json, pl.json)."
+              exit 1
+            fi
+          done
+
+      - name: Validate JSON format
+        run: |
+          for file in $(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} -- 'Jellyfin.Plugin.JellyfinEnhanced/js/locales/**.json'); do
+            if [ -f "$file" ]; then
+              echo "Validating JSON format for $file..."
+              ajv validate -s '{"type": "object"}' -d "$file" --valid || (echo "::error file=$file::Invalid JSON format." && exit 1)
+            fi
+          done
+
+      - name: Compare translation keys
+        id: compare_keys
+        run: |
+          base_file="Jellyfin.Plugin.JellyfinEnhanced/js/locales/en.json"
+          base_keys=$(jq -r 'keys_unsorted | .[]' "$base_file" | sort)
+
+          for file in $(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} -- 'Jellyfin.Plugin.JellyfinEnhanced/js/locales/**.json'); do
+            if [ -f "$file" ] && [ "$file" != "$base_file" ]; then
+              echo "Comparing keys for $file against $base_file..."
+              current_keys=$(jq -r 'keys_unsorted | .[]' "$file" | sort)
+
+              missing_keys=$(comm -23 <(echo "$base_keys") <(echo "$current_keys"))
+              if [ -n "$missing_keys" ]; then
+                echo "::error file=$file::Missing keys: $missing_keys"
+                exit 1
+              fi
+
+              extra_keys=$(comm -13 <(echo "$base_keys") <(echo "$current_keys"))
+              if [ -n "$extra_keys" ]; then
+                echo "::warning file=$file::Extra, untracked keys found: $extra_keys"
+              fi
+            fi
+          done
+
+      - name: Check for placeholders
+        id: check_placeholders
+        run: |
+          base_file="Jellyfin.Plugin.JellyfinEnhanced/js/locales/en.json"
+
+          # Find all placeholders like {key} in the base file
+          placeholders=$(grep -o '{[a-zA-Z_]\+}' "$base_file" | sort -u)
+
+          for file in $(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} -- 'Jellyfin.Plugin.JellyfinEnhanced/js/locales/**.json'); do
+            if [ -f "$file" ] && [ "$file" != "$base_file" ]; then
+              echo "Checking placeholders for $file..."
+              for placeholder in $placeholders; do
+                key=$(jq -r --arg p "$placeholder" 'to_entries[] | select(.value | contains($p)) | .key' "$base_file")
+                if [ -n "$key" ]; then
+                  # Check if the key exists in the current file and if it contains the placeholder
+                  if ! jq -e --arg k "$key" '.[$k]' "$file" | grep -q "$placeholder"; then
+                     echo "::error file=$file::Missing or incorrect placeholder '$placeholder' for key '$key'."
+                     exit 1
+                  fi
+                fi
+              done
+            fi
+          done
