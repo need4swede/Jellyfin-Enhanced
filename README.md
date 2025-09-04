@@ -10,18 +10,91 @@
 The ultimate enhancement for your Jellyfin experience. This plugin (previously script) combines the powerful features of Jellyfin Enhanced and [Jellyfin Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere/) and more into one easy-to-install package.
 
 <img src="images/panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
+---
 
-<br><details>
-<summary style="font-size: 1em; font-weight: 600;">Jellyfin Enhanced with Default Theme</summary>
+## 📑 Table of Contents
+
+- [Jellyfin Enhanced](#jellyfin-enhanced)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🔧 Installation](#-installation)
+    - [🐳 Docker Installation Notes](#docker-installation)
+  - [✨ Features](#-features)
+    - [🪼 Jellyseerr Search](#jellyseerr-search-integration)
+        - [Setup](#setup)
+        - [Icon States](#icon-states)
+      - [How It Works?](#how-it-works)
+  - [🌐 Internationalization & Translations](#-internationalization--translations)
+  - [🎨 Custom Styling](#-custom-styling)
+    - [Pause Screen CSS](#pause-screen-css)
+    - [Quality Tags CSS](#quality-tags-css)
+    - [Enhanced Panel CSS](#panel-css)
+  - [🫚 Project Structure](#-project-structure)
+    - [File Structure](#file-structure)
+    - [Component Breakdown](#component-breakdown)
+  - [🧪 Compatibility](#-compatibility)
+  - [💡 FAQ \& Troubleshooting](#-faq--troubleshooting)
+    - [FAQ](#faq)
+    - [Troubleshooting](#troubleshooting)
+  - [📸 Screenshots](#-screenshots)
+  - [📄 License](#-license)
+- [Enjoying Jellyfin Enhanced?](#enjoying-jellyfin-enhanced)
+
+---
+
+## 🔧 Installation
+
+1.  In Jellyfin, go to **Dashboard** > **Plugins** > **Catalog** > ⚙️
+2.  Click **➕** and give the repository a name (e.g., "Jellyfin Enhanced").
+3.  Set the **Repository URL** to: `https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/manifest.json`
+4.  Click **Save**.
+5.  Go to the **Catalog** tab, find **Jellyfin Enhanced** in the list, and click **Install**.
+6.  **Restart** your Jellyfin server to complete the installation.
+
+
+#### <a id="docker-installation"></a>
+<details>
+<summary style="font-size: 1.25em;">🐳 Docker Installation Notes</summary>
 <br>
-<img src="images/panel.gif" width="800"/>
-</details><br>
+
+  > [!NOTE]
+  > If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
 
 
+If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` in your logs, you will need to map the `index.html` file manually:
+
+1. Copy the index.html file from your container:
+
+   ```bash
+   docker cp jellyfin:/jellyfin/jellyfin-web/index.html /path/to/your/jellyfin/config/index.html
+   ```
+
+2. Add a volume mapping to your Docker run command:
+
+   ```yaml
+   -v /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
+   ```
+
+3. Or for Docker Compose, add this to your volumes section:
+   ```yaml
+   services:
+     jellyfin:
+       # ... other config
+       volumes:
+         - /path/to/your/jellyfin/config:/config
+         - /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
+         # ... other volumes
+   ```
+
+This gives the plugin the necessary permissions to inject JavaScript into the web interface.
+
+</details>
+<br>
+
+<p align="center">
+--------------------------------------------------
+</p>
 
 ## ✨ Features
-
-The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web interface:
 
 - **⌨️ Advanced Keyboard Shortcuts:** A comprehensive set of hotkeys for navigation, playback control, and more.
 - **📝 Customizable Subtitles:** Fine-tune the appearance of subtitles with presets for style, size, and font.
@@ -37,25 +110,11 @@ The Jellyfin Enhanced plugin brings a host of features to your Jellyfin web inte
 
 <br>
 
-> 🌍 Internationalization & Translations\
-> \
-  Jellyfin Enhanced is now available in multiple languages! The plugin will automatically detect and apply the language set in your Jellyfin user profile.\
-      **Currently Supported Languages**: English (en), Danish (da), German (de), French (fr), Italian (it), Swedish (sv). To note: These are translated using AI, and can be extermely inaccurate 😅\
-      \
-      I need Your Help!\
-      Is your language missing or incorrect? You can help translate Jellyfin Enhanced for the community! It's a simple process:\
-        - Find the Translation Files: Navigate to the Jellyfin.Plugin.JellyfinEnhanced/js/locales/ directory in this repository.\
-        - Copy the English File: Make a copy of en.json and rename it to your language's two-letter ISO 639-1 code (e.g., es.json for Spanish, pl.json for Polish).\
-        - Translate: Open your new file and translate the English text on the right side of the colons (:).\
-        - Submit a Pull Request: Once you're done, submit a pull request with your new translation file.\
-
-
-
 <p align="center">
 --------------------------------------------------
 </p>
 
-## Jellyseerr Search Integration <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" width="40" height="50" align="center">
+## Jellyseerr Search Integration <a name="jellyseerr-search-integration"></a> <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" width="40" height="50" align="center">
 
 The Jellyfin Enhanced plugin can integrate with your Jellyseerr instance, allowing users to search for and request media directly from the Jellyfin search interface.
 
@@ -88,7 +147,7 @@ To enable the Jellyseerr integration, you must first configure it in the plugin 
 
 When on the search page, a Jellyseerr icon will appear to indicate the connection status. This is the first thing to check when troubleshooting issues.
 
-| Icon | State | Description |
+| **Icon** | **State** | **Description** |
 | :---: | :--- | :--- |
 |<img width="32" alt="active" src="https://github.com/user-attachments/assets/09124764-5132-4474-83e7-c09399630b13" /> | **Active** | Jellyseerr is successfully connected, and the current Jellyfin user is correctly linked to a Jellyseerr user. <br> Results from Jellyseerr will load along with Jellyfin and requests can be made. |
 | <img width="32" alt="noaccess" src="https://github.com/user-attachments/assets/0db72189-04fc-4ec1-bdf1-50dd5e36d2ef" /> | **User Not Found** | Jellyseerr is successfully connected, but the current Jellyfin user is not linked to a Jellyseerr account. <br>Ensure the user has been imported into Jellyseerr from Jellyfin. Results will not load. |
@@ -100,7 +159,7 @@ When on the search page, a Jellyseerr icon will appear to indicate the connectio
 
 <br>
 
-### How It Works?
+#### How It Works?
 
 To ensure security and prevent browser-related Cross-Origin Resource Sharing (CORS) errors, the Jellyfin Enhanced plugin does not communicate directly with the Jellyseerr API from your browser. Instead, it uses the Jellyfin server as a proxy. This method keeps your Jellyseerr API key safe on the server and avoids security issues.
 
@@ -108,7 +167,7 @@ In doing so, the plugin exposes a few proxy endpoints for its own use and for tr
 
 <br>
 <details>
-<summary style="font-size: 1.25em; font-weight: 600;">🔌 Jellyseerr API Endpoints</summary>
+<summary style="font-size: 1.2em; font-weight: 600;">🔌 Jellyseerr API Endpoints</summary>
 <br>
 
 You can use these `curl` commands to directly interact with the plugin's API for troubleshooting. You will need to replace the placeholder values with your own.
@@ -179,102 +238,35 @@ curl -X POST\
 
 </details>
 
-## 🔧 Installation
+<p align="center">
+--------------------------------------------------
+</p>
 
-1.  In Jellyfin, go to **Dashboard** > **Plugins** > **Catalog** > ⚙️
-2.  Click **➕** and give the repository a name (e.g., "Jellyfin Enhanced").
-3.  Set the **Repository URL** to: `https://raw.githubusercontent.com/n00bcodr/jellyfin-enhanced/main/manifest.json`
-4.  Click **Save**.
-5.  Go to the **Catalog** tab, find **Jellyfin Enhanced** in the list, and click **Install**.
-6.  **Restart** your Jellyfin server to complete the installation.
+<br>
+
+## 🔧 Customization & Advanced Use
+
+### 🌐 Internationalization & Translations
+
+The plugin detects the Jellyfin user profile language automatically. List of currently supported languages [here](Jellyfin.Plugin.JellyfinEnhanced\js\locales).
+
+Is your language missing or incorrect? You can help translate Jellyfin Enhanced for the community!
+
+- Find the Translation Files: Navigate to the `Jellyfin.Plugin.JellyfinEnhanced/js/locales/` directory in this repository.
+- Make a copy of `en.json` and rename it to your language's two-letter ISO 639-1 code (e.g., `es.json` for Spanish, `pl.json` for Polish).
+- Translate: Open your new file and translate the English text on the right side of the colons (:).
+- Submit a Pull Request: Once you're done, submit a pull request with your new translation file.
+
 
 
 <br>
-<details>
-<summary style="font-size: 1em;">🐳 Docker Installation Notes</summary>
-<br>
+<p align="center">
+--------------------------------------------------
+</p>
 
-  > [!NOTE]
-  > If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
+### 🎨 Custom Styling
 
-
-If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` in your logs, you will need to map the `index.html` file manually:
-
-1. Copy the index.html file from your container:
-
-   ```bash
-   docker cp jellyfin:/jellyfin/jellyfin-web/index.html /path/to/your/jellyfin/config/index.html
-   ```
-
-2. Add a volume mapping to your Docker run command:
-
-   ```yaml
-   -v /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
-   ```
-
-3. Or for Docker Compose, add this to your volumes section:
-   ```yaml
-   services:
-     jellyfin:
-       # ... other config
-       volumes:
-         - /path/to/your/jellyfin/config:/config
-         - /path/to/your/jellyfin/config/index.html:/jellyfin/jellyfin-web/index.html
-         # ... other volumes
-   ```
-
-This gives the plugin the necessary permissions to inject JavaScript into the web interface.
-
-</details>
-
----
-## 💡 FAQ & Troubleshooting
-
-Here are some common questions and solutions for issues you might encounter with the Jellyfin Enhanced plugin.
-
-### Frequently Asked Questions
-
-**Q: Can I customize the keyboard shortcuts?** \
- **A:** Yes, you can! Open the Jellyfin Enhanced panel by clicking the menu item in the sidebar or pressing `?`. In the "Shortcuts" tab, you can click on any key to set a new custom shortcut.
-
-**Q: Does this plugin work on the Jellyfin mobile app?** \
-**A:** Yes, the plugin is compatible with the official Jellyfin Android and iOS apps, as well as the desktop and web UIs.
-
-**Q: Does this plugin work on the Android TV or any other TV?** \
-**A:** No, this plugin does not work on the native Jellyfin app for Android TV, or other similar TV platforms. The plugin taps into the Jellyfin web interface, so it only functions on clients that use the embedded web UI, such as the official Web, Desktop, and mobile apps.
-
-**Q: Why is the "Remove from Continue Watching" feature a destructive action?** \
-**A:** This feature works by resetting the playback progress of an item to zero. While this removes it from the "Continue Watching" list, it also means the user's watch history for that item is lost.
-
-**Q: Where is the userscript?** \
-**A:** With the plugin functionality growing and diverging from the userscript, I had to remove it and installation method to avoid confusion. But if you just want the keyboard shortcuts and other functionality, the last updated version is [**here**](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/05dd5b54802f149e45c76102dabf6235aaf7a5fb/jf_enhanced.user.js)
-
-**Q: How do I change the plugin's language?**\
-**A:** The plugin automatically uses the language set in your Jellyfin user profile. If your language isn't available, it will default to English. See the "Internationalization" section above to learn how you can contribute a translation!
-
-### Troubleshooting Guide
-
-Here is a list of common errors you might see in your Jellyfin server logs or your browser's developer console, and what they mean.
-
-**Server Logs (`Jellyfin Server Dashboard > Logs`)**
-
-| Error Message | Meaning & Solution |
-| --- | --- |
-| `Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` | **Meaning:** The plugin was unable to edit the `index.html` file to inject its script. <br> **Solution:** This is common in Docker installs. Follow the **Docker Installation Notes** in the README to correctly map the `index.html` file or use file-transformation plugin. |
-
----
-
-## 🧪 Compatibility
-
-- Official Jellyfin Web UI
-- Official Jellyfin Android and iOS Apps
-- Official Jellyfin Desktop Apps
-
-> [!NOTE]
-> Functionality does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
-
-## 🎨 Custom Styling
-
+### <a id="pause-screen-css"></a>
 <details>
 <summary style="font-size: 1.2em;">Pause Screen</summary>
 <br>
@@ -295,7 +287,7 @@ If you do not want an element in the pause screen, you can customize by hiding t
 
 </details>
 
-<br>
+### <a id="quality-tags-css"></a>
 <details>
 <summary style="font-size: 1.2em;">Quality Tags</summary>
 <br>
@@ -312,7 +304,7 @@ Quality tags are injected into each card/poster with this structure:
 </div>
 ```
 
-## Classes & Attributes
+**Classes & Attributes**
 
 * **`.quality-overlay-container`** → Wrapper for all tags (positioned top-left by default).
 * **`.quality-overlay-label`** → Base class for each tag.
@@ -324,7 +316,7 @@ Quality tags are injected into each card/poster with this structure:
 
 <br>
 
-### Customization Examples
+**Customization Examples**
 ----------------------
 
 
@@ -339,7 +331,7 @@ Quality tags are injected into each card/poster with this structure:
 
 <br>
 
-### CSS Examples
+**CSS Examples**
 ---------------------
 
 * **Style all tags**
@@ -374,6 +366,40 @@ Quality tags are injected into each card/poster with this structure:
   }
   ```
 
+* **Position of Tags**
+
+
+  - Top Right
+    ```css
+    .quality-overlay-container {
+        top: 6px !important;
+        right: 6px !important;
+        left: auto !important;
+        bottom: auto !important;
+        align-items: flex-end !important;
+    }
+  ```
+  - Bottom Left
+    ```css
+    .quality-overlay-container {
+        bottom: 6px !important;
+        left: 6px !important;
+        top: auto !important;
+        right: auto !important;
+        align-items: flex-start !important;
+    }
+    ```
+  - Bottom Right
+    ```css
+    .quality-overlay-container {
+        bottom: 6px !important;
+        right: 6px !important;
+        top: auto !important;
+        left: auto !important;
+        align-items: flex-end !important;
+    }
+    ```
+
 
 * **Hide unwanted tags**
 
@@ -392,11 +418,11 @@ Quality tags are injected into each card/poster with this structure:
 >* `LOW-RES` is the fallback for anything below 480p.
 >* Tags are sorted automatically with resolution first, then video features, then audio.
 
-
 </details>
 
 
-<br>
+### <a id="panel-css"></a>
+
 <details>
 <summary style="font-size: 1.25em; font-weight: 600;">Enhanced Panel</summary>
 <br>
@@ -508,30 +534,11 @@ Sample styling
 
 </details>
 
-## 📸 Screenshots
+<p align="center">
+--------------------------------------------------
+</p>
 
-<table align="center">
-  <tr>
-    <th style="text-align:center">Shortcuts</th>
-    <th style="text-align:center">Settings</th>
-  </tr>
-  <tr>
-    <td><img src="images/shortcuts.png" width="1000"/></td>
-    <td><img src="images/settings.png" width="1000"/></td>
-  </tr>
-  <tr>
-    <th style="text-align:center">Pausescreen</th>
-  </tr>
-  <tr>
-    <td><img src="images/pausescreen.png" width="1000"/></td>
-  </tr>
-  </table>
-
-
-<br><br>
-<details>
-<summary style="font-size: 1.25em; font-weight: 600;">🫚Project Structure </summary>
-<br>
+## 🫚 Project Structure
 
 The original monolithic `plugin.js` has been refactored into a modular, component-based structure to improve maintainability, readability, and scalability. The new architecture uses a single entry point (`plugin.js`) that dynamically loads all other feature components.
 
@@ -546,6 +553,8 @@ Jellyfin.Plugin.JellyfinEnhanced/
     ├── locales/
     │ ├── <language1>.json
     │ ├── <language2>.json
+    │ ├── <language3>.json
+    │ ├── ...
     ├── enhanced/
     │ ├── config.js
     │ ├── events.js
@@ -585,14 +594,120 @@ Jellyfin.Plugin.JellyfinEnhanced/
 * **`qualitytags.js`**: Manages the display of media quality information (like 4K, HDR, and Atmos) as tags directly on the posters.
 
 
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
+
+## 🧪 Compatibility
+
+- Official Jellyfin Web UI
+- Official Jellyfin Android and iOS Apps
+- Official Jellyfin Desktop Apps
+
+
+> [!NOTE]
+> Functionality does not work on anything that does not use Jellyfin Embedded web UI, such as 3rd party apps, Android TV App etc.
+
+
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
+
+
+## 💡 FAQ & Troubleshooting
+
+### FAQ
+
+
+<details>
+<summary><strong>Can I customize the keyboard shortcuts?</strong></summary>
+Yes, you can! Open the Jellyfin Enhanced panel by clicking the menu item in the sidebar or pressing `?`. In the "Shortcuts" tab, you can click on any key to set a new custom shortcut.
 </details>
+
+<details>
+<summary><strong>Does this plugin work on the Jellyfin mobile app?</strong></summary>
+Yes, the plugin is compatible with the official Jellyfin Android and iOS apps, as well as the desktop and web UIs.
+</details>
+
+<details>
+<summary><strong>Does this plugin work on Android TV or other TVs?</strong></summary>
+No, this plugin does not work on the native Jellyfin app for Android TV, or other similar TV platforms. The plugin taps into the Jellyfin web interface, so it only functions on clients that use the embedded web UI, such as the official Web, Desktop, and mobile apps.
+</details>
+
+<details>
+<summary><strong>Why is the "Remove from Continue Watching" feature destructive?</strong></summary>
+This feature works by resetting the playback progress of an item to zero. While this removes it from the "Continue Watching" list, it also means the user's watch history for that item is lost.
+</details>
+
+<details>
+<summary><strong>Where is the userscript?</strong></summary>
+With the plugin functionality growing and diverging from the userscript, I had to remove it to avoid confusion. But if you just want the keyboard shortcuts and other functionality, the last updated version is [**here**](https://github.com/n00bcodr/Jellyfin-Enhanced/raw/05dd5b54802f149e45c76102dabf6235aaf7a5fb/jf_enhanced.user.js).
+</details>
+
+<details>
+<summary><strong>How do I change the plugin's language?</strong></summary>
+The plugin automatically uses the language set in your Jellyfin user profile. If your language isn't available, it will default to English. See the "Internationalization" section above to learn how you can contribute a translation!
+</details>
+
+
+
+### Troubleshooting
+
+Here is a list of common errors you might see in your Jellyfin server logs or your browser's developer console, and what they mean.
+
+**Server Logs (`Jellyfin Server Dashboard > Logs`)**
+
+| Error Message | Meaning & Solution |
+| --- | --- |
+| `Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` | **Meaning:** The plugin was unable to edit the `index.html` file to inject its script. <br> **Solution:** This is common in Docker installs. Follow the **Docker Installation Notes** in the README to correctly map the `index.html` file or use file-transformation plugin. |
+
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
+
+
+## 📸 Screenshots
+
+<table align="center">
+  <tr>
+    <th style="text-align:center">Shortcuts</th>
+    <th style="text-align:center">Settings</th>
+  </tr>
+  <tr>
+    <td><img src="images/shortcuts.png" width="1000"/></td>
+    <td><img src="images/settings.png" width="1000"/></td>
+  </tr>
+  <tr>
+    <th style="text-align:center">Pausescreen</th>
+    <th style="text-align:center">Elsewhere</th>
+  </tr>
+  <tr>
+    <td><img src="images/pausescreen.png" width="1000"/></td>
+    <td><img src="images/elsewhere.png" width="1000"/></td>
+  </tr>
+  </table>
+
+<br>
+
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
+
 
 ## 📄 License
 
-This project is licensed under the MIT License
+MIT License
 
 ---
-
+<br>
 <div align="center">
 
 **Made with 💜 for Jellyfin and the community**
@@ -605,3 +720,8 @@ Checkout my other repos!
 
 
 </div>
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
