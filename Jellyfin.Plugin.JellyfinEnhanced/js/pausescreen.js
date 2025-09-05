@@ -505,11 +505,11 @@
                 const domain = window.location.origin;
                 let record = this.itemCache.get(itemId);
                 if (!record) {
-                const itemResp = await this.fetchWithRetry(`${domain}/Items/${itemId}`, {
+                const itemResp = await this.fetchWithRetry(ApiClient.getUrl(`/Items/${itemId}`), {
                     headers: { "X-Emby-Token": this.token, "Accept": "application/json" },
                     signal: this.fetchAbort.signal
                 });
-                record = { item: itemResp, domain };
+                record = { item: itemResp, domain: ApiClient.serverAddress() };
                 this.itemCache.set(itemId, record);
                 }
                 await this.displayItemInfo(record.item, record.domain, itemId);

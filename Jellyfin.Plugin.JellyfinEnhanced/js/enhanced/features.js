@@ -19,12 +19,6 @@
     }
 
     /**
-     * Gets the Jellyfin server address from the current window location.
-     * @returns {string} The origin of the server address.
-     */
-    const getJellyfinServerAddress = () => window.location.origin;
-
-    /**
      * Shows notifications using Jellyfin's built-in notification system.
      * @param {string} message The message to display.
      * @param {string} [type='info'] The type of notification ('info', 'error', 'success').
@@ -59,7 +53,7 @@
         if (JE.currentSettings.randomIncludeShows) itemTypes.push('Series');
         const includeItemTypes = itemTypes.join(',');
 
-        let apiUrl = `${getJellyfinServerAddress()}/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls`;
+        let apiUrl = ApiClient.getUrl(`/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls`);
         if (JE.currentSettings.randomUnwatchedOnly) {
             apiUrl += '&IsPlayed=false';
         }
@@ -279,7 +273,7 @@
         try {
             await ApiClient.ajax({
                 type: 'POST',
-                url: `${getJellyfinServerAddress()}/Users/${userId}/Items/${itemId}/UserData`,
+                url: ApiClient.getUrl(`/Users/${userId}/Items/${itemId}/UserData`),
                 data: JSON.stringify({ PlaybackPositionTicks: 0 }),
                 headers: { 'Content-Type': 'application/json' }
             });
