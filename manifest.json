@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/master/images/icon.png",
         "versions": [
             {
+                "changelog": "- Add advanced Jellyseerr request options and refactor JS #34\n - Spanish translation (#41)\n - Adjust Italian localization text in it.json (#40)\n - Add action to validate json on PRs\n - Make readme better to read.\n- Refactor script URLs to use ApiClient.getUrl",
+                "targetAbi": "10.10.0.0",
+                "version": "7.0.0.0",
+                "sourceUrl": "https://github.com/n00bcodr/Jellyfin-Enhanced/releases/download/7.0.0.0/Jellyfin.Plugin.JellyfinEnhanced.zip",
+                "checksum": "87d88a6a48a55aea21b8cc3d17dd8385",
+                "timestamp": "2025-09-05T10:16:32Z"
+            },
+            {
                 "changelog": "- Internationalization & Translations - Jellyfin Enhanced is now available in multiple* languages!\n - Improve quality tag detection and sorting logic",
                 "targetAbi": "10.10.0.0",
                 "version": "6.6.0.0",
