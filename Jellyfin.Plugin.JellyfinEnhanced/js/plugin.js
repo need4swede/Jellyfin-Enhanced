@@ -89,7 +89,7 @@
         }
         scripts.forEach(scriptName => {
             const script = document.createElement('script');
-            script.src = ApiClient.getUrl(`${basePath}/${scriptName}?v=${Date.now()}`);
+            script.src = `${basePath}/${scriptName}?v=${Date.now()}`; // Cache-busting
             script.onload = () => {
                 loadedCount++;
                 console.log(`🪼 Jellyfin Enhanced: Loaded component '${scriptName}'`);

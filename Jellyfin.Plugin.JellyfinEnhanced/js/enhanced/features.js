@@ -59,7 +59,7 @@
         if (JE.currentSettings.randomIncludeShows) itemTypes.push('Series');
         const includeItemTypes = itemTypes.join(',');
 
-        let apiUrl = ApiClient.getUrl(`/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls`);
+        let apiUrl = `${getJellyfinServerAddress()}/Users/${userId}/Items?IncludeItemTypes=${includeItemTypes}&Recursive=true&SortBy=Random&Limit=20&Fields=ExternalUrls`;
         if (JE.currentSettings.randomUnwatchedOnly) {
             apiUrl += '&IsPlayed=false';
         }
@@ -279,7 +279,7 @@
         try {
             await ApiClient.ajax({
                 type: 'POST',
-                url: ApiClient.getUrl(`/Users/${userId}/Items/${itemId}/UserData`),
+                url: `${getJellyfinServerAddress()}/Users/${userId}/Items/${itemId}/UserData`,
                 data: JSON.stringify({ PlaybackPositionTicks: 0 }),
                 headers: { 'Content-Type': 'application/json' }
             });
