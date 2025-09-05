@@ -362,6 +362,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
                 // Jellyseerr Search Settings
                 config.JellyseerrEnabled,
                 config.JellyseerrShowAdvanced,
+                config.ShowElsewhereOnJellyseerr,
 
                 // Arr Links Settings
                 config.ArrLinksEnabled,

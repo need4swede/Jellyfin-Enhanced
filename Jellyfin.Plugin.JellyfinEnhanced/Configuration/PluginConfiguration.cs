@@ -64,6 +64,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             // Jellyseerr Search Settings
             JellyseerrEnabled = false;
             JellyseerrShowAdvanced = false;
+            ShowElsewhereOnJellyseerr = false;
             JellyseerrUrls = "";
             JellyseerrApiKey = "";
 
@@ -107,6 +108,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         // Jellyseerr Search Settings
         public bool JellyseerrEnabled { get; set; }
         public bool JellyseerrShowAdvanced { get; set; }
+        public bool ShowElsewhereOnJellyseerr { get; set; }
         public string JellyseerrUrls { get; set; }
         public string JellyseerrApiKey { get; set; }
 

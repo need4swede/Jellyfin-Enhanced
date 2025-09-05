@@ -159,6 +159,10 @@
             .jellyseerr-overview .content { width: 100%; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
             .jellyseerr-card .cardScalable:hover .jellyseerr-overview, .jellyseerr-card .cardScalable:focus-within .jellyseerr-overview, .jellyseerr-card.is-touch .jellyseerr-overview { opacity: 1; }
             .jellyseerr-overview .title { font-weight: 600; display: block; margin-bottom: .35em; }
+            .jellyseerr-elsewhere-icons { display: none; position: absolute; bottom: 0; left:0; right:0; z-index: 3; justify-content: center; gap: 0.5em; pointer-events: none; background: rgb(0 0 0 / 85%); border-top-left-radius: 1.5em; border-top-right-radius: 1.5em; padding: 5px 0; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+            .jellyseerr-elsewhere-icons.has-icons {display: flex;}
+            .jellyseerr-elsewhere-icons img { width: 1.8em; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); background-color: rgb(255 255 255 / 30%); padding: 2px;}
+
             .jellyseerr-meta { display: flex; justify-content: center; align-items: center; gap: 1.5em; padding: 0 .75em; }
             .jellyseerr-rating { display: flex; align-items: center; gap: .3em; color: #bdbdbd; }
             .cardText-first > a[is="emby-linkbutton"] { padding: 0 !important; margin: 0 !important; color: inherit; text-decoration: none; }
@@ -480,6 +484,7 @@
                     <div class="cardPadder cardPadder-overflowPortrait"></div>
                     <div class="cardImageContainer coveredImage cardContent itemAction" style="background-image: url('${posterUrl}');">
                         <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" class="jellyseerr-icon-on-card" alt="Jellyseerr"/>
+                        <div class="jellyseerr-elsewhere-icons"></div>
                         <div class="cardIndicators"></div>
                     </div>
                     <div class="cardOverlayContainer" data-action="link"></div>
@@ -508,7 +513,51 @@
         configureRequestButton(button, item, isJellyseerrActive, jellyseerrUserFound);
         addMediaTypeBadge(card, item);
 
+        if (JE.pluginConfig.ShowElsewhereOnJellyseerr && JE.pluginConfig.TMDB_API_KEY) {
+            fetchProviderIcons(card.querySelector('.jellyseerr-elsewhere-icons'), item.id, item.mediaType);
+        }
         return card;
+    }
+
+    /**
+     * Fetches streaming provider icons from the TMDB API and adds them to a specified container element on a Jellyseerr poster.
+     * This function is called only if the "Show Elsewhere on Jellyseerr" setting is enabled and a TMDB API key is present.
+     * It retrieves providers for the default region configured in the plugin settings.
+     *
+     * @async
+     * @function fetchProviderIcons
+     * @param {HTMLElement} container - The DOM element where the provider icons will be appended.
+     * @param {string|number} tmdbId - The The Movie Database (TMDB) ID for the movie or TV show.
+     * @param {string} mediaType - The type of media, either 'movie' or 'tv'.
+     * @returns {Promise<void>} A promise that resolves when the icons have been fetched and added, or if the process fails.
+     */
+    async function fetchProviderIcons(container, tmdbId, mediaType) {
+        if (!container || !tmdbId || !mediaType) return;
+
+        const TMDB_API_KEY = JE.pluginConfig.TMDB_API_KEY;
+        const DEFAULT_REGION = JE.pluginConfig.DEFAULT_REGION || 'US';
+
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            const providers = data.results?.[DEFAULT_REGION]?.flatrate;
+
+            if (providers && providers.length > 0) {
+                providers.slice(0, 4).forEach(provider => { // Limit to max 4 icons to avoid clutter
+                    const img = document.createElement('img');
+                    img.src = `https://image.tmdb.org/t/p/w92${provider.logo_path}`;
+                    img.title = provider.provider_name;
+                    container.appendChild(img);
+                });
+                if (container.childElementCount > 0) {
+                container.classList.add('has-icons');
+            }
+            }
+        } catch (error) {
+            console.warn(`${logPrefix} Could not fetch provider icons for TMDB ID ${tmdbId}:`, error);
+        }
     }
 
     /**
