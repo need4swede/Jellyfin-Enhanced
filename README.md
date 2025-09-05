@@ -9,15 +9,20 @@
 
 The ultimate enhancement for your Jellyfin experience. This plugin (previously script) combines the powerful features of Jellyfin Enhanced and [Jellyfin Elsewhere](https://github.com/n00bcodr/Jellyfin-Elsewhere/) and more into one easy-to-install package.
 
-<img src="images/panel_jellyfish.gif" alt="Panel with Jellyfish Theme" width="90%" align="center"/>
----
+<img src="images/panel_jellyfish.gif" alt="Enhanced Panel" width="90%" align="center"/>
+
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
+<br>
 
 ## 📑 Table of Contents
 
 - [Jellyfin Enhanced](#jellyfin-enhanced)
   - [📑 Table of Contents](#-table-of-contents)
   - [🔧 Installation](#-installation)
-    - [🐳 Docker Installation Notes](#docker-installation)
+    - [🐳 Docker Installation Workaround](#docker-installation)
   - [✨ Features](#-features)
     - [🪼 Jellyseerr Search](#jellyseerr-search-integration)
         - [Setup](#setup)
@@ -39,7 +44,6 @@ The ultimate enhancement for your Jellyfin experience. This plugin (previously s
   - [📄 License](#-license)
 - [Enjoying Jellyfin Enhanced?](#enjoying-jellyfin-enhanced)
 
----
 
 ## 🔧 Installation
 
@@ -51,14 +55,20 @@ The ultimate enhancement for your Jellyfin experience. This plugin (previously s
 6.  **Restart** your Jellyfin server to complete the installation.
 
 
+> [!NOTE]
+> If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
+>
+> **Only if you do not have file-transformation plugin installed - proceed with the below workaround!**
+
+
 #### <a id="docker-installation"></a>
 <details>
-<summary style="font-size: 1.25em;">🐳 Docker Installation Notes</summary>
+<summary style="font-size: 1.25em;">🐳 Docker Installation Workaround</summary>
 <br>
 
-  > [!NOTE]
-  > If you are on a docker install it is highly advisable to have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) at least v2.2.1.0 installed. It helps avoid permission issues while modifying index.html
-
+> [!IMPORTANT]
+> 
+> If you have [file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) plugin installed, you need not do this.
 
 If you're running Jellyfin through Docker, the plugin may not have permission to modify jellyfin-web to inject the script. If you see permission errors such as `'System.UnauthorizedAccessException: Access to the path '/jellyfin/jellyfin-web/index.html ' is denied.` in your logs, you will need to map the `index.html` file manually:
 
@@ -556,15 +566,19 @@ Jellyfin.Plugin.JellyfinEnhanced/
     │ ├── <language3>.json
     │ ├── ...
     ├── enhanced/
-    │ ├── config.js
-    │ ├── events.js
-    │ ├── features.js
-    │ ├── playback.js
-    │ ├── subtitles.js
-    │ └── ui.js
+    │   ├── config.js
+    │   ├── events.js
+    │   ├── features.js
+    │   ├── playback.js
+    │   ├── subtitles.js
+    │   └── ui.js
+    ├── jellyseerr/
+    │   ├── api.js
+    │   ├── jellyseerr.js
+    │   ├── modal.js
+    │   └── ui.js
     ├── arr-links.js
     ├── elsewhere.js
-    ├── jellyseerr.js
     ├── pausescreen.js
     ├── qualitytags.js
     └── plugin.js
@@ -573,9 +587,9 @@ Jellyfin.Plugin.JellyfinEnhanced/
 
 ### Component Breakdown
 
-* **`plugin.js`**: This is the new main entry point for the plugin. Its sole responsibility is to load the plugin configuration from the server and then dynamically inject the other component scripts into the page in the correct order.
+* **`plugin.js`**: The main entry point. It loads the plugin configuration and translations, then dynamically injects all other component scripts.
 
-* **`/enhanced/`**: This directory contains the core components of the "Jellyfin Enhanced" feature set.
+* **`/enhanced/`**: Contains the core components of the "Jellyfin Enhanced" feature set.
     * **`config.js`**: Manages all settings, both from the plugin backend and the user's local storage. It initializes and holds shared variables and configurations that other components access.
     * **`subtitles.js`**: Isolates all logic related to subtitle styling, including presets and the function that applies styles to the video player.
     * **`ui.js`**: Responsible for creating, injecting, and managing all visual elements like the main settings panel, toast notifications, and various buttons.
@@ -583,11 +597,15 @@ Jellyfin.Plugin.JellyfinEnhanced/
     * **`features.js`**: Contains the logic for non-playback enhancements like the random item button, file size display, audio language display, and "Remove from Continue Watching".
     * **`events.js`**: The active hub of the plugin. It listens for user input (keyboard/mouse), browser events (tab switching), and DOM changes to trigger the appropriate functions from other components.
 
-* **`arr-links.js`**: This script adds convenient links to Sonarr, Radarr, and Bazarr on item detail pages, intended for administrator use.
+* **`/jellyseerr/`**: This directory contains all components related to the Jellyseerr integration.
+    * **`api.js`**: Handles all direct communication with the Jellyseerr proxy endpoints on the Jellyfin server.
+    * **`modal.js`**: A dedicated component for creating and managing the advanced request modals.
+    * **`ui.js`**: Manages all visual elements of the integration, like result cards, request buttons, and status icons.
+    * **`jellyseerr.js`**: The main controller for the integration, orchestrating the other components and managing state.
 
-* **`elsewhere.js`**: Powers the "Jellyfin Elsewhere" feature, which looks up where your media is available on other streaming services.
+* **`arr-links.js`**: Adds convenient links to Sonarr, Radarr, and Bazarr on item detail pages only for administrators.
 
-* **`jellyseerr.js`**: Handles the integration with Jellyseerr, managing the UI, authentication, and API calls for requesting media, and is loaded based on your plugin settings.
+* **`elsewhere.js`**: Powers the "Jellyfin Elsewhere" feature for finding media on other streaming services.
 
 * **`pausescreen.js`**: Displays a custom, informative overlay when a video is paused.
 
@@ -706,7 +724,10 @@ Here is a list of common errors you might see in your Jellyfin server logs or yo
 
 MIT License
 
----
+<br>
+<p align="center">
+--------------------------------------------------
+</p>
 <br>
 <div align="center">
 
