@@ -281,9 +281,6 @@
             /* Hide absent images */
             #pause-screen-logo:not([src]), #pause-screen-disc:not([src]) { display: none; }
 
-            /* Make Jellyfin OSD above video but below overlay */
-            .videoOsdBottom { z-index: 1 !important; }
-            .videoPlayerContainer video { z-index: 0 !important; }
           `;
           document.head.appendChild(style);
         }
