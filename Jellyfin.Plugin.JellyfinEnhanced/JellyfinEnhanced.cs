@@ -27,7 +27,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
         }
 
         public override string Name => PluginName;
-        public override Guid Id => Guid.Parse("66b28073-a193-4bbe-a009-b1bbb6f8257a");
+        public override Guid Id => Guid.Parse("C66DEDD5-137B-4215-B44B-0A454DD85C1B");
         public static JellyfinEnhanced? Instance { get; private set; }
 
         private string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
