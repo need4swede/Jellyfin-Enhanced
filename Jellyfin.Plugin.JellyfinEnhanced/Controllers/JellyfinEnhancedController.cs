@@ -22,7 +22,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Controllers
         public string? JellyfinUserId { get; set; }
     }
 
-    [Route("JellyfinEnhancedN4S")]
+    [Route("JellyfinEnhanced")]
     [ApiController]
     public class JellyfinEnhancedController : ControllerBase
     {

@@ -16,7 +16,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
     {
         private readonly IApplicationPaths _applicationPaths;
         private readonly Logger _logger;
-        private const string PluginName = "Jellyfin Enhanced (Need4Swede)";
+        private const string PluginName = "Jellyfin Enhanced";
 
         public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
         {
@@ -81,7 +81,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 }
 
                 var content = File.ReadAllText(indexPath);
-                var scriptUrl = "../JellyfinEnhancedN4S/script";
+                var scriptUrl = "../JellyfinEnhanced/script";
                 var scriptTag = $"<script plugin=\"{Name}\" version=\"{Version}\" src=\"{scriptUrl}\" defer></script>";
                 var regex = new Regex($"<script[^>]*plugin=[\"']{Name}[\"'][^>]*>\\s*</script>\\n?");
 

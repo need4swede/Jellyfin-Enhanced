@@ -1,6 +1,6 @@
 [
   {
-    "name": "JellyfinEnhanced (Need4Swede)",
+    "name": "Jellyfin Enhanced",
     "guid": "66b28073-a193-4bbe-a009-b1bbb6f8257a",
     "description": "Fork: customizations by need4swede.",
     "overview": "Jellyfin Enhanced fork with custom tweaks.",
@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/need4swede/jellyfin-enhanced/main/images/icon.png",
     "versions": [
       {
-        "changelog": "Settings page restored (Name = plugin.Name)",
+        "changelog": "Match manifest name and plugin Name; restore route to /JellyfinEnhanced",
         "targetAbi": "10.10.0.0",
-        "version": "7.1.0.5",
-        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.5/Jellyfin.Plugin.JellyfinEnhanced.zip",
-        "checksum": "ccc828f1c3bb25535ba34385829a661d",
-        "timestamp": "2025-09-07T19:40:00Z"
+        "version": "7.1.0.6",
+        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.6/Jellyfin.Plugin.JellyfinEnhanced.zip",
+        "checksum": "5536c29e6aa682ad536d858d8e529b99",
+        "timestamp": "2025-09-07T20:05:00Z"
       }
     ]
   }

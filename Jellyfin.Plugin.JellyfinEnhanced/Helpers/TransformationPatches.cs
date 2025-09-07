@@ -16,7 +16,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Helpers
             var pluginName = "Jellyfin Enhanced (Need4Swede)";
             var pluginVersion = JellyfinEnhanced.Instance?.Version.ToString() ?? "unknown";
 
-            var scriptUrl = "../JellyfinEnhancedN4S/script";
+            var scriptUrl = "../JellyfinEnhanced/script";
             var scriptTag = $"<script plugin=\"{pluginName}\" version=\"{pluginVersion}\" src=\"{scriptUrl}\" defer></script>";
 
             var regex = new Regex($"<script[^>]*plugin=[\"']{pluginName}[\"'][^>]*>\\s*</script>\\n?");
