@@ -51,7 +51,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Services
                 {
                     var payload = new JObject
                     {
-                        { "id", "66b28073-a193-4bbe-a009-b1bbb6f8257a" }, // Using the plugin's GUID as a unique ID
+                        { "id", "C66DEDD5-137B-4215-B44B-0A454DD85C1B" }, // Using the plugin's GUID as a unique ID
                         { "fileNamePattern", "index.html" },
                         { "callbackAssembly", GetType().Assembly.FullName },
                         { "callbackClass", typeof(TransformationPatches).FullName },
