@@ -67,6 +67,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             ShowElsewhereOnJellyseerr = false;
             JellyseerrUrls = "";
             JellyseerrApiKey = "";
+            JellyseerrIconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg";
 
             // Arr Links Settings
             ArrLinksEnabled = false;
@@ -111,6 +112,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
         public bool ShowElsewhereOnJellyseerr { get; set; }
         public string JellyseerrUrls { get; set; }
         public string JellyseerrApiKey { get; set; }
+        public string JellyseerrIconUrl { get; set; }
 
         // Arr Links Settings
         public bool ArrLinksEnabled { get; set; }

@@ -30,7 +30,7 @@
             const user = await ApiClient.getCurrentUser();
             if (!user || !user.Id) {
                 console.warn("🪼 Jellyfin Enhanced: User ID not found, defaulting to English.");
-                const enResponse = await fetch(ApiClient.getUrl('/JellyfinEnhanced/locales/en.json'));
+                const enResponse = await fetch(ApiClient.getUrl('/JellyfinEnhancedN4S/locales/en.json'));
                 return await enResponse.json();
             }
 
@@ -38,14 +38,14 @@
             const storedLang = localStorage.getItem(storageKey);
             const lang = (storedLang || 'en').split('-')[0];
 
-            const response = await fetch(ApiClient.getUrl(`/JellyfinEnhanced/locales/${lang}.json`));
+            const response = await fetch(ApiClient.getUrl(`/JellyfinEnhancedN4S/locales/${lang}.json`));
 
             if (response.ok) {
                 console.log(`🪼 Jellyfin Enhanced: Loaded '${lang}' translations.`);
                 return await response.json();
             } else {
                 console.warn(`🪼 Jellyfin Enhanced: No locale for '${lang}', falling back to English.`);
-                const enResponse = await fetch(ApiClient.getUrl('/JellyfinEnhanced/locales/en.json'));
+                const enResponse = await fetch(ApiClient.getUrl('/JellyfinEnhancedN4S/locales/en.json'));
                 return await enResponse.json();
             }
         } catch (error) {
@@ -61,13 +61,13 @@
     function loadPluginData() {
         const configPromise = ApiClient.ajax({
             type: 'GET',
-            url: ApiClient.getUrl('/JellyfinEnhanced/public-config'),
+            url: ApiClient.getUrl('/JellyfinEnhancedN4S/public-config'),
             dataType: 'json'
         }).catch(() => ({}));
 
         const versionPromise = ApiClient.ajax({
             type: 'GET',
-            url: ApiClient.getUrl('/JellyfinEnhanced/version'),
+            url: ApiClient.getUrl('/JellyfinEnhancedN4S/version'),
             dataType: 'text'
         }).catch(() => '...');
 
@@ -131,7 +131,7 @@
             console.log('🪼 Jellyfin Enhanced: Public configuration and translations loaded.');
 
             // Now, load all other feature scripts
-            const basePath = '/JellyfinEnhanced/js';
+            const basePath = '/JellyfinEnhancedN4S/js';
             const allScripts = [
                 'enhanced/config.js', 'enhanced/subtitles.js', 'enhanced/ui.js',
                 'enhanced/playback.js', 'enhanced/features.js', 'enhanced/events.js',

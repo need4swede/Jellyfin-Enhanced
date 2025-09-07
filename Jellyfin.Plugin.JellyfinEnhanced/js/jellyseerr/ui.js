@@ -279,7 +279,8 @@
             icon = document.createElement('img');
             icon.id = 'jellyseerr-search-icon';
             icon.className = 'jellyseerr-icon';
-            icon.src = 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
+            const iconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
+            icon.src = iconUrl;
             icon.alt = 'Jellyseerr';
 
             let tapCount = 0;
@@ -477,12 +478,13 @@
 
         const card = document.createElement('div');
         card.className = 'card overflowPortraitCard card-hoverable card-withuserdata jellyseerr-card';
+        const jellyseerrIconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
         card.innerHTML = `
             <div class="cardBox cardBox-bottompadded">
                 <div class="cardScalable">
                     <div class="cardPadder cardPadder-overflowPortrait"></div>
                     <div class="cardImageContainer coveredImage cardContent itemAction" style="background-image: url('${posterUrl}');">
-                        <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg" class="jellyseerr-icon-on-card" alt="Jellyseerr"/>
+                        <img src="${jellyseerrIconUrl}" class="jellyseerr-icon-on-card" alt="Jellyseerr"/>
                         <div class="jellyseerr-elsewhere-icons"></div>
                         <div class="cardIndicators"></div>
                     </div>

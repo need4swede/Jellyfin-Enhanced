@@ -81,7 +81,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 }
 
                 var content = File.ReadAllText(indexPath);
-                var scriptUrl = "../JellyfinEnhanced/script";
+                var scriptUrl = "../JellyfinEnhancedN4S/script";
                 var scriptTag = $"<script plugin=\"{Name}\" version=\"{Version}\" src=\"{scriptUrl}\" defer></script>";
                 var regex = new Regex($"<script[^>]*plugin=[\"']{Name}[\"'][^>]*>\\s*</script>\\n?");
 

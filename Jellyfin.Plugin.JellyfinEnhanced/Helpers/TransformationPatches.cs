@@ -13,10 +13,10 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Helpers
                 return content.Contents ?? string.Empty;
             }
 
-            var pluginName = "Jellyfin Enhanced";
+            var pluginName = "Jellyfin Enhanced (Need4Swede)";
             var pluginVersion = JellyfinEnhanced.Instance?.Version.ToString() ?? "unknown";
 
-            var scriptUrl = "../JellyfinEnhanced/script";
+            var scriptUrl = "../JellyfinEnhancedN4S/script";
             var scriptTag = $"<script plugin=\"{pluginName}\" version=\"{pluginVersion}\" src=\"{scriptUrl}\" defer></script>";
 
             var regex = new Regex($"<script[^>]*plugin=[\"']{pluginName}[\"'][^>]*>\\s*</script>\\n?");
