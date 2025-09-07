@@ -6,7 +6,7 @@
         "overview": "Jellyfin Enhanced and Jellyfin Elsewhere for a better Jellyfin experience.",
         "owner": "need4swede",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/need4swede/jellyfin-enhanced/fork/images/icon.png",
+        "imageUrl": "https://raw.githubusercontent.com/need4swede/jellyfin-enhanced/forked/images/icon.png",
         "versions": [
             {
                 "changelog": "- Updated localization strings to use 'Mimir' instead of 'Jellyseerr'\n - Fixed GUID for fork compatibility",
