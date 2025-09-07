@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/n00bcodr/Jellyfin-Enhanced/main/images/icon.png",
         "versions": [
             {
+                "changelog": "- Updated localization strings to use 'Mimir' instead of 'Jellyseerr'\n - Fixed GUID for fork compatibility\n - Fixed GUID reference in StartupService",
+                "targetAbi": "10.10.0.0",
+                "version": "7.1.0.8",
+                "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.8/Jellyfin.Plugin.JellyfinEnhanced.zip",
+                "checksum": "bb4d733becebfa21ee18eab75987b7e1",
+                "timestamp": "2025-01-26T01:00:00Z"
+            },
+            {
                 "changelog": "- Updated localization strings to use 'Mimir' instead of 'Jellyseerr'\n - Fixed GUID for fork compatibility",
                 "targetAbi": "10.10.0.0",
                 "version": "7.1.0.7",
