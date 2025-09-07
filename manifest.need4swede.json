@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/need4swede/jellyfin-enhanced/main/images/icon.png",
     "versions": [
       {
-        "changelog": "Fork identity + configurable icon + route prefix",
+        "changelog": "Update icons and Jellyseerr UI",
         "targetAbi": "10.10.0.0",
-        "version": "7.1.0.2",
-        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.2/Jellyfin.Plugin.JellyfinEnhanced.zip",
-        "checksum": "17a747d8e7feab5ba7428071b9cc7406",
-        "timestamp": "2025-09-07T18:50:00Z"
+        "version": "7.1.0.3",
+        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.3/Jellyfin.Plugin.JellyfinEnhanced.zip",
+        "checksum": "48ece98644bf73758a5ae32870d297e4",
+        "timestamp": "2025-09-07T19:10:00Z"
       }
     ]
   }
