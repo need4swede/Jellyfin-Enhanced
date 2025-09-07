@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/need4swede/jellyfin-enhanced/main/images/icon.png",
     "versions": [
       {
-        "changelog": "Fix settings page routing; keep independent routes",
+        "changelog": "Settings page restored (Name = plugin.Name)",
         "targetAbi": "10.10.0.0",
-        "version": "7.1.0.4",
-        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.4/Jellyfin.Plugin.JellyfinEnhanced.zip",
-        "checksum": "e1df30a217c444ab346f03920b9a25f2",
-        "timestamp": "2025-09-07T19:25:00Z"
+        "version": "7.1.0.5",
+        "sourceUrl": "https://github.com/need4swede/jellyfin-enhanced/releases/download/7.1.0.5/Jellyfin.Plugin.JellyfinEnhanced.zip",
+        "checksum": "ccc828f1c3bb25535ba34385829a661d",
+        "timestamp": "2025-09-07T19:40:00Z"
       }
     ]
   }

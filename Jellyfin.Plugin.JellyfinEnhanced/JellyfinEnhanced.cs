@@ -17,7 +17,6 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
         private readonly IApplicationPaths _applicationPaths;
         private readonly Logger _logger;
         private const string PluginName = "Jellyfin Enhanced (Need4Swede)";
-        private const string ConfigPageName = "JellyfinEnhancedN4S";
 
         public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
         {
@@ -122,7 +121,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
             {
                 new PluginPageInfo
                 {
-                    Name = ConfigPageName,
+                    Name = this.Name,
                     DisplayName = PluginName,
                     EnableInMainMenu = true,
                     EmbeddedResourcePath = "Jellyfin.Plugin.JellyfinEnhanced.Configuration.configPage.html"
