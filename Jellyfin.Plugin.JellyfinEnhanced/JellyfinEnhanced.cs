@@ -16,7 +16,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
     {
         private readonly IApplicationPaths _applicationPaths;
         private readonly Logger _logger;
-        private const string PluginName = "Jellyfin Enhanced";
+        private const string PluginName = "Jellyfin Enhanced (Need4Swede)";
 
         public JellyfinEnhanced(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, Logger logger) : base(applicationPaths, xmlSerializer)
         {
@@ -27,7 +27,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
         }
 
         public override string Name => PluginName;
-        public override Guid Id => Guid.Parse("f69e946a-4b3c-4e9a-8f0a-8d7c1b2c4d9b");
+        public override Guid Id => Guid.Parse("66b28073-a193-4bbe-a009-b1bbb6f8257a");
         public static JellyfinEnhanced? Instance { get; private set; }
 
         private string IndexHtmlPath => Path.Combine(_applicationPaths.WebPath, "index.html");
@@ -122,7 +122,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced
                 new PluginPageInfo
                 {
                     Name = this.Name,
-                    DisplayName = "Jellyfin Enhanced",
+                    DisplayName = PluginName,
                     EnableInMainMenu = true,
                     EmbeddedResourcePath = "Jellyfin.Plugin.JellyfinEnhanced.Configuration.configPage.html"
                     //Custom Icons are not supported - https://github.com/jellyfin/jellyfin-web/blob/38ac3355447a91bf280df419d745f5d49d05aa9b/src/apps/dashboard/components/drawer/sections/PluginDrawerSection.tsx#L61
