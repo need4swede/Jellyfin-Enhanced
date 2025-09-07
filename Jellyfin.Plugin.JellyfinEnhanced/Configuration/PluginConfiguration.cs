@@ -67,7 +67,7 @@ namespace Jellyfin.Plugin.JellyfinEnhanced.Configuration
             ShowElsewhereOnJellyseerr = false;
             JellyseerrUrls = "";
             JellyseerrApiKey = "";
-            JellyseerrIconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg";
+            JellyseerrIconUrl = "https://minastirith.b-cdn.net/apps/jellyfin/images/favicon.png";
 
             // Arr Links Settings
             ArrLinksEnabled = false;

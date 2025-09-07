@@ -1,5 +1,5 @@
 // /js/jellyseerr/ui.js
-(function(JE) {
+(function (JE) {
     'use strict';
 
     const ui = {};
@@ -91,7 +91,7 @@
     /**
      * Hides the hover popover (respects mobile lock).
      */
-    ui.hideHoverPopover = function() {
+    ui.hideHoverPopover = function () {
         if (jellyseerrHoverPopover && !jellyseerrHoverLock) {
             jellyseerrHoverPopover.classList.remove('show');
         }
@@ -101,7 +101,7 @@
      * Toggles the lock state for the hover popover, used for mobile tap interactions.
      * @param {boolean} [lockState] - Optional state to force lock/unlock. Toggles if omitted.
      */
-    ui.toggleHoverPopoverLock = function(lockState) {
+    ui.toggleHoverPopoverLock = function (lockState) {
         jellyseerrHoverLock = typeof lockState === 'boolean' ? lockState : !jellyseerrHoverLock;
     };
 
@@ -130,7 +130,7 @@
     /**
      * Adds main CSS styles for Jellyseerr integration.
      */
-    ui.addMainStyles = function() {
+    ui.addMainStyles = function () {
         const styleId = 'jellyseerr-styles';
         if (document.getElementById(styleId)) return;
         const style = document.createElement('style');
@@ -201,7 +201,7 @@
     /**
      * Adds enhanced CSS styles for season selection modal.
      */
-    ui.addSeasonModalStyles = function() {
+    ui.addSeasonModalStyles = function () {
         const seasonStyleId = 'jellyseerr-season-styles';
         if (document.getElementById(seasonStyleId)) return;
         const style = document.createElement('style');
@@ -268,10 +268,10 @@
      * @param {boolean} isJellyseerrOnlyMode - If the results are filtered.
      * @param {function} onToggleFilter - The function to call to toggle the filter.
      */
-    ui.updateJellyseerrIcon = function(isJellyseerrActive, jellyseerrUserFound, isJellyseerrOnlyMode, onToggleFilter) {
+    ui.updateJellyseerrIcon = function (isJellyseerrActive, jellyseerrUserFound, isJellyseerrOnlyMode, onToggleFilter) {
         const anchor = document.querySelector('.searchFields .inputContainer') ||
-                       document.querySelector('#searchPage .searchFields') ||
-                       document.querySelector('#searchPage');
+            document.querySelector('#searchPage .searchFields') ||
+            document.querySelector('#searchPage');
         if (!anchor) return;
 
         let icon = document.getElementById('jellyseerr-search-icon');
@@ -279,7 +279,7 @@
             icon = document.createElement('img');
             icon.id = 'jellyseerr-search-icon';
             icon.className = 'jellyseerr-icon';
-            const iconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
+            const iconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://minastirith.b-cdn.net/apps/jellyfin/images/favicon.png';
             icon.src = iconUrl;
             icon.alt = 'Jellyseerr';
 
@@ -367,7 +367,7 @@
      * @param {boolean} isJellyseerrActive - If the server is reachable.
      * @param {boolean} jellyseerrUserFound - If the current user is linked.
      */
-    ui.renderJellyseerrResults = function(results, query, isJellyseerrOnlyMode, isJellyseerrActive, jellyseerrUserFound) {
+    ui.renderJellyseerrResults = function (results, query, isJellyseerrOnlyMode, isJellyseerrActive, jellyseerrUserFound) {
         console.log(`${logPrefix} Rendering results for query: "${query}"`);
         const searchPage = document.querySelector('#searchPage');
         if (!searchPage) {
@@ -376,7 +376,7 @@
         }
 
         const oldSection = searchPage.querySelector('.jellyseerr-section');
-        if(oldSection) oldSection.remove();
+        if (oldSection) oldSection.remove();
 
         const sectionToInject = createJellyseerrSection(results, isJellyseerrOnlyMode, isJellyseerrActive, jellyseerrUserFound);
 
@@ -478,7 +478,7 @@
 
         const card = document.createElement('div');
         card.className = 'card overflowPortraitCard card-hoverable card-withuserdata jellyseerr-card';
-        const jellyseerrIconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://cdn.jsdelivr.net/gh/selfhst/icons/svg/jellyseerr.svg';
+        const jellyseerrIconUrl = (JE && JE.pluginConfig && JE.pluginConfig.JellyseerrIconUrl) ? JE.pluginConfig.JellyseerrIconUrl : 'https://minastirith.b-cdn.net/apps/jellyfin/images/favicon.png';
         card.innerHTML = `
             <div class="cardBox cardBox-bottompadded">
                 <div class="cardScalable">
@@ -635,9 +635,9 @@
             case 3: setButton(JE.t('jellyseerr_btn_request_more'), icons.request, 'jellyseerr-button-request'); break;
             case 7: setButton(JE.t('jellyseerr_btn_view_status'), icons.requested, 'jellyseerr-button-pending'); break;
             case 4: setButton(JE.t('jellyseerr_btn_request_missing'), icons.request, 'jellyseerr-button-partially-available'); break;
-            case 5: setButton(JE.t('jellyseerr_btn_available'), icons.available, 'jellyseerr-button-available', true, seasonAnalysis?.total > 1 ? JE.t('jellyseerr_all_seasons', {count: seasonAnalysis.total}) : null); break;
+            case 5: setButton(JE.t('jellyseerr_btn_available'), icons.available, 'jellyseerr-button-available', true, seasonAnalysis?.total > 1 ? JE.t('jellyseerr_all_seasons', { count: seasonAnalysis.total }) : null); break;
             case 6: setButton(JE.t('jellyseerr_btn_rejected'), icons.cancel, 'jellyseerr-button-rejected', true); break;
-            default: setButton(JE.t('jellyseerr_btn_request'), icons.request, 'jellyseerr-button-request', false, seasonAnalysis?.total > 1 ? JE.t('jellyseerr_seasons_available', {count: seasonAnalysis.total}) : null); break;
+            default: setButton(JE.t('jellyseerr_btn_request'), icons.request, 'jellyseerr-button-request', false, seasonAnalysis?.total > 1 ? JE.t('jellyseerr_seasons_available', { count: seasonAnalysis.total }) : null); break;
         }
     }
 
@@ -749,7 +749,7 @@
      * @param {string} title - Display title of the movie.
      * @param {Object|null} searchResultItem - Original search result data.
      */
-    ui.showMovieRequestModal = async function(tmdbId, title, searchResultItem) {
+    ui.showMovieRequestModal = async function (tmdbId, title, searchResultItem) {
         const { create, createAdvancedOptionsHTML, populateAdvancedOptions } = JE.jellyseerrModal;
         const { requestMedia, fetchAdvancedRequestData } = JE.jellyseerrAPI;
 
@@ -807,7 +807,7 @@
      * @param {string} showTitle - Display title of the show.
      * @param {Object|null} searchResultItem - Original search result data.
      */
-    ui.showSeasonSelectionModal = async function(tmdbId, mediaType, showTitle, searchResultItem = null) {
+    ui.showSeasonSelectionModal = async function (tmdbId, mediaType, showTitle, searchResultItem = null) {
         if (mediaType !== 'tv') return;
 
         const { create, createAdvancedOptionsHTML, populateAdvancedOptions } = JE.jellyseerrModal;
